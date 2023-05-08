@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Object类型</title>
+	</head>
+	<body>
+		<script type="text/javascript">
+			/*
+				1、Object类型是所有类型的超类，自定义的任何类型，默认继承Object
+				2、Object类包括哪些属性
+					prototype属性（常用）:作用是给类动态的扩展属性和函数
+					constructor属性
+				3、Object类包括哪些函数	
+					toString()
+					valueOf()
+					toLocaleString()
+				4、在JS中定义的类默认继承Object，会继承Object类中所有的属性以及函数
+					换句话说，自定定义的类中也有prototype属性
+				5、在JS中怎么定义类？怎么new对象
+					定义类语法：
+						1、function 类名(形参){
+							
+						}
+						2、类名 = function(形参){
+							
+						}
+					创建对象语法：
+						new 构造方法（实参）； //构造方法名和类名一致
+			*/
+		   
+		   function sayHello(){
+			   
+		   }
+		   
+		   //把sayHello当作普通函数来调用
+		   sayHello();
+		   
+		   //这种方式就表示把sayHello当作一个类来创建对象
+		   var obj = new sayHello();	//obj 是一个引用，保存内存地址指向堆中的对象
+		   
+		   //定义一个学生类
+		   function Student(){
+			   alert("Student……");
+		   }
+		   
+		   //当作普通函数调用
+		   Student();
+		   
+		   //当作类来创建对象
+		   var stu = new Student();
+		   alert(stu);		//[object Object]
+		   
+		   //JS 中的类的定义，同时又是一个构造函数的定义
+		   //在JS中类的定义和构造函数的定义是放在一起完成的
+		   function User(a,b,c){
+			   //声明属性
+			   //User类中有三个属性：sno，sname，sage
+			   this.sno = a;
+			   this.sname = b
+			   this.sage = c;
+		   }
+		   
+		   //创建对象
+		   var u1 = new User(111,"zhangshan",30);
+		   //访问对象属性
+		   alert(u1.sno);
+		   alert(u1.sname);
+		   alert(u1.sage);
+		   
+		   //访问一个对象的属性还可以使用以下语法：
+		   var u2 = new User(222,"lisi",25);
+		   alert(u2["sno"]);
+		   alert(u2["sname"]);
+		   alert(u2["sage"]);
+		   
+		   //换一个方式定义
+		   Emp = function(ename,sal){
+			   this.ename = ename;
+			   this.sal = sal;
+		   }
+		   
+		   var e1 = new Emp("Jack",800);
+		   alert(e1["ename"] + "," + e1.sal);
+		   
+		   //
+		   Product = function(pno,pname,price){
+			   //属性
+			   this.pname = pname;
+			   this.pno = pno;
+			   this.price = price;
+			   //函数
+			   this.getPrice = function(){
+				   return this.price;
+			   }
+		   }
+		   
+		   var xigua = new Product(11,"西瓜",4.0);
+		   var pri = xigua.getPrice();
+		   alert(pri);	//4
+		   
+		   //可以通过prototype这个属性来给类动态扩展属性以及函数
+		   Product.prototype.getPname = function(){
+			   return this.pname;
+		   }
+		   
+		   //调用后期扩展的getPname函数
+		   var pname = xigua.getPname();
+		   alert(pname);	//西瓜
+		   
+		   //给String扩展一个函数
+		   String.prototype.suiyi = function(){
+			   alert("这是给String扩展的一个函数");
+		   }
+		   "abc".suiyi();	//可以的
+		   
+		</script>
+	</body>
+	<!-- java 中怎么定义类，怎么创建对象?
+			public class User{
+				private String username;
+				private String password;
+				public User(){}
+				public User(String username,String password){
+					this.username = username;
+					this.password = password;
+				}
+			}
+			User user = new User();
+			User user = new User("lisi","123");
+			
+		JS中怎么定义类，怎么创建对象？
+			User = function (username,password){
+				this.username = username;
+				this.password = password;
+			}
+			var u = new User();
+			var u = new User("zhangsan");
+			var u = new User("zhangsan","123");
+	-->
+</html>

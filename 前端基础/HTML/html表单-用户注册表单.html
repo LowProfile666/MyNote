@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>用户注册表单</title>
+	</head>
+	<body>
+		<!-- 
+			用户注册：
+				用户名
+				面膜
+				确认密码
+				性别
+				兴趣爱好
+				学历
+				简介
+		 -->
+		 <!-- form 表单method属性
+				get：采用get方式提交的时候，用户提交的信息会显示在浏览器的地址栏上
+				post：采用post方式提交的时候，用户提交的信息不会显示在浏览器地址栏上
+				当用户提交的信息中含有敏感信息，例如密码，建议次啊用post方式提交
+				method的属性不指定的情况下是get请求
+				post 提交的时候提交的数据格式和get还是一样的，只是不会在地址栏上显示
+		-->
+		<!-- 超链接也可以提交数据给服务器，但是提交的数据都是固定不变的
+			超链接是get请求，不是post请求
+			<a href="http://localhost:88?username=zhangsan&userpwd=111">提交</a>
+		 -->
+		 <form action="http://localhost:88/" method="post">
+			 <table border="0px">
+				<tr align="center">
+					<td>用户名</td>
+					<td><input type="text" name="username"/></td></td>
+				</tr>
+				<tr align="center">
+					<td>密码</td>
+					<td><input type="password" name="userpwd" /></td></td>
+				</tr>
+				<tr align="center">
+					<td>性别</td>
+					<td>
+						<input type="radio" name="sex" value="1" checked/>男
+						<input type="radio" name="sex" value="0"/>女
+						<!-- 单选按钮的value必须手动指定 checked表示默认选择-->
+					</td>
+				</tr>
+				<tr align="center">
+					<td>兴趣爱好</td>
+					<td>
+						<input type="checkbox" name="interest" value="smoke"/>抽烟
+						<input type="checkbox" name="interest" value="drink"/>喝酒
+						<input type="checkbox" name="interest" value="fireHair"/>烫头
+					</td>
+				</tr>
+				<tr align="center">
+					<td>学历</td>
+					<td>
+						<select name="grade">
+							<option value='gz'>高中</option>
+							<option value='dz' selected>大专</option>
+							<option value='bk'>本科</option>
+							<option value='ss'>硕士</option>
+							<!-- selected 默认选中 -->
+						</select>
+					</td>
+				</tr>
+				<tr align="center">
+					<td>简介</td>
+					<!-- 文本域 -->
+					<td><textarea rows="10" cols="0" name="introduce"></textarea></td>
+					<!-- rows 是行数，cols 是列数 -->
+					<!-- 文本域没有value属性，用户填写的内容就是value -->
+				</tr>
+				<tr>
+					<td colspan="2" align="center"><input type="submit" value="提交注册"/></td>
+				</tr>
+			 </table>
+		 </form>
+	</body>
+</html>

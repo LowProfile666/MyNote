@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>代码的执行顺序</title>
+	</head>
+	<!-- lload事件在页面全部元素加载完毕后才发生 -->
+	<body onload="reday()">
+		
+		
+		<script type="text/javascript">
+		
+		// //第一步：根据id获取节点对象
+		// var btn = document.getElementById("btn")	//返回null（因为代码执行到此处的时候，id="btn"的元素还没有加载到内存中）
+		// //第二步：给节点对象绑定事件
+		// btn.onclick = function(){
+		// 	alert("关于代码的执行顺序");
+		// }
+		
+		function reday(){
+			var btn = document.getElementById("btn");
+			btn.onclick = function(){
+				alert("关于代码执行的顺序");
+			}
+		}
+		
+		</script>
+		
+		<input type="button" value="hello" id="btn" />
+		
+		
+	</body>
+</html>

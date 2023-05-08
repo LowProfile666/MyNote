@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+	<head>
+		<title>HTML的表格-单元格合并</title>
+	</head>
+	<body>
+	<!--注意事项：
+		1、row合并的时候，删除“下面的”单元格
+		2、col合并的时候，对删除那个没有要求
+	-->
+		<table border="1px" width="50%">
+			<tr align="center">
+				<td>1</td>
+				<td>2</td>
+				<td>3</td>
+			</tr>
+			<tr align="center">
+				<td>4</td>
+				<td>5</td>
+				<td rowspan="2">6</td>
+			</tr>
+			<tr align="center">
+				<td colspan="2">7</td>
+				<!--<td>8</td>-->
+				<!--<td>9</td>-->
+			</tr>
+		</table>
+	</body>
+</html>

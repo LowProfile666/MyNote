@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>DOM编程-关于正则表达式</title>
+	</head>
+	<body>
+		<script type="text/javascript">
+			/*
+				1、什么是正则表达式，它有什么用
+					正则表达式：Regular Expression
+					正则表达式主要用在字符串格式匹配方面
+				2、正则表达式实际上是一门独立的学科，在Java语言中支持，在C语言中也支持
+					大部分编程语言都支持正则表达式，正则表达式最初使用子啊医学方面，用来表示神经符号
+					目前使用最多的是计算机编程领域，用做字符串格式匹配，包括搜索方面等
+				3、正则表达式，对于JavaScript编程来说，要掌握哪些内容
+					1、常见的正则表达式符号要认识
+					2、简单的正则表达要会写
+					3、他人编写的正则表达式要能看懂
+					4、在JavaScript中，怎么创建正则表达式对象（new对象）
+					5、在JavaScript中，正则表达式有哪些方法（调方法）
+					6、要能够快速的从网络上找到自己需要的正则表达式，并且测试其有效性
+				4、常见的正则表达式符号
+					.  匹配除换行符以外的任意字符 
+					\w 匹配字母或数字或下划线或汉字 
+					\s 匹配任意的空白符 
+					\d 匹配数字 
+					\b 匹配单词的开始或结束 
+					^  匹配字符串的开始 
+					$  匹配字符串的结束 
+					
+					* 重复零次或更多次 
+					+ 重复一次或更多次 
+					? 重复零次或一次 
+					{n} 重复n次 
+					{n,} 重复n次或更多次 
+					{n,m} 重复n到m次 
+									
+					\W 匹配任意不是字母，数字，下划线，汉字的字符 
+					\S 匹配任意不是空白符的字符 
+					\D 匹配任意非数字的字符 
+					\B 匹配不是单词开头或结束的位置 
+					[^x] 匹配除了x以外的任意字符 
+					[^aeiou] 匹配除了aeiou这几个字母以外的任意字符 
+					
+					正则表达式当中的小括号（）优先级比较高
+					[1-9] 表示1到9的任意一个数字（次数是1）
+					[A-Za-z0-9-] 表示A-Z、a-z、0-9，以上所有字符中的任意一个字符
+					[A-Za-z0-9-] 表示A-Z、a-z、0-9、-，以上所有字符中的任意一个字符
+					
+				5、简单的正则表达式要回写
+					QQ号的正则表达式：^[1-9][0-9]{4,}$
+					
+				6、他人编写的正则表达式要能看懂
+					Email地址：^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$
+					
+				7、怎么创建正则表达式对象，怎么调用正则表达式的对象的方法
+					第一种创建方式：
+						var regExp = /正则表达式/[flags];
+					第二种创建方式：使用内置支持类RegExp
+						var regExp = new RegExp("正则表达式","[flags]")
+						
+					关于flags：
+						g （全文查找出现的所有 pattern） 
+						i （忽略大小写） 
+						m （多行查找） ，当前面是正则表达式的时候，m不能用，只有前面是普通字符串的时候，m才可以用
+						
+					正则表达式对象的test（）方法
+						true / false = 正则表达式对象.test（用户填写的字符串）
+						true：字符串格式匹配成功
+						false：字符串格式匹配失败
+			*/
+		   window.onload = function(){
+			   //给按钮绑定click事件
+			   document.getElementById("btn").onclick = function(){
+				   //这个是用户填写的字符串
+				   var email = document.getElementById("email").value;
+				   /这个是正则表达式对象
+				   var emailRegExp = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+				   //这个是调用方法
+				   var ok = emailRegExp.test(email);
+				   if(!ok){
+					   document.getElementById("eamilError").innerText = "邮箱地址不合法！"
+				   }
+			   }
+			   //这是给文本框绑定focus事件，获得焦点
+			   document.getElementById("email").onfocus = function(){
+				   document.getElementById("eamilError").innerText = ""
+			   }
+		   }
+		</script>
+		
+		<input type="text" id="email" />
+		<span id="eamilError" style="color:red;font-size:12px"></span>
+		<br>
+		<input type="button" value="验证邮箱" id="btn" />
+	</body>
+</html>

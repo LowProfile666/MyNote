@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>获取下拉列表选中的value</title>
+	</head>
+	<body>
+		<!-- 
+			<select onchange="alert(this.value)">
+				<option>--请选择省份--</option>
+				<option value="1">四川</option>
+				<option value="2">湖北</option>
+				<option value="3">河北</option>
+				<option value="4">河南</option>
+			</select>
+		 -->
+		 
+		 <script type="text/javascript">
+		 	window.onload = function(){
+				var list = document.getElementById("provinceList");
+				list.onchange = function(){
+					//获取选中项的value
+					alert(list.value);
+				}
+			}
+		 </script>
+		 <select id="provinceList">
+		 	<option>--请选择省份--</option>
+		 	<option value="1">四川</option>
+		 	<option value="2">湖北</option>
+		 	<option value="3">河北</option>
+		 	<option value="4">河南</option>
+		 </select>
+	</body>
+</html>

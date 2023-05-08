@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>html中嵌入JavaScript代码的第三种方式：引入外部的独立js文件</title>
+	</head>
+	<body>
+		<!-- 在需要的位置引入js脚本文件 -->
+		<!-- 引入外部独立的js 文件的时候，js文件中的代码会遵循自上而下的顺序依次逐行执行 -->
+		<script type="text/javascript" src="js/test.js"></script>
+		<!-- 同一个js文件可以被引入多次，但没必要 -->
+		<!-- 
+			这种方式不行，结束的script标签必须有 
+			<script type="text/javascript" src="js/test.js" />
+			虽然我测试的时候可以执行
+		-->
+		
+		<script type="text/javascript" src="js/test.js">
+			//这里写的代码不会执行
+			//window.alert("hello")
+		</script>
+		
+		<!-- 引入js文件后，可以继续写js脚本块 -->
+		<script type="text/javascript">
+			alert("fuck world")
+		</script>
+	</body>
+</html>

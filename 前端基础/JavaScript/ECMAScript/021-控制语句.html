@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>控制语句</title>
+	</head>
+	<body>
+		<script type="text/javascript">
+			/*
+				1、if
+				2、switch
+				
+				3、while
+				4、do while
+				5、for
+				
+				6、break
+				7、continue
+				
+				8、for in
+				9、with
+			*/
+		   //创建JS数组
+		   var arr = [false,true,12,3.14,"acd"];	// JS数组中的元素类型随意，元素的个数随意
+		   //遍历数组
+		   for(var i = 0;i < arr.length;i++){
+			   alert(arr[i]);
+		   }
+		   
+		   //for..in
+		   for(var i in arr){	//i是数组元素的下标
+			   alert(arr[i]);	
+		   }
+		   
+		   //for...in可以遍历对象的属性
+		   User = function(username,password){
+			   this.username = username;
+			   this.password = password;
+		   }
+		   var u = new User("张三","123");
+		   alert(u.username+","+u.password);
+		   for(var i in u){	//i是属性名，是一个字符串
+			   alert(i);
+			   alert(u[i]);
+		   }
+		   
+		   with(u){
+			   alert(username+','+password);
+		   }
+		</script>
+	</body>
+</html>

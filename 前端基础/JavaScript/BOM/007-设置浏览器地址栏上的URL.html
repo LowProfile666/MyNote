@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>设置浏览器地址的URL</title>
+	</head>
+	<body>
+		<script type="text/javascript">
+				
+			function goBaidu(){
+				
+				// var locationObj = window.location;
+				// locationObj.href = "http://www.baidu.com";
+				
+				// window.location.href = "http://www.baidu.com"
+				
+				// window.location= "http://www.baidu.com"
+				
+				// document.location.href = "http://www.baidu.com"
+				document.location = "http://www.baidu.com"
+			}
+		</script>
+		<input type="button" value="百度" onclick="goBaidu()" />
+	</body>
+	<!-- 
+		总结，有哪些方法可以通过浏览器往服务器发送请求
+			1、表单form 的提交
+			2、超链接
+			3、document.location
+			4、window.location
+			5、window.open("url")
+			
+			以上所有的请求方式均可以携带数据给服务器，只有通过表单提交的数据才是动态的
+	 -->
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>超链接、热链接</title>
+		<!-- 超链接的特点
+				有下划线
+				鼠标停留在超链接上会显示小手形状
+				点击超链接之后能跳转页面
+		-->
+	</head>
+	<body>
+		<!-- 
+			href ：hot references 引用
+			href 属性后面一定是一个资源的地址
+			href 后面的路径可以是绝对路径也可以是相对路径，可以是网络中某个资源的路径也可以是本地资源的路径
+			超链接有一个target 属性，可取值：
+				_blank: 新窗口
+				_self: 当前窗口
+				_top: 顶级窗口
+				_parent: 父窗口
+		 -->
+		<a href="https://www.baidu.com/" target="_self">百度</a>
+		<a href="http://news.baidu.com/">百度新闻</a>
+		<a href="html图片.html">html图片</a>
+		<br>
+		<!-- 图片超链接 -->
+		<a href="http://cn.hao123.com/" target="_blank">
+			<img src="image/baidulogo.png">
+		</a>
+		
+	</body>
+</html>
+<!-- 超链接的作用
+		通过超链接可以从浏览器向服务器发送请求
+		浏览器向服务器发送数据（请求：request）
+		服务器向浏览器发送数据（响应：response）
+		B/S结构的系统，每一个请求都会对应一个响应
+		B---请求---》S
+		S---响应---》B
+		用户点击超链接和用户在浏览器地址栏上直接输入URL有什么区别
+			本质上没有区别，都是向服务器发送请求
+			操作上超链接更方柏霓
+ -->

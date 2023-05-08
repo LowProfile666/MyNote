@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>表单验证</title>
+		<style type="text/css">
+			.error{
+				font-size: 12px;
+				color: red;
+			}
+		</style>
+	</head>
+	<body>
+		<!--
+			用户名不能为空 √
+			用户名必须在6-14位之间 √
+			用户名只能由数字和字母组成，不能含有其他符号（正则） √
+			密码和确认密码一致，邮箱地址合法 √
+			统一失去焦点验证 √
+			错误提示信息统一在span标签中提示，12号字体红色 √
+			文本框再次获得焦点后，清空错误提示，如果文本框中数据不合法哟啊求清空文本框的value √
+			最终表单中所有项均合法方可提交
+		 -->
+		<script type="text/javascript">
+			window.onload = function(){
+				//用户名
+				var usernameElt = document.getElementById("username");
+				//用户名失去焦点事件,检查用户名是否不合法并提示
+				usernameElt.onblur = function(){
+					//获取用户填写的字符串
+					var usernameStr = usernameElt.value;
+					//去除前后空白
+					usernameStr = usernameStr.trim();
+					//正则表达式对象
+					var regExp = /^[A-Z0-9a-z]{6,14}$/;
+					var ok = regExp.test(usernameStr);
+					if(!ok){
+						document.getElementById("usernameE").innerText = "用户名非法！";
+					}
+					this.value = usernameStr;
+				}
+				//用户名获得焦点事件，检查是否是不合法用户名，是则清空
+				usernameElt.onfocus = function(){
+					//用户填写的字符串
+					var usernameStr = usernameElt.value;
+					//正则表达式对象
+					var regExp = /^[A-Z0-9a-z]{6,14}$/;
+					var ok = regExp.test(usernameStr);
+					if(!ok){
+						document.getElementById("usernameE").innerText = "";
+						this.value = "";
+					}
+				}
+				
+				//密码和确认密码
+				var passwordElt = document.getElementById("password");
+				var confirmElt = document.getElementById("confirm");
+				
+				//失去焦点事件
+				confirmElt.onblur = function(){
+					var passwordStr = passwordElt.value;
+					var confirmStr = confirmElt.value;
+					if(passwordStr != confirmStr)
+						document.getElementById("confirmE").innerText = "两次密码不一致！";
+				}
+				//获得焦点事件
+				confirmElt.onfocus = function(){
+					var passwordStr = passwordElt.value;
+					var confirmStr = confirmElt.value;
+					if(passwordStr != confirmStr){
+						document.getElementById("confirmE").innerText = "";
+						this.value = "";
+					}
+				}
+				
+				//邮箱地址
+				var emailElt = document.getElementById("email");
+				var emailRegExp = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;	
+				//获得焦点事件
+				emailElt.onfocus = function(){
+					var emailStr = emailElt.value;
+					var ok = emailRegExp.test(emailStr);
+					if(!ok){
+						document.getElementById("emailE").innerText = "";
+						this.value = "";
+					}
+				}
+				//失去焦点事件
+				emailElt.onblur = function(){
+					var emailStr = emailStr = emailElt.value;
+					var ok = emailRegExp.test(emailStr);
+					if(!ok)
+						document.getElementById("emailE").innerText = "邮箱地址不合法！";
+				}
+				
+				//给提交按钮绑定单机事件
+				var submitElt = document.getElementById("submitBtn");
+				submitElt.onclick = function(){
+					//用代码触发事件
+					usernameElt.focus();
+					usernameElt.blur();
+					
+					confirmElt.focus();
+					confirmElt.blur();
+					
+					emailElt.focus();
+					emailElt.blur();
+					
+					if(usernameE.innerText == "" && confirmE.innerText == "" && emailE.innerText == ""){
+						var formElt = document.getElementById("userForm");
+						formElt.submit();
+					}
+				}
+			}
+		</script>
+		<form  action="http://localhost:88/index.html" id="userForm">
+			<table  border="0px">
+				<tr>
+					<td>用户名</td>
+					<td><input type="text" name="username" id="username" /></td>
+					<td><span class="error" id="usernameE"></span></td>
+				</tr>
+				<tr>
+					<td>密码</td>
+					
+					<td><input type="password" name="password" id="password"/></td>
+					<td><span class="error" id="passwordE"></span></td>
+					
+				</tr>
+				<tr>
+					<td>确认密码</td>
+					<td><input type="password" name="confirm" id="confirm"/></td>
+					<td><span class="error" id="confirmE"></span></td>	
+					
+				</tr>
+				<tr>
+					<td>邮箱地址</td>
+					<td><input type="text" name="email" id="email"/></td>
+					<td><span class="error" id="emailE"></span></td>	
+						
+				</tr>
+				<tr >
+					<td colspan="2" align="center">
+						<!-- <input type="submit" value="提交" id="submit"/> -->
+						<input type="button" value="提交" id="submitBtn"/>
+						<!-- id不要使用submit，在表达提交的时候会有问题：submit is not a function -->
+					</td>
+				</tr>
+			</table>
+		</form>
+	</body>
+</html>
+
