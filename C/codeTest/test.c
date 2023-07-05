@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS 1
+ #define _CRT_SECURE_NO_WARNINGS 1
 // #include<stdio.h>
 
 
@@ -1141,11 +1141,172 @@ int main(){
 //	return 0;
 //} 
 
+//#include<stdio.h>
+//
+//int main(){
+//	int a =1, b = 0;
+//	int c = a || a && (b=1);
+//	printf("b=%d, c=%d\n", b, c);
+//	return 0;
+//} 
+
+// #include<stdio.h>
+// #include<math.h>
+
+// int main() {
+// 	printf("%lf", log2(10));
+// 	return 0;
+// }
+
+// #include<stdio.h>
+
+
+// void quick_srot (int nums[], int l, int r) {
+//     if (l >= r) return;
+//     int pivot = nums[l];
+//     int i = l-1, j = r+1;
+//     while (i < j) {
+//         do ++i; while (nums[i] < pivot);
+//         do --j; while (nums[j] > pivot);
+//         if (i < j) {
+//             int t = nums[i];
+//             nums[i] = nums[j];
+//             nums[j] = t;
+//         }
+//     }
+//     quick_srot(nums, l, j);
+//     quick_srot(nums, j+1, r);
+// }
+// int main() {
+//     int n = 0;
+//     scanf("%d", &n);
+//     int nums[n];
+//     for (int i = 0; i < n; ++i) {
+//         scanf("%d", &nums[i]);
+//     }
+//     quick_srot(nums, 0, n-1);
+    
+//     for (int i = 0; i < n; ++i) {
+//         printf("%d ", nums[i]);
+//     }
+//     return 0;
+// }
+
+// #include <stdio.h>
+
+// #define LL long long
+// #define mod 2008
+// #define N 100000005
+// int f[N];
+// int pow_mod(int a,int n)
+// {
+//     LL ans=1;
+//     while(n)
+//     {
+//         if(n&1) ans=ans*a%mod;
+//         a=a*a%mod;
+//         n>>=1;
+//     }
+//     return ans;
+// }
+// int get(int n)
+// {
+//     if(f[n]) return f[n];
+//     if(n==1) return 2;
+//     int ans=pow_mod(2,n);
+//     for(int i=2;i*i<=n;i++)
+//     {
+//         if(n%i==0)
+//         {
+//             ans=(ans-get(i))%mod;
+//             int t=n/i;
+//             if(i*i!=n) ans=(ans-get(t)+mod)%mod;
+//         }
+//     }
+//     return f[n]=(ans-2+mod)%mod;
+// }
+// int main()
+// {
+//     int n;
+//     while(~scanf("%d",&n))
+//         printf("%d\n",get(n));
+//     return 0;
+// }
+
+// #include <stdio.h>
+// void swap(int* a, int* b) {
+//     *a ^= *b;
+//     *b ^= *a;
+//     *a ^= *b;
+// }
+// int main() {
+// 	int a = 1;
+// 	int b = 2;
+// 	printf("%d, %d\n", a, b);
+// 	swap(&a, &b);
+// 	printf("%d, %d\n", a, b);
+// }
+
+// #include <stdio.h>
+// int main(){
+// 	char c = 'a';
+// 	int i = c;
+// 	int arr[c];
+	
+// 	printf("%d", i);
+// 	return 0;
+// }
+
+// #include<stdio.h>
+
+// int main(){
+//     int n, x, y, a, b;
+//     scanf("%d%d%d%d%d", &n, &x, &y, &a, &b);
+//     long res = 0, max = 0;  
+//     int cnt1 = 0, cnt2 = 0;
+//     int S = 0, s = 0, M = 0, m = 0;
+//     for (int i = 0; i < n; ++i) {
+//         max = res > max ? res : max;
+//         scanf("%d%d%d", &S, &s, &M);
+//         m = M - S*x - s*y;
+//         if (m == 0) {
+//             cnt2 = 0;
+//             if (++cnt1 >= b && res != 0) {
+//                 res >>= 1;
+//             }
+//             continue;
+//         }
+//         cnt1 = 0;
+//         res += m;
+//         if (m > M-m) {
+//             res += (int)(0.5*m*100+0.5)/100.0;
+//             // if ((0.5*m) % 1 != 0)
+//             //     ++res;
+//         }
+//         if (++cnt2 >= a)
+//             res <<= 1;
+//     }
+//     max = res > max ? res : max;
+//     printf("%d %d", max, res);
+//     return 0;
+// }
+
+
+// #include <stdio.h>
+
+// int main() {
+// 	int a = 0b1;
+// 	if (1 & 0b1 == 1)
+// 		printf("%d", a);
+// 	return 0;
+// }
+
 #include<stdio.h>
 
 int main(){
-	int a =1, b = 0;
-	int c = a || a && (b=1);
-	printf("b=%d, c=%d\n", b, c);
+	int a = 4, b = 2;
+    // a ^= b ^= a ^= b;
+    a = b = 3;
+    printf("%d %d %d", a, b, 133 & (0b00000111));
 	return 0;
-} 
+}

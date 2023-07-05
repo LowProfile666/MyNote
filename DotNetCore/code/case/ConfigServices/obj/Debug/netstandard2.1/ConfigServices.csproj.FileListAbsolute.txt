@@ -1,0 +1,10 @@
+D:\MyNote\DotNetCore\code\case\ConfigServices\bin\Debug\netstandard2.1\ConfigServices.deps.json
+D:\MyNote\DotNetCore\code\case\ConfigServices\bin\Debug\netstandard2.1\ConfigServices.dll
+D:\MyNote\DotNetCore\code\case\ConfigServices\bin\Debug\netstandard2.1\ConfigServices.pdb
+D:\MyNote\DotNetCore\code\case\ConfigServices\obj\Debug\netstandard2.1\ConfigServices.csproj.AssemblyReference.cache
+D:\MyNote\DotNetCore\code\case\ConfigServices\obj\Debug\netstandard2.1\ConfigServices.GeneratedMSBuildEditorConfig.editorconfig
+D:\MyNote\DotNetCore\code\case\ConfigServices\obj\Debug\netstandard2.1\ConfigServices.AssemblyInfoInputs.cache
+D:\MyNote\DotNetCore\code\case\ConfigServices\obj\Debug\netstandard2.1\ConfigServices.AssemblyInfo.cs
+D:\MyNote\DotNetCore\code\case\ConfigServices\obj\Debug\netstandard2.1\ConfigServices.csproj.CoreCompileInputs.cache
+D:\MyNote\DotNetCore\code\case\ConfigServices\obj\Debug\netstandard2.1\ConfigServices.dll
+D:\MyNote\DotNetCore\code\case\ConfigServices\obj\Debug\netstandard2.1\ConfigServices.pdb

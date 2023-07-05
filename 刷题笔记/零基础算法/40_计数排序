@@ -1,0 +1,95 @@
+# 计数排序
+
+> 不是基数排序。
+
+## 1. 概念定义
+
+**计数排序**（Counting sort）是一个==非基于比较==的==稳定==的==线性时间==的排序算法，
+
++ 非基于比较：之前学的排序都是通过比较数据的大小来实现有序的，比如希尔排序等，而计数排序不用比较数据的大小。
+
+计数排序的名字会让我们想到“计数法”，实际上计数排序的实现就是使用的计数法。
+
+**工作原理**：使用一个额外的数组 cnt，其中第 i 个元素是待排序数组 A 中值等于 i 的元素的个数，然后根据数组 cnt 来将 A 中的元素排到正确的位置。
+
+**具体实现**：创建一个足够大的数组 cnt，足够大的意思是 cnt 的下标范围可以包括所有的待排序数据值。然后遍历待排序数据，使用计数法统计每个数据的出现次数。最后遍历 cnt 数组，将每一个值（cnt[i]）不为 0 的下标（i）放入原数组 cnt[i] 次。
+
+```java
+// 假设 0 <= arr[i] <= 100
+public void countingSort(int[] arr) {
+    int[] cnt = new int[101];  // (1)
+    for (int a : arr) {
+        ++cnt[a];
+    }
+    int top = 0;
+    for (int i = 0; i < cnt.length; i++) {
+        while (cnt[i] != 0) {
+            arr[top++] = i;
+            -cnt[i];
+        }
+    }
+}
+```
+
+（1）：因为最大的数据是100，所以数组下标要开到 101，否则会出现数组越界问题
+
+## 2. 题目练习
+
+|                           题目链接                           | 备注 |
+| :----------------------------------------------------------: | ---- |
+| [有效的字母异位词](https://leetcode-cn.com/problems/valid-anagram/) |      |
+| [数组中的第K个最大元素](https://leetcode-cn.com/problems/kth-largest-element-in-an-array/) |      |
+| [丢失的数字](https://leetcode-cn.com/problems/missing-number/) |      |
+| [找不同](https://leetcode-cn.com/problems/find-the-difference/) |      |
+| [错误的集合](https://leetcode-cn.com/problems/set-mismatch/) |      |
+
+## 3. 解题报告
+
+[数组中的第K个最大元素](https://leetcode-cn.com/problems/kth-largest-element-in-an-array/)
+
+**题目描述**
+
+> 给定整数数组 `nums` 和整数 `k`，请返回数组中第 `k` 个最大的元素。
+>
+> 请注意，你需要找的是数组排序后的第 `k` 个最大的元素，而不是第 `k` 个不同的元素。
+>
+> 你必须设计并实现时间复杂度为 `O(n)` 的算法解决此问题。
+>
+> - `1 <= k <= nums.length <= 10^5`
+> - `-10^4 <= nums[i] <= 10^4`
+
+**解题思路**
+
+将原数组排序，返回倒数第 k 个数据即可。
+
+数据范围不是很大，所以可以使用计数排序。但是需要注意的是，数据中会有负数出现，而下标不能有负数，所以可以将计数数组的范围开的更大一点，可以通过加减一个偏移量来表示正负数，以此容纳所有数据。
+
+**Java代码**
+
+```java
+class Solution {
+    public int findKthLargest(int[] nums, int k) {
+        countingSort(nums);
+        return nums[nums.length - k];
+    }
+    public void countingSort(int[] arr) {
+        int[] cnt = new int[20001];  // (1)
+        for (int a : arr)
+            ++cnt[a+10000];  // (2)
+        int top = 0;
+        for (int i = 0; i < cnt.length; i++) {
+            while (cnt[i] != 0) {
+                arr[top++] = i-10000;
+                --cnt[i];
+            }
+            if (top == arr.length)  
+                return;
+        }
+    }
+}
+```
+
+（1）：数据个数最大一共有 20000，多开一个数组空间防止溢出
+
+（2）：偏移量为 10000，因为负数的最小值为 10000，加上一个 10000 就可以用 [0, 10000] 来表示 [-10000, 0] 的负数。
+

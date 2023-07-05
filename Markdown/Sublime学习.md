@@ -161,3 +161,54 @@ int main(){
 其会在 D 盘生成一个 demo.exe 可执行文件，找到该文件并双击，即可看到程序的执行结果：
 
 `Hello, World!`
+
+## 配置运行Java
+
+sublime自己有一个JavaC的构建系统，但是只能编译不能运行，所以需要配置一下：
+
+在 Tools 菜单栏中 Build System 里选择 New Build System，然后将以下代码复制进去：
+
+```json
+{
+    "cmd": ["javac", "$file_name", "&&", "java", "$file_base_name"],
+    "selector": "source.java",
+    "shell": true,
+    "working_dir": "$file_path"
+}
+```
+
+并保存，可以取名为 Java.sublime-build。
+
+同时在 Tools 中 Build System 中可以选定 Automatic ，这样sublime就可以根据文件类型自动选择 Builid System。
+
+因为sublime编码的问题，一般在DOS窗口中运行Java是使用的ASNI编码保存的，但是在sublime中，ASNI对应的Western（Window1252）不能使用中文，所以只能使用UTF-8的格式，但是使用UTF-8的话，DOS中就不能正常运行，会出现乱码，所以要在系统环境变量里面新建一个变量：
+
+```
+名为：JAVA_TOOL_OPTIONS
+值为：-Dfile.encoding=UTF-8
+```
+
+这样在DOS中和在sublime中都可以使用UTF-8的格式来运行Java，而不会出现乱码。
+
+还可以使用 chcp 命令来更改当前DOS窗口的格式
+
+1. 查看当前代码页：在DOS命令行窗口中，输入以下命令并按Enter键：
+
+```
+chcp
+```
+
+该命令将显示当前的代码页信息。
+
+1. 更改为ANSI格式：根据您所需的ANSI格式值，使用以下命令更改当前的代码页。例如，要将代码页更改为ANSI标准的代码页437，输入以下命令并按Enter键：
+
+```
+chcp 437
+```
+
+1. 确认更改：输入`chcp`命令再次检查当前的代码页，确保已成功更改为所需的ANSI格式。
+
+请注意，不同的ANSI格式对应不同的代码页值。常见的ANSI标准代码页包括437、850、1252等，具体取决于您所处的地区和语言环境。
+
+通过使用`chcp`命令切换到ANSI格式，您可以在DOS命令行中正确显示和处理相应的ANSI编码字符。
+
