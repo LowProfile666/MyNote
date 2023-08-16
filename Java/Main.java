@@ -1084,35 +1084,110 @@
 //     }
 // }
 
-import java.util.*;
-import java.io.*;
+// import java.util.*;
+// import java.io.*;
+
+// public class Main{
+//     public static void main(String[] args) throws IOException {
+//         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+//         int t = in.read()-'0';
+//         // System.out.println(t);
+//         for (int cases = 1; cases <= t; cases++) {
+//             String s = in.readLine();
+//             char[] ss = s.toCharArray();
+//             int[] k_idx = new int[ss.length];
+//             int[] s_idx = new int[ss.length];
+//             int top1 = 0, top2 = 0;
+//             for (int i = 0; i < ss.length-4; i++) {
+//                 int j = i + 4;
+//                 if (s.substring(i, j).equals("KICK"))
+//                     k_idx[top1] = i;
+//                 else if (j+1 <= ss.length && s.substring(i, j+1).equals("START"))
+//                     s_idx[top2] = i;
+//             }
+//             int res = 0;
+//             for (int k : k_idx) {
+//                 for (int i : s_idx) {
+//                     if (i > k)
+//                         res++;
+//                 }
+//             }
+//             System.out.println("Case #" + cases + ": " + res);
+//         }
+//     }
+// }
+
+
+
+// public class Main{
+//     public static void main(String[] args){
+//         int a = 10, b = 19;
+//         System.out.println(a & (b-1));
+//         System.out.println(a % b);
+//     }
+// }
+
+// public class Main{
+//     public static void main(String[] args) {
+//         HashTable ht = new HashTable(1 << 3);
+//         ht.add(1);
+//         ht.add(28);
+//         ht.add(4);  
+//         ht.add(12);
+
+//         for (int i = 0; i < ht.m; i++) {
+//             System.out.print(ht.val[i] + " ");
+//         }
+//     }
+// }
+
+// class HashTable{
+//     int[] val;
+//     int m;
+//     int p;
+//     public HashTable(int m) {
+//         this.m = m;
+//         val = new int[m];
+//         p = m-1;
+//     }
+//     public int f(int key) {
+//         return key & p;
+//     }
+
+//     public void add(int key) {
+//         int idx = f(key);
+//         while (val[idx] != 0) {
+//             idx = (idx + 1) % m;
+//         }
+//         val[idx] = key;
+//     }
+
+//     public int find(int key) {
+//         int idx = f(key);
+//         int start = idx;
+//         while (val[idx] != key) {
+//             if (val[idx] == -1)
+//                 return -1;
+//             idx = (idx + 1) % m;
+//             if (idx == start)
+//                 return -1;
+//         }
+//         return idx;
+//     }
+
+//     public void delete(int key) {
+//         int idx = find(key);
+//         if (idx == -1)
+//             return;
+//         val[idx] = -1;
+//     }
+// }
+
 
 public class Main{
-    public static void main(String[] args) throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        int t = in.read()-'0';
-        // System.out.println(t);
-        for (int cases = 1; cases <= t; cases++) {
-            String s = in.readLine();
-            char[] ss = s.toCharArray();
-            int[] k_idx = new int[ss.length];
-            int[] s_idx = new int[ss.length];
-            int top1 = 0, top2 = 0;
-            for (int i = 0; i < ss.length-4; i++) {
-                int j = i + 4;
-                if (s.substring(i, j).equals("KICK"))
-                    k_idx[top1] = i;
-                else if (j+1 <= ss.length && s.substring(i, j+1).equals("START"))
-                    s_idx[top2] = i;
-            }
-            int res = 0;
-            for (int k : k_idx) {
-                for (int i : s_idx) {
-                    if (i > k)
-                        res++;
-                }
-            }
-            System.out.println("Case #" + cases + ": " + res);
-        }
+    public static void main(String[] args) {
+        int a = 1, b = 2, c;
+        c = a ^ b;
+        System.out.println(((a ^ b) == c) && ((b ^ c) == a) && ((a ^ c) == b));
     }
 }
