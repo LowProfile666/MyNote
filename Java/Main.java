@@ -1184,10 +1184,87 @@
 // }
 
 
-public class Main{
-    public static void main(String[] args) {
-        int a = 1, b = 2, c;
-        c = a ^ b;
-        System.out.println(((a ^ b) == c) && ((b ^ c) == a) && ((a ^ c) == b));
-    }
+// public class Main{
+//     public static void main(String[] args) {
+//         int a = 1, b = 2, c;
+//         c = a ^ b;
+//         System.out.println(((a ^ b) == c) && ((b ^ c) == a) && ((a ^ c) == b));
+//     }
+// }
+
+//import java.util.*;
+//public class Main{
+//    public static void main(String[] args) {
+//        Scanner sc = new Scanner(System.in);
+//        int t = sc.nextInt();
+//        while (t-- != 0) {
+//            int n = sc.nextInt();
+//            int m = sc.nextInt();
+//            String[] strs = new String[n];
+//            for (int i = 0; i < n; i++) {
+//                strs[i] = sc.next();
+//            }
+//            boolean[] v = new boolean[4];
+//            for (int i = 0, c = 0; i < 4; i++) {
+//                char cur = "vika".charAt(i);
+//                for (; c < m; c++) {
+//                    for (int r = 0; r < n; r++) {
+//						if (strs[r].charAt(c) == cur) {
+//							v[i] = true;
+//							break;
+//						}
+//                    }
+//					if (v[i])
+//					{
+//						break;
+//					}
+//                }
+//				c++;
+//            }
+//            boolean res = v[0] && v[1] && v[2] && v[3];
+//            if (res)
+//                System.out.println("YES");
+//            else
+//                System.out.println("NO");
+//
+//        }
+//    }
+//}
+
+import java.util.*;
+import java.io.*;
+
+public class Main {
+	public static void main(String[] args) throws Exception {
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		int t = Integer.parseInt(in.readLine());
+		while (t-- != 0)
+		{
+			int n = Integer.parseInt(in.readLine());
+			int[] b = new int[n];
+			String[] nums = in.readLine().split(" ");
+			for (int i = 0; i < n; i++)
+			{
+				b[i] = Integer.parseInt(nums[i]);
+			}
+			List<Integer> a = new ArrayList<>();
+			a.add(b[0]);
+			for (int i = 1; i < n; i++)
+			{
+				if (a.get(i-1) <= b[i])
+				{
+					a.add(b[i]);
+					continue;
+				}
+				a.add(b[i]-1);
+				a.add(b[i]);
+			}
+			System.out.println(a.size());
+			for (int i = 0; i < a.size(); i++)
+			{
+				System.out.printf("%d ", a.get(i));
+			}
+			System.out.println();
+		}
+	}
 }
