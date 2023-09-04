@@ -1,4 +1,0 @@
-2023-06-23 18:11:04.0208|0|DEBUG|LogginDemo1.Test1|开始执行数据库同步 |url: |action: 
-2023-06-23 18:11:04.0412|0|DEBUG|LogginDemo1.Test1|数据库链接成功 |url: |action: 
-2023-06-23 18:11:04.0412|0|WARN|LogginDemo1.Test1|数据查找失败 |url: |action: 
-2023-06-23 18:11:04.0412|0|ERROR|LogginDemo1.Test1|数据库崩了 |url: |action: 
