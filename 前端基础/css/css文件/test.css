@@ -1,8 +1,0 @@
-a{
-	text-decoration: none;
-}
-/* cursor是鼠标样式，pointer是小手，hand也是小手，但是可能有浏览器兼容问题，所以建议使用pointer */
-#baiduspan{
-	text-decoration: underline;
-	cursor: pointer;
-}
