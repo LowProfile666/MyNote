@@ -581,6 +581,13 @@ String.prototype.suiyi = function(){
 - `select` 文本被选定
 
 - `load` 页面加载完毕(整个HTML页面中所有的元素全部加载完毕之后发生)
+  以下代码表示当前页面加载完毕后就执行 statements：
+
+  ```javascript
+  window.onload = function(){
+      statements;
+  }
+  ```
 
 任何一个事件都会对应一个事件句柄，事件句柄就是在事件前面添加 `on` ，如 `onclick`。`onXXX` 这个事件句柄出现在一个标签的属性位置上（事件句柄以属性的形式存在）。
 
@@ -808,4 +815,233 @@ with (Math) {
     y = tan(14 * E);
 }
 ```
+
+## 3. DOM
+
+DOM：Document Object Model（文档对象模型。对网页当中的节点进行增删改的过程）。就是将HTML文档当成一颗 DOM 树来看待。
+
+DOM的顶级对象是：document。
+
+### 3.1 获取节点对象
+
+通过节点对象的 ID 来获取到该对象，使用 `getElementById` 函数：
+
+```javascript
+var domObj = document.getElementById("id值");
+```
+
+比如要实现这样一个功能，有两个文本框，一个按钮，在第一个文本框输入内容后，点击按钮，会将第二个文本框的内容也改为第一个文本框的内容，如图：![image-20230909191252033](https://gitee.com/LowProfile666/image-bed/raw/master/img/202309091912106.png)
+
+```javascript
+<!DOCTYPE HTML>
+<html>
+	<head></head>
+	<body>
+		文本框 1<input type = "text" id = "text1"/>	
+		<br />
+		<br />
+		<input type = "button" onclick = "m()" value="点击获取文本框的值"/>
+		<br />
+		<br />
+		文本框 2<input type = "text" id = "text2"/>
+	</body>
+</html>
+<script type="text/javascript">
+	m = function(){
+    	// 获取两个文本框的对象
+		var text1 = document.getElementById("text1");
+		var text2 = document.getElementById("text2");
+    	// 修改第二个文本框的值
+		text2.value = text1.value;
+	}
+</script>
+```
+
+### 3.2 innerHTML 和 innerText
+
+`innerHTML` 和 `innerText` 都是属性。
+
+- 相同点：都是设置元素内部的内容。
+
+- 不同点：
+
+  - `innerHTML`：会把后面的“字符串”当作一段HTML代码解释并执行。
+
+  - `innerText`：即使后面是一段HTML代码，也只是将其当作普通的字符串来看待。
+
+比如要实现这样一个功能，这有一个文本框，一个按钮，当没有在文本框中输入任何信息时，点击按钮会出现一段红色提示："当前内容为空！"，如图：![image-20230909192504308](https://gitee.com/LowProfile666/image-bed/raw/master/img/202309091925356.png)![image-20230909192515251](https://gitee.com/LowProfile666/image-bed/raw/master/img/202309091925312.png)
+
+实现：在文本框和按钮之间我们可以使用一个 `div` 标签，为按钮注册一个点击事件，在这个事件中，要获取到文本框和 `div` 这两个节点对象，然后判断文本框的值是不是为 `""` ，是的话就使用 `innerHTML` 属性将 `div` 内部的值设为一段HTML代码，这段代码可以显示指定内容：
+
+```javascript
+<!DOCTYPE HTML>
+<html>
+	<head></head>
+	<body>
+		用户名：<input type = "text" id = "text1"/>	
+		<div id="warn"></div>
+		<input type = "button" onclick = "submit()" value="提交"/>
+	</body>
+</html>
+<script type="text/javascript">
+	submit = function(){
+		var text1 = document.getElementById("text1")
+		var warn = document.getElementById("warn")
+		if (text1.value == "")
+			warn.innerHTML = "<font color='red'>当前内容为空！</font>"
+	}
+</script>
+```
+
+如果使用 `innerTEXT` 属性的话，效果就是这样：
+
+![image-20230909193037303](https://gitee.com/LowProfile666/image-bed/raw/master/img/202309091930342.png)
+
+### 3.3 正则表达式
+
+正则表达式：Regular Expression，主要用在字符串格式匹配方面。
+
+正则表达式实际上是一门独立的学科，在Java语言中支持，在C语言中也支持。大部分编程语言都支持正则表达式，正则表达式最初使用在医学方面，用来表示神经符号，目前使用最多的是计算机编程领域，用做字符串格式匹配，包括搜索方面等。
+
+#### 3.3.1 常见的正则表达式符号
+
+常见的正则表达式符号
+
+- `.` ：匹配除换行符以外的任意字符 
+
+- `\w` ： 匹配字母或数字或下划线或汉字
+
+- `\s`  ：匹配任意的空白符
+
+- `\d` ：匹配数字
+
+- `\b` ：匹配单词的开始或结束
+
+- `^` ：匹配字符串的开始
+
+- `$` ：匹配字符串的结束
+
+- `*` ：重复零次或更多次
+
+- `+` ：重复一次或更多次
+
+- `?` ：重复零次或一次
+
+- `{n}` ：重复n次
+
+- `{n,}` ：重复n次或更多次
+
+- `{n,m}` ：重复n到m次
+
+- `\W` ：匹配任意不是字母，数字，下划线，汉字的字符
+
+- `\S` ：匹配任意不是空白符的字符
+
+- `\D` ：匹配任意非数字的字符
+
+- `\B` ：匹配不是单词开头或结束的位置
+
+- `[^x]` ：匹配除了x以外的任意字符
+
+- `[^aeiou]` ：匹配除了`aeiou` 这几个字母以外的任意字符
+
+- 正则表达式当中的小括号 `()` 优先级比较高
+
+- `[1-9]` ：表示1到9的任意一个数字（次数是1）
+
+- `[A-Za-z0-9-]` ：表示`A-Z、a-z、0-9`，以上所有字符中的任意一个字符
+
+- `[A-Za-z0-9-]` ：表示`A-Z、a-z、0-9、-`，以上所有字符中的任意一个字符
+
+#### 3.3.2 常见的正则表达式
+
++ QQ号：`^[1-9]\d{4,10}$`，一般为5-11位数字，而且开头不为0。
+
++ 电话号：`^(\d{4}-\d{7,8}|\d{3}-\d{8})$`，一般为前3/4位数字，一个"-"，后面为8位数字。或者前4位数字，一个"-",后面为7位数字。
+
+  ```
+  /*0349-3089000 
+  \d{4}-\d{7}
+  
+  010-34678903
+  \d{3}-\d{8}
+  
+  0349-23456789
+  \d{4}-\d{8}*/
+  ```
+
++ 手机号：`^1[34578]\d{9}$`，般为11位数字，开头为1，第二位一般是3/4/5/7/8。
+
++ 邮箱号：`^\w+@[a-z0-9A-Z]+\.[a-z]+$`，一般开始为数字、字母、下划线(w),然后为@，接下来是数字或字母，然后是".",最后为字母。
+
++ 身份证：`^[1-9]\d{5}\d{4}\d{2}\d{2}\d{3}[0-9X]$`，一般为第一位数字不为0，然后是5位数字，接下来是出生年月日，然后是4位数字，最后一位数可能为X。
+
+#### 3.3.3 创建正则表达式对象
+
+两种方式：
+
+方法一
+
+```javascript
+var regExp = /正则表达式/[flags];
+```
+
+方法二，使用内置支持类 `RegExp`
+
+```javascript
+var regExp = new RegExp("正则表达式","[flags]");
+```
+
+关于 `flags`：
+
+- `g` （全文查找出现的所有 `pattern`） 
+
+- `i`（忽略大小写）
+
+- `m` （多行查找） ，当前面是正则表达式的时候，`m` 不能用，只有前面是普通字符串的时候，`m` 才可以用
+
+正则表达式对象的 `test()` 方法，返回 `true` 或 `false`，调用格式：
+
+```javascript
+true / false = 正则表达式对象.test(用户填写的字符串)
+```
+
++ `true`：字符串格式匹配成功
++ `false`：字符串格式匹配失败
+
+比如，要实现这样一个功能，有一个文本框，一个按钮，在文本框中输入邮箱地址，点击按钮后判断邮箱地址是否合法，若不合法则在文本框后输出红色字体“邮箱地址不合法！”提醒，同时，重新点击文本框输入时，红色提示会消失。
+
+```javascript
+<script type="text/javascript">
+    window.onload = function(){
+        //给按钮绑定click事件
+        document.getElementById("btn").onclick = function(){
+            //这个是用户填写的字符串
+            var email = document.getElementById("email").value;
+            //这个是正则表达式对象
+            var emailRegExp = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+            //这个是调用方法
+            var ok = emailRegExp.test(email);
+            if(!ok){
+                document.getElementById("eamilError").innerText = "邮箱地址不合法！"
+            }
+        }
+        //这是给文本框绑定focus事件，获得焦点
+        document.getElementById("email").onfocus = function(){
+            document.getElementById("eamilError").innerText = ""
+        }
+	}
+</script>
+
+<input type="text" id="email" />
+<span id="eamilError" style="color:red;font-size:12px"></span>
+<br>
+<input type="button" value="验证邮箱" id="btn" />
+```
+
+### 3.4 trim 函数
+
+`trim()` 函数的功能是去除字符串前后的空白。
+
+
 
