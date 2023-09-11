@@ -1039,9 +1039,577 @@ true / false = 正则表达式对象.test(用户填写的字符串)
 <input type="button" value="验证邮箱" id="btn" />
 ```
 
-### 3.4 trim 函数
+#### 3.3.4 去除字符串前后空白
 
-`trim()` 函数的功能是去除字符串前后的空白。
+`trim()` 函数的功能是去除字符串前后的空白。使用方法：`字符串.trim()`。只能去除前后的空白，如果字符串中间有空白的话不受影响。
+
+比如，在一个文本框中输入含有前后空格的字符串，点击按钮后，弹出去除前后空白的字符串，如图：![image-20230910182444005](https://gitee.com/LowProfile666/image-bed/raw/master/img/202309101824073.png)
+
+```javascript
+<script type="text/javascript">
+	submit = function(){
+		var text1 = document.getElementById("text1");
+		var value = text1.value.trim();
+		alert("-->" + value + "<--");
+	}
+</script>
+<input type = "text" id = "text1"/>	
+<input type = "button" onclick = "submit()" value="提交"/>
+```
+
+而低版本的 IE 浏览器不支持字符串的 `trim` 函数，我们可以自己对 `String` 类扩展一个全新的 `trim` 函数，使用正则表达式和 `replace` 函数。
+
+```javascript
+String.prototype.trim = function(){
+    // 在当前的函数中的this代表的当前字符串
+    // return this.replace("前空白","").replace("后空白","");
+    // return this.replace(/^\s+/,"").replace(/\s+$/,"");
+    return this.replace(/^\s+|\s+$/g,"");
+}
+```
+
+### 3.4 复选框的全选和取消全选
+
+复选框使用 `input` 控件，将 `input` 的 `type` 属性设为 `checkbox` 就是复选框（`radio` 是单选）。
+
+```html
+<input type="checkbox" />
+```
+
+一般复选框会有很多个，想要一键全选，可以将每个复选框都拿到并且更改他们的状态为选中即可。这就需要使用到数组和循环。
+
+单独使用一个主复选框表示是否全选，再通过其他复选框们的 `name` 属性拿到所有的复选框，用一个数组保存；如果是全选，则使用循环将数组中所有的复选框的状态改为选中，否则改为不选。
+
+```javascript
+<script type="text/javascript">
+    window.onload = function(){
+        // 获取主复选框对象
+        var main = document.getElementById("main");
+        main.onclick = function(){
+            // 获取当前复选框的状态(复选框对象.checked)
+            // 根据name属性获取对象集合
+            var hobbies = document.getElementsByName("aihao");
+            if(main.checked){
+                //全选
+                for(var i = 0;i < hobbies.length;i++){
+                    hobbies[i].checked = true;
+                }
+            }else{
+                //取消全选
+                for(var i = 0;i < hobbies.length;i++){
+                    hobbies[i].checked = false;
+                }
+            }
+        }
+    }
+</script>
+<input type="checkbox" id="main"/>全选
+<input type="checkbox" name="hobby" id="smoke"/>抽烟
+<input type="checkbox" name="hobby" id="drink"/>喝酒
+<input type="checkbox" name="hobby" id="perm"/>烫头
+```
+
+优化：让其他复选框的状态变成主复选框的状态就可以了。
+
+```javascript
+<script type="text/javascript">
+    window.onload = function(){
+        // 获取对象
+        var main = document.getElementById("main");
+        var hobbies = document.getElementsByName("aihao");
+        main.onclick = function(){
+            for(var i = 0;i < hobbies.length;i++){
+                hobbies[i].checked = main.checked;
+            }
+        }
+        // 让主复选框跟着其他复选框的状态进行改变
+        var all = hobbies.length;
+        for(var i = 0;i < hobbies.length;i++){
+            // 给每一个复选框设置单击事件
+            hobbies[i].onclick = function(){
+                var count = 0;
+                // 遍历检查每一个复选的状态
+                for(var j = 0;j < hobbies.length;j++){
+                    if(hobbies[j].checked)
+                        count++;
+                }
+                main.checked = (all == count);
+            }
+        }
+    }
+</script>
+<input type="checkbox" id="main"/>全选
+<input type="checkbox" name="hobby" id="smoke"/>抽烟
+<input type="checkbox" name="hobby" id="drink"/>喝酒
+<input type="checkbox" name="hobby" id="perm"/>烫头
+```
+
+### 3.5 下拉列表的值
+
+下拉列表标签为 `select`，其中每个选项是 `option` 标签。
+
+```html
+<select>
+    <option>--请选择省份--</option>
+    <option>四川</option>
+    <option>湖北</option>
+    <option>河北</option>
+    <option>河南</option>
+</select>
+```
+
+以上代码效果如图：![image-20230910184759572](https://gitee.com/LowProfile666/image-bed/raw/master/img/202309101847636.png)
+
+这个下拉列表的值就是选中的选项的值。要想获取选中的选项的值，首先需要给每个选项的 `value` 赋值，然后可以使用 `onchange` 属性，这个属性表示当元素改变时运行脚本：
+
+```html
+<select onchange="alert(this.value)">
+    <option>--请选择省份--</option>
+    <option value="1">四川</option>	
+    <option value="2">湖北</option>
+    <option value="3">河北</option>
+    <option value="4">河南</option>
+</select>
+```
+
+这样当选中一个选项后，窗口会弹出这个选项的值。
+
+也可以给下拉列表设个 ID，通过 ID 获得对象，通过对象的 `onchange` 属性来获取值：
+
+```html
+<script type="text/javascript">
+    window.onload = function(){
+        var list = document.getElementById("provinceList");
+        list.onchange = function(){
+            // 获取选中项的value
+            alert(list.value);
+        }
+    }
+</script>
+<select id="provinceList">
+    <option>--请选择省份--</option>
+    <option value="1">四川</option>
+    <option value="2">湖北</option>
+    <option value="3">河北</option>
+    <option value="4">河南</option>
+</select>
+```
+
+### 3.6 显示网页时钟
+
+#### 3.6.1 Date
+
+JS 中有一个内置的支持类：`Date`，可以用来获取时间/日期。
+
+获取系统当前时间：
+
+```javascript
+var nowTime = new Date();
+```
+
+转换成具有本地语言环境的日期格式：
+
+```javascript
+nowTime = nowTime.toLocaleString();
+```
+
+可以输出一下看看格式：
+
+```javascript
+alert(nowTime);  // 2023/9/10 19:02:17
+```
+
+我们还可以通过日期获取年月日等信息，自定制日期格式：
+
+```javascript
+var t = new Date();
+var year = t.getFullYear();	// 返回年信息，以全格式返回
+var month = t.getMonth();	// 月份是：0-11
+var day = t.getDate();		//获取日信息
+// var dayOfWeek = t.getDay();		//获取的一周的第几天：0-6
+
+document.write(year+"年"+(month+1)+"月"+day+"日");  // 2023年9月10日
+```
+
+#### 3.6.2 获取毫秒
+
+获取从`1970年1月1日 00：00：00 000`到当前系统时间的总毫秒数：
+
+```javascript
+var t = new Date();
+var times = t.getTime();
+```
+
+一般会使用这个毫秒数当作时间戳（timestamp），可以用在一些特殊情况中。
+
+#### 3.6.3 网页时钟
+
+效果如下：![image-20230910191052328](https://gitee.com/LowProfile666/image-bed/raw/master/img/202309101910390.png)
+
+当点击显示当前时间时，下面出现当前时间，并且每一秒都会变一次；当点击时间停止时，时间就会停止不变：
+
+```html
+<script type="text/javascript">
+    function displayTime(){
+        var time = new Date();
+        time = time.toLocaleString();
+        document.getElementById("timeDiv").innerHTML = time;
+    }
+    // 每隔一秒调用displayTime函数
+    function start(){
+        // 从这行代码执行结束开始，则会不间断的，每隔1000毫秒调用一次displayTime函数
+        v = window.setInterval("displayTime()",1000);
+    }
+    function stop(){
+        window.clearInterval(v);
+    }
+</script>
+<input type="button" onclick="start()" value="显示当前时间" />
+<input type="button" onclick="stop()" value="时间停止"/>
+<div id="timeDiv"></div>
+```
+
+### 3.7 内置类 Array
+
+创建长度为 0 的数组：
+
+```javascript
+var arr = [];
+```
+
+另一种创建数组的对象的方式：
+
+```javascript
+var a = new Array();
+var a2 = new Array(3);	// 3表示长度
+var a3 = new Array(3,2);  // 3，2表示元素
+```
+
+#### 3.7.1 join 方法
+
+返回字符串值，其中包含了连接到一起的数组的所有元素，元素由指定的分隔符分隔开来。
+
+```javascript
+arrayObj.join(separator);
+```
+
+比如：
+
+```javascript
+var b = [1,2,3,4];
+var str = b.join("-");
+alert(str);	//1-2-3-4
+```
+
+#### 3.7.2 模拟栈
+
+JS 中的数组可以自动模拟 栈 数据结构：先进后出。
+
++ `push`压栈，在数组的末尾添加一个元素（数组长度+1）：
+
+  ```javascript
+  a.push(10);
+  ```
+
++ `pop`出栈，将数组末尾的元素弹出（数组长度-1）：
+
+  ```javascript
+  var endElt = a.pop();
+  ```
+
+## 4. BOM
+
+### 4.1 open和close
+
+BOM编程中，`window`对象是顶级对象，代表浏览器窗口，`window`有`open`和`close`方法，可以开启窗口和关闭窗口。
+
+注意：脚本只能关闭它们打开的窗口。
+
+```html
+<input type="button" value="开启百度(新窗口)" onclick="window.open('http://www.baidu.com');"/>
+<input type="button" value="开启百度(当前窗口)" onclick="window.open('http://www.baidu.com','_self');"/>
+<input type="button" value="开启百度(新窗口)" onclick="window.open('http://www.baidu.com','_blank');"/>
+<input type="button" value="开启百度(父窗口)" onclick="window.open('http://www.baidu.com','_parent');"/>
+<input type="button" value="开启百度(顶级窗口)" onclick="window.open('http://www.baidu.com','_top');"/>
+
+<input type="button" value="打开表单验证" onclick="window.open('../DOM/005-表单验证.html')" />
+
+<input type="button" value="关闭当前窗口" onclick="window.close()" />	
+```
+
+### 4.2 消息框和确认框
+
+使用 `alert` 弹出消息框，`confirm` 弹出确认框。
+
+```html
+<script type="text/javascript">
+    function del(){
+        // var ok = window.confirm("亲，确认删除数据吗？")
+        // alert(ok)
+        if(window.confirm("亲，确认删除数据吗？"))
+            alert("delete data ....")
+    }
+</script>
+<input type="button" value="弹出消息框" onclick="alert('消息框！')" />
+<input type="button" value="弹出确认框（删除）" onclick="del()" />
+```
+
+### 4.3 将当前窗口设置为顶级窗口
+
+`window` 是当前浏览器窗口，`window.top` 就是当前窗口对相应的顶级窗口，`window.self` 是当前自己这个窗口。
+
+```javascript
+if(window.top != window.self){
+    // 将当前窗口设置为顶级窗口
+    window.top.location = window.self.location;
+}
+```
+
+### 4.4 history对象
+
+有两个函数：
+
++ `go()`：前进，`go(1)` 表示前进 1 个页面，注意：`go()` 必须要跟前进的页数。
++ `back()`：后退，`back(1)` 表示后退 1 个页面，注意：`back()` 不跟后退的页数时默认后退 1 页。
+
+比如我在页面 a 中打开了页面 b，再在页面 b 中打开了页面 c，这时在 c 中调用 `back(1)` 函数，我会回到页面 b，再在 b 中调用 `back(1)` 会回到页面 a，这时在 a 中调用 `go(2)` 会回到页面 c。
+
+还可以使用 `go(-1)` 来代替 `back()` 。
+
+### 4.5 设置浏览器地址的URL
+
+改变地址栏里的网站链接地址。
+
+方法一：通过 `window` 对象的 `location` 属性和 `loaction` 的 `herf`  属性
+
+```javascript
+var locationObj = window.location;
+locationObj.href = "http://www.baidu.com";
+
+window.location.href = "http://www.baidu.com"
+
+window.location= "http://www.baidu.com"
+```
+
+方法二：通过 `document` 对象的 `location` 属性和 `loaction` 的 `herf`  属性
+
+```javascript
+document.location.href = "http://www.baidu.com"
+
+document.location = "http://www.baidu.com"
+```
+
+总结有哪些方法可以通过浏览器往服务器发送请求
+
++ 表单form 的提交
++ 超链接
++ document.location
++ window.location
++ window.open("url")
+
+以上所有的请求方式均可以携带数据给服务器，只有通过表单提交的数据才是动态的。
+
+## 5. JSON
+
+JavaScript Object Notation（JavaScript对象标记，简称 JSON（数据交换格式））。
+
+JSON主要的作用是：一种标准的数据交换格式（目前非常流行，90%以上的系统，系统A与系统B交换数据的话，都是采用JSON）。
+
+JSON是一种标准的轻量级的数据交换格式，特点是体积小、易解析。
+
+在实际的开发中有两种数据交换格式，使用最多，其一是JSON，另一个是XML
+
++ XML体积较大，解析麻烦，但是有其优点：语法严谨（通常银行相关的系统之间进行数据交换的话会使用XML）
+
+**JSON 在 JS 中以 JS对象的形式存在。**
+
+### 5.1 创建JSON对象
+
+JSON也可以称为无类型对象
+
+```javascript
+var stu ={
+    "sno" : "001",
+    "sname" : "张三",
+    "sex" : "男"
+};
+```
+
+访问 JSON 对象的属性：
+
+```javascript
+alert(stu.sno+","+stu.sname+","+stu.sex)
+```
+
+之前没有JSON的时候，定义类、创建对象、访问对象的属性：
+
+```javascript
+student = function(sno,sname,sex){
+    this.sno = sno;
+    this.sname = sname;
+    this.sex = sex;
+}
+var stu1 = new student("111","里斯",'男')
+alert(stu1.sno+","+stu1.sname+","+stu1.sex)
+```
+
+复杂一点的 JSON 对象：就是JSON对象里面包含着其他多种类型的数据
+
+```javascript
+var user = {
+    "usercode" : 10,
+    "username" : "张三",
+    "sex" : true,
+    "address" : {
+        "city" : "北京",
+        "street" : "大兴区",
+    },
+    "aihao" : ["smoke","drink","tt"]
+};
+```
+
+访问复杂的对象的属性：
+
+```javascript
+alert(user.username+"居住在"+user.address.city)
+```
+
+设计JSON格式的代码，这个JSON格式的数据可以描述整个班级中每一个学生的信息，以及总人数信息：
+
+```javascript
+var Students = {
+    "total" : 3,
+    "students" : [
+        {"name":"", "sex":"", "age":""},
+        {"name":"", "sex":"", "age":""},
+        {"name":"", "sex":"", "age":""}
+    ]
+};
+```
 
 
 
+### 5.2 JSON 数组
+
+定义：
+
+```javascript
+var students =[
+    {"sno":"110","sname":"张三","sex":"男"},
+    {"sno":"112","sname":"李四","sex":"男"},
+    {"sno":"113","sname":"王五","sex":"男"}
+];
+```
+
+遍历：
+
+```javascript
+for(var i = 0;i < students.length;i++){
+    var temp = students[i];
+    alert(temp.sno+","+temp.sname+","+temp.sex)
+}
+```
+
+### 5.3 eval 函数
+
+`eval` 函数的作用是：将字符串当作一段JS代码解释并执行，比如：	
+
+```javascript
+window.eval("var i = 100");
+alert("i = " + i)	// i = 100
+```
+
+Java 连接数据库，查询数据之后，将数据在 Java 程序中拼接成 JSON 格式的 '字符串'，将 JSON 格式的字符串响应到浏览器。
+
+也就是说，Java 响应到浏览器上的仅仅是一个 JSON 格式的字符串 ，还不是一个 json 对象，可以使用 `eval` 函数，将 json 格式的字符串转换成 json 对象。
+
+比如，这是 Java 程序发过来的 JSON 格式的字符串：
+
+```javascript
+var formJava = "{\"name\":\"zhangsan\",\"password\":\"123\"}";
+```
+
+将以上的 json 格式的字符串转换成 json 对象：
+
+```javascript
+window.eval("var jsonObj = " + formJava);
+```
+
+然后就可以访问该 json 对象：
+
+```javascript
+alert(jsonObj.name+","+jsonObj.password)
+```
+
+### 5.4 [] 和 {} 的区别
+
+在 JS 中
+
++ `[]` 是数组
+
+  ```javascript
+  var arr = [1,2,3];
+  ```
+
++ `{}` 是JSON
+
+  ```javascript
+  var jsonObj = {"name":"zs", "age":20};
+  ```
+
+### 5.5 table 的 tbody
+
+现在有这些 json 数据：
+
+```javascript
+var data = {
+    "total" : 0,  
+    "emps" : [
+        {"empno" : 1, "empname" : "Jack"},
+        {"empno" : 2, "empname" : "John"},
+        {"empno" : 3, "empname" : "Alice"},
+        {"empno" : 4, "empname" : "Bob"},
+        {"empno" : 5, "empname" : "Tom"}
+    ]
+}
+```
+
+希望把数据展示到一个 table 中 ：
+
+```javascript
+window.onload = function(){
+    var displayElt = document.getElementById("display");
+    displayElt.onclick = function(){
+        var emps = data.emps;
+        var html = "";
+        for(var i = 0;i < emps.length;i++){
+            var emp = emps[i];
+            html += "<tr>";
+            html += "<td>"+emp.empno+"</td>";
+            html +=	"<td>"+emp.empname+"</td>";
+            html += "</tr>";
+            data.total++;
+        }
+        document.getElementById("tbodyId").innerHTML = html;
+        document.getElementById("count").innerHTML = data.total;
+    }
+}
+```
+
+这个 table 是这样的：
+
+```html
+<h1>员工信息表</h1>
+<input type="button" value="显示员工信息" id="display"/>
+<hr >
+<table border="1px" width="50%">
+    <tr>
+        <th>员工编号</th>
+        <th>员工姓名</th>
+    </tr>
+    <tbody id="tbodyId"></tbody>
+    总共<span id="count">0</span>条数
+</table>
+```
+
+最终结果如下：![image-20230911154243341](https://gitee.com/LowProfile666/image-bed/raw/master/img/202309111542450.png)
