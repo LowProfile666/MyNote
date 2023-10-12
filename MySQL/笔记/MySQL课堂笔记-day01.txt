@@ -1,5 +1,69 @@
 MySQL
 
+IP是计算机在网络中的唯一标识，端口号是计算机中软件的唯一标识，端口号不能重复。
+
+MySQL的端口号是 3306，web服务器的通用端口号是 80，文件下载的端口是 21，Oracle 端口是 1521。
+
+查看计算机上的服务：右键单击”计算机“->”管理“->”服务和应用程序“->”服务“。
+
+在DOS中登录MySQL（显示密码）
+
+	```
+	mysql -uroot -p“密码”
+	```
+
+不显示密码，输入以下命令后回车：
+
+	```
+	mysql -uroot -p
+	```
+
+修改root密码：
+
+	方法1： 用SET PASSWORD命令 
+	首先登录MySQL。 
+
+		```
+		mysql> set password for 用户名@localhost = password('新密码'); 
+		例子：mysql> set password for root@localhost = password('123'); 
+		```
+
+	方法2：用mysqladmin 
+
+		```
+		mysqladmin -u用户名 -p旧密码 password 新密码 
+		例子：mysqladmin -uroot -p123456 password 123 
+		```
+
+	方法3：用UPDATE直接编辑user表 
+	首先登录MySQL。 
+
+		```
+		mysql> use mysql; 
+		mysql> update user set password=password('123') where user='root' and host='localhost'; 
+		mysql> flush privileges; 
+		```
+
+	方法4：在忘记root密码的时候，可以这样 
+	以windows为例： 
+
+		1. 关闭正在运行的MySQL服务。 
+		2. 打开DOS窗口，转到mysql\bin目录。 
+		3. 输入mysqld --skip-grant-tables 回车。--skip-grant-tables 的意思是启动MySQL服务的时候跳过权限表认证。 
+		4. 再开一个DOS窗口（因为刚才那个DOS窗口已经不能动了），转到mysql\bin目录。 
+		5. 输入mysql回车，如果成功，将出现MySQL提示符 >。 
+		6. 连接权限数据库： use mysql; 。 
+		7. 改密码：update user set password=password("123") where user="root";（别忘了最后加分号） 。 
+		8. 刷新权限（必须步骤）：flush privileges;　。 
+		9. 退出 quit。 
+		10. 注销系统，再进入，使用用户名root和刚才设置的新密码123登录。
+
+删除MySQL：卸载后，还要删除数据：
+
+	1. 删除 C:\Program Files (x86)\MySQL
+	2. 删除 C:\ProgramData\MySQL
+
+
 1、sql、DB、DBMS分别是什么，他们之间的关系？
 	DB: 
 		DataBase（数据库，数据库实际上在硬盘上以文件的形式存在）
