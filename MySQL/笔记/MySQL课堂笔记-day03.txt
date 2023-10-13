@@ -537,7 +537,8 @@ MySQL day03
 				set global transaction isolation level read committed;
 			演示第3级别：可重复读
 				set global transaction isolation level repeatable read;
-			
+			查看事务的全局隔离级别：select @@global.transaction_isolation;
+
 		* mysql远程登录：mysql -h192.168.151.18 -uroot -p444
 
 4、索引
@@ -683,7 +684,7 @@ MySQL day03
 
 		第二范式：建立在第一范式的基础之上，所有非主键字段完全依赖主键，不能产生部分依赖。
 			多对多？三张表，关系表两个外键。
-			t_student学生表
+			t_student 学生表
 			sno(pk)		sname
 			-------------------
 			1				张三
@@ -712,11 +713,11 @@ MySQL day03
 			班级t_class
 			cno(pk)			cname
 			--------------------------
-			1					班级1
-			2					班级2
+			1				班级1
+			2				班级2
 
 			学生t_student
-			sno(pk)			sname				classno(fk)
+			sno(pk)			sname			classno(fk)
 			---------------------------------------------
 			101				张1				1
 			102				张2				1
@@ -732,8 +733,8 @@ MySQL day03
 			t_user_login  用户登录表
 			id(pk)		username			password
 			--------------------------------------
-			1				zs					123
-			2				ls					456
+			1				zs				123
+			2				ls				456
 
 			t_user_detail 用户详细信息表
 			id(pk+fk)	realname			tel			....
@@ -745,12 +746,601 @@ MySQL day03
 			t_user_login  用户登录表
 			id(pk)		username			password
 			--------------------------------------
-			1				zs					123
-			2				ls					456
+			1				zs				123
+			2				ls				456
 
 			t_user_detail 用户详细信息表
 			id(pk)	   realname			tel				userid(fk+unique)....
 			-----------------------------------------------------------
-			1				张三				1111111111		2
-			2				李四				1111415621		1
+			1				张三			1111111111		2
+			2				李四			1111415621		1
 			
+作业题：
+1、取得每个部门最高薪水的人员名称
+	第一步：取得按部门分组，取得每一组的最大值
+	select deptno, max(sal) as maxSal from emp group by deptno;
+	+--------+---------+
+	| deptno | maxSal  |
+	+--------+---------+
+	|     20 | 3000.00 |
+	|     30 | 2850.00 |
+	|     10 | 5000.00 |
+	+--------+---------+
+	第二步：将以上的结果当作一张临时表t，t表和emp表连接，条件：t.deptno = e.deptno and t.maxSal = e.sal
+	select 
+		e.ename, t.* 
+	from 
+		emp e
+	join
+		(select deptno, max(sal) maxSal from emp t group by deptno) t
+	on 
+		t.deptno = e.deptno and t.maxSal = e.sal;
+
+	+-------+--------+---------+
+	| ename | deptno | maxSal  |
+	+-------+--------+---------+
+	| BLAKE |     30 | 2850.00 |
+	| SCOTT |     20 | 3000.00 |
+	| KING  |     10 | 5000.00 |
+	| FORD  |     20 | 3000.00 |
+	+-------+--------+---------+
+
+2、哪些人的薪水在部门的平均薪水之上	
+	（1）：找出每个部门的平均薪水
+		select avg(sal) sal, deptno from emp group by deptno;
+		+-------------+--------+
+		| sal    	  | deptno |
+		+-------------+--------+
+		| 2175.000000 |     20 |
+		| 1566.666667 |     30 |
+		| 2916.666667 |     10 |
+		+-------------+--------+
+
+	（2）：找出薪水在平均薪水上的人
+		select ename, e.sal as sal from emp e join (select avg(sal) sal, deptno from emp e group by deptno) t on e.sal >= t.sal and e.deptno = t.deptno;
+		+-------+---------+
+		| ename | sal     |
+		+-------+---------+
+		| FORD  | 3000.00 |
+		| SCOTT | 3000.00 |
+		| JONES | 2975.00 |
+		| BLAKE | 2850.00 |
+		| ALLEN | 1600.00 |
+		| KING  | 5000.00 |
+		+-------+---------+
+
+3、取得部门中（所有人的）平均的薪水等级
+	(1):求出每个人的薪水等级
+	emp e表和 salgrade s表进行连接
+	select 
+		e.ename, e.sal, s.grade 
+	from 
+		emp e  
+	join 
+		salgrade s
+	on
+		e.sal between s.losal and s.hisal;
+
+	(2):基于以上结果，按部门分组，求平均等级
+	select 
+		e.deptno, avg(s.grade)
+	from 
+		emp e  
+	join 
+		salgrade s
+	on
+		e.sal between s.losal and s.hisal
+	group by
+		e.deptno;
+
+	+--------+--------------+
+	| deptno | avg(s.grade) |
+	+--------+--------------+
+	|     20 |       2.8000 |
+	|     30 |       2.5000 |
+	|     10 |       3.6667 |
+	+--------+--------------+
+
+4、不准用组函数（Max），取得最高薪水
+	(1):desc 降序,limit 1
+	select sal from emp order by sal desc limit 1;
+	+---------+
+	| sal     |
+	+---------+
+	| 5000.00 |
+	+---------+
+
+	(2):表的自连接
+	a表
+	+---------+
+	| sal     |
+	+---------+
+	|  800.00 |
+	| 1600.00 |
+	| 1250.00 |
+	| 2975.00 |
+	| 1250.00 |
+	| 2850.00 |
+	| 2450.00 |
+	| 3000.00 |
+	| 5000.00 |
+	| 1500.00 |
+	| 1100.00 |
+	|  950.00 |
+	| 3000.00 |
+	| 1300.00 |
+	+---------+
+	b表
+	+---------+
+	| sal     |
+	+---------+
+	|  800.00 |
+	| 1600.00 |
+	| 1250.00 |
+	| 2975.00 |
+	| 1250.00 |
+	| 2850.00 |
+	| 2450.00 |
+	| 3000.00 |
+	| 5000.00 |
+	| 1500.00 |
+	| 1100.00 |
+	|  950.00 |
+	| 3000.00 |
+	| 1300.00 |
+	+---------+
+找出所有小的薪水：
+	select distinct a.sal from emp a join emp b on a.sal < b.sal;
+这时的结果肯定不含最大的值，所以使用 not in：
+	select sal from emp where sal not in (select distinct a.sal from emp a join emp b on a.sal < b.sal);
+	+---------+
+	| sal     |
+	+---------+
+	| 5000.00 |
+	+---------+
+
+5、取得平均薪水最高的部门的部门编号
+	第一步：找出每个部门的平均薪水：
+	select avg(sal), deptno from emp group by deptno;
+	+-------------+--------+
+	| avg(sal)    | deptno |
+	+-------------+--------+
+	| 2175.000000 |     20 |
+	| 1566.666667 |     30 |
+	| 2916.666667 |     10 |
+	+-------------+--------+
+	
+	第二步：将平均薪水降序，取第一个
+	select avg(sal) sal, deptno from emp group by deptno order by avg(sal) desc limit 1;
+	+-------------+--------+
+	| avg(sal)    | deptno |
+	+-------------+--------+
+	| 2916.666667 |     10 |
+	+-------------+--------+
+	
+	或者：使用max
+	select max(t.sal) from (select avg(sal) sal, deptno from emp group by deptno) t;
+	+-------------+
+	| max(t.sal)  |
+	+-------------+
+	| 2916.666667 |
+	+-------------+
+
+6、取得平均薪水最高的部门的部门名称
+	第一步：找出每个部门的平均薪水：
+	select avg(sal), deptno from emp group by deptno;
+	+-------------+--------+
+	| avg(sal)    | deptno |
+	+-------------+--------+
+	| 2175.000000 |     20 |
+	| 1566.666667 |     30 |
+	| 2916.666667 |     10 |
+	+-------------+--------+
+
+	select 
+		d.dname, avg(e.sal) sal
+	from 
+		emp e
+	join 
+		dept d
+	on 
+		e.deptno = d.deptno
+	group by 
+		d.dname
+	order by 
+		avg(sal) desc 
+	limit 1;
+	+------------+-------------+
+	| dname      | sal         |
+	+------------+-------------+
+	| ACCOUNTING | 2916.666667 |
+	+------------+-------------+
+
+7、求平均薪水的等级最低的部门的部门名称
+	按照部门的名称分组，找出每个部门的平均薪水：
+	select avg(sal) avgsal from emp group by deptno;
+	找出最低等级：
+	select min(grade) from (select avg(sal) avgsal from emp group by deptno) t join salgrade s on t.avgsal between s.losal and s.hisal;
+	+------------+
+	| min(grade) |
+	+------------+
+	|          3 |
+	+------------+
+
+
+8、取得比普通员工(员工代码没有在mgr字段上出现的)的最高薪水还要高的领导人姓名
+	取得普通员工的最高薪水：
+	not in 在使用的时候，后面的小括号中记得排除null
+	select max(sal) sal from emp where empno not in (select distinct mgr from emp where mgr is not NULL);
+	+---------+
+	| sal     |
+	+---------+
+	| 1600.00 |
+	+---------+
+	找出高于上面结果的姓名：比普通员工的最高工资还要高的一定是领导
+	select ename from emp where sal > (select max(sal) sal from emp where empno not in (select distinct mgr from emp where mgr is not NULL));
+	+-------+
+	| ename |
+	+-------+
+	| JONES |
+	| BLAKE |
+	| CLARK |
+	| SCOTT |
+	| KING  |
+	| FORD  |
+	+-------+
+
+9、取得薪水最高的前五名员工
+	按薪水降序排序：
+	select ename, sal from emp order by sal desc limit 5;
+	+-------+---------+
+	| ename | sal     |
+	+-------+---------+
+	| KING  | 5000.00 |
+	| SCOTT | 3000.00 |
+	| FORD  | 3000.00 |
+	| JONES | 2975.00 |
+	| BLAKE | 2850.00 |
+	+-------+---------+
+
+10、取得薪水最高的第六到第十名员工
+	 select ename, sal from emp order by sal desc limit 5,5;
+	 +--------+---------+
+	| ename  | sal     |
+	+--------+---------+
+	| CLARK  | 2450.00 |
+	| ALLEN  | 1600.00 |
+	| TURNER | 1500.00 |
+	| MILLER | 1300.00 |
+	| WARD   | 1250.00 |
+	+--------+---------+
+
+11、取得最后入职的5名员工
+	日期也可以降序、升序
+	select ename from emp order by hiredate desc limit 5;
+	+--------+
+	| ename  |
+	+--------+
+	| ADAMS  |
+	| SCOTT  |
+	| MILLER |
+	| JAMES  |
+	| FORD   |
+	+--------+
+
+12、取得每个薪水等级有多少员工
+	找出每个员工的薪水等级，按等级分组，统计每个等级有多少员工：
+	select count(*), grade from emp e join salgrade s on e.sal between s.losal and hisal group by grade;
+
+14、列出所有员工及领导的姓名
+	select a.ename 员工, b.ename 领导 from emp a left join emp b on a.mgr = b.empno;
+	+--------+-------+
+	| 员工   | 领导  |
+	+--------+-------+
+	| SMITH  | FORD  |
+	| ALLEN  | BLAKE |
+	| WARD   | BLAKE |
+	| JONES  | KING  |
+	| MARTIN | BLAKE |
+	| BLAKE  | KING  |
+	| CLARK  | KING  |
+	| SCOTT  | JONES |
+	| KING   | NULL  |
+	| TURNER | BLAKE |
+	| ADAMS  | SCOTT |
+	| JAMES  | BLAKE |
+	| FORD   | JONES |
+	| MILLER | CLARK |
+	+--------+-------+
+
+15、列出受雇日期早于其直接上级的所有员工的编号,姓名,部门名称
+	select 
+		a.empno, a.ename, d.dname 
+	from 
+		emp a 
+	join 
+		emp b 
+	on 
+		a.hiredate < b.hiredate and a.mgr = b.empno 
+	join 
+		dept d 
+	on 
+		a.deptno = d.deptno;
+	+-------+-------+------------+
+	| empno | ename | dname      |
+	+-------+-------+------------+
+	|  7369 | SMITH | RESEARCH   |
+	|  7499 | ALLEN | SALES      |
+	|  7521 | WARD  | SALES      |
+	|  7566 | JONES | RESEARCH   |
+	|  7698 | BLAKE | SALES      |
+	|  7782 | CLARK | ACCOUNTING |
+	+-------+-------+------------+
+
+16、列出部门名称和这些部门的员工信息,同时列出那些没有员工的部门.
+	select e.*, d.*
+	from emp e
+	right join dept d
+	on e.deptno = d.deptno;
+	+-------+--------+-----------+------+------------+---------+---------+--------+--------+------------+----------+
+	| EMPNO | ENAME  | JOB       | MGR  | HIREDATE   | SAL     | COMM    | DEPTNO | DEPTNO | DNAME      | LOC      |
+	+-------+--------+-----------+------+------------+---------+---------+--------+--------+------------+----------+
+	|  7934 | MILLER | CLERK     | 7782 | 1982-01-23 | 1300.00 |    NULL |     10 |     10 | ACCOUNTING | NEW YORK |
+	|  7839 | KING   | PRESIDENT | NULL | 1981-11-17 | 5000.00 |    NULL |     10 |     10 | ACCOUNTING | NEW YORK |
+	|  7782 | CLARK  | MANAGER   | 7839 | 1981-06-09 | 2450.00 |    NULL |     10 |     10 | ACCOUNTING | NEW YORK |
+	|  7902 | FORD   | ANALYST   | 7566 | 1981-12-03 | 3000.00 |    NULL |     20 |     20 | RESEARCH   | DALLAS   |
+	|  7876 | ADAMS  | CLERK     | 7788 | 1987-05-23 | 1100.00 |    NULL |     20 |     20 | RESEARCH   | DALLAS   |
+	|  7788 | SCOTT  | ANALYST   | 7566 | 1987-04-19 | 3000.00 |    NULL |     20 |     20 | RESEARCH   | DALLAS   |
+	|  7566 | JONES  | MANAGER   | 7839 | 1981-04-02 | 2975.00 |    NULL |     20 |     20 | RESEARCH   | DALLAS   |
+	|  7369 | SMITH  | CLERK     | 7902 | 1980-12-17 |  800.00 |    NULL |     20 |     20 | RESEARCH   | DALLAS   |
+	|  7900 | JAMES  | CLERK     | 7698 | 1981-12-03 |  950.00 |    NULL |     30 |     30 | SALES      | CHICAGO  |
+	|  7844 | TURNER | SALESMAN  | 7698 | 1981-09-08 | 1500.00 |    0.00 |     30 |     30 | SALES      | CHICAGO  |
+	|  7698 | BLAKE  | MANAGER   | 7839 | 1981-05-01 | 2850.00 |    NULL |     30 |     30 | SALES      | CHICAGO  |
+	|  7654 | MARTIN | SALESMAN  | 7698 | 1981-09-28 | 1250.00 | 1400.00 |     30 |     30 | SALES      | CHICAGO  |
+	|  7521 | WARD   | SALESMAN  | 7698 | 1981-02-22 | 1250.00 |  500.00 |     30 |     30 | SALES      | CHICAGO  |
+	|  7499 | ALLEN  | SALESMAN  | 7698 | 1981-02-20 | 1600.00 |  300.00 |     30 |     30 | SALES      | CHICAGO  |
+	|  NULL | NULL   | NULL      | NULL | NULL       |    NULL |    NULL |   NULL |     40 | OPERATIONS | BOSTON   |
+	+-------+--------+-----------+------+------------+---------+---------+--------+--------+------------+----------+
+
+
+17、列出至少有5个员工的所有部门
+	按照部门编号分组，计数，
+	select deptno
+	from emp
+	group by deptno
+	having count(*) >= 5;
+	+--------+
+	| deptno |
+	+--------+
+	|     20 |
+	|     30 |
+	+--------+
+
+18、列出薪金比"SMITH"多的所有员工信息.
+	select ename, sal from emp where sal > (select sal from emp where ename = 'smith');
+	+--------+---------+
+	| ename  | sal     |
+	+--------+---------+
+	| ALLEN  | 1600.00 |
+	| WARD   | 1250.00 |
+	| JONES  | 2975.00 |
+	| MARTIN | 1250.00 |
+	| BLAKE  | 2850.00 |
+	| CLARK  | 2450.00 |
+	| SCOTT  | 3000.00 |
+	| KING   | 5000.00 |
+	| TURNER | 1500.00 |
+	| ADAMS  | 1100.00 |
+	| JAMES  |  950.00 |
+	| FORD   | 3000.00 |
+	| MILLER | 1300.00 |
+	+--------+---------+
+
+19、列出所有"CLERK"(办事员)的姓名及其部门名称,部门的人数.
+	select e.ename, e.job, d.dname
+	from emp e
+	join dept d
+	on e.deptno = d.deptno and e.job = 'clerk';
+	+--------+-------+------------+
+	| ename  | job   | dname      |
+	+--------+-------+------------+
+	| SMITH  | CLERK | RESEARCH   |
+	| ADAMS  | CLERK | RESEARCH   |
+	| JAMES  | CLERK | SALES      |
+	| MILLER | CLERK | ACCOUNTING |
+	+--------+-------+------------+
+
+	select deptno, count(*) sum from emp group by deptno;
+	+--------+-----+
+	| deptno | sum |
+	+--------+-----+
+	|     20 |   5 |
+	|     30 |   6 |
+	|     10 |   3 |
+	+--------+-----+
+
+	select t1.*, t2.*
+	from (select e.ename, e.job, d.dname, d.deptno from emp e join dept d on e.deptno = d.deptno and e.job = 'clerk') t1
+	join (select deptno, count(*) sum from emp group by deptno) t2
+	on t1.deptno = t2.deptno;
+	+--------+-------+------------+--------+--------+-----+
+	| ename  | job   | dname      | deptno | deptno | sum |
+	+--------+-------+------------+--------+--------+-----+
+	| SMITH  | CLERK | RESEARCH   |     20 |     20 |   5 |
+	| ADAMS  | CLERK | RESEARCH   |     20 |     20 |   5 |
+	| JAMES  | CLERK | SALES      |     30 |     30 |   6 |
+	| MILLER | CLERK | ACCOUNTING |     10 |     10 |   3 |
+	+--------+-------+------------+--------+--------+-----+
+
+20、列出最低薪金大于1500的各种工作及从事此工作的全部雇员人数.
+	按照工作分组，求最小值
+	select job from emp group by job having min(sal) > 1500;
+	+-----------+
+	| job       |
+	+-----------+
+	| MANAGER   |
+	| ANALYST   |
+	| PRESIDENT |
+	+-----------+
+
+	select job,count(*) from emp group by job having min(sal) > 1500;
+	+-----------+----------+
+	| job       | count(*) |
+	+-----------+----------+
+	| MANAGER   |        3 |
+	| ANALYST   |        2 |
+	| PRESIDENT |        1 |
+	+-----------+----------+
+
+21、列出在部门"SALES"<销售部>工作的员工的姓名,假定不知道销售部的部门编号.
+	select ename from emp where deptno = (select deptno from dept where dname = 'SALES');
+	+--------+
+	| ename  |
+	+--------+
+	| ALLEN  |
+	| WARD   |
+	| MARTIN |
+	| BLAKE  |
+	| TURNER |
+	| JAMES  |
+	+--------+
+
+22、列出薪金高于公司平均薪金的所有员工,所在部门,上级领导,雇员的工资等级.
+	select 
+		e.ename, d.dname, l.ename, s.grade
+	from 
+		emp e
+	join 
+		dept d
+	on 
+		e.deptno = d.deptno
+	left join
+		emp l
+	on 
+		e.mgr = l.empno
+	join
+		salgrade s
+	on
+		e.sal between s.losal and s.hisal
+	where
+		e.sal > (select avg(sal) from emp);
+	+-------+------------+-------+-------+
+	| ename | dname      | ename | grade |
+	+-------+------------+-------+-------+
+	| FORD  | RESEARCH   | JONES |     4 |
+	| SCOTT | RESEARCH   | JONES |     4 |
+	| CLARK | ACCOUNTING | KING  |     4 |
+	| BLAKE | SALES      | KING  |     4 |
+	| JONES | RESEARCH   | KING  |     4 |
+	| KING  | ACCOUNTING | NULL  |     5 |
+	+-------+------------+-------+-------+
+
+23、列出与"SCOTT"从事相同工作的所有员工及部门名称
+	select job from emp where ename = 'scott';
+	+---------+
+	| job     |
+	+---------+
+	| ANALYST |
+	+---------+
+
+	select e.ename, e.job, d.dname
+	from emp e
+	join dept d
+	on e.deptno = d.deptno
+	where e.job = (select job from emp where ename = 'scott')
+	and	e.ename <> 'scott';
+	+-------+---------+----------+
+	| ename | job     | dname    |
+	+-------+---------+----------+
+	| FORD  | ANALYST | RESEARCH |
+	+-------+---------+----------+
+
+24、列出薪金等于部门30中员工的薪金的其他员工的姓名和薪金.
+	select ename, sal from emp where sal in (select distinct sal from emp where deptno=30) and deptno <> 30;
+	Empty set (0.00 sec)
+
+
+25、列出薪金高于在部门30工作的所有员工的薪金的员工姓名和薪金.部门名称.
+	select e.ename, d.dname
+	from emp e
+	join dept d
+	on e.deptno = d.deptno
+	where e.sal > (select max(sal) from emp where deptno=30);
+	+-------+------------+
+	| ename | dname      |	
+	+-------+------------+
+	| JONES | RESEARCH   |
+	| SCOTT | RESEARCH   |
+	| KING  | ACCOUNTING |
+	| FORD  | RESEARCH   |
+	+-------+------------+
+
+26、列出在每个部门工作的员工数量,平均工资和平均服务期限.
+	服务期限=系统当前年份-入职年份
+
+	计算两个日期间的年差：TimeStampleDiff(间隔类型，前一个日期，后一个日期)
+	间隔类型：YEAR 年、MONTH 月,DAY 日……
+	
+	没有员工的部门，部门人数是0
+	select d.*, count(e.ename), ifnull(avg(e.sal),0), ifnull(avg(timestampdiff(YEAR,hiredate,now())),0)
+	from emp e
+	right join dept d
+	on e.deptno = d.deptno
+	group by d.deptno,d.dname,d.loc;
+		+--------+------------+----------+----------------+----------------------+---------------------------------------------------+
+	| DEPTNO | DNAME      | LOC      | count(e.ename) | ifnull(avg(e.sal),0) | ifnull(avg(timestampdiff(YEAR,hiredate,now())),0) |
+	+--------+------------+----------+----------------+----------------------+---------------------------------------------------+
+	|     10 | ACCOUNTING | NEW YORK |              3 |          2916.666667 |                                           41.3333 |
+	|     20 | RESEARCH   | DALLAS   |              5 |          2175.000000 |                                           39.4000 |
+	|     30 | SALES      | CHICAGO  |              6 |          1566.666667 |                                           41.8333 |
+	|     40 | OPERATIONS | BOSTON   |              0 |             0.000000 |                                            0.0000 |
+	+--------+------------+----------+----------------+----------------------+---------------------------------------------------+
+
+27、列出所有员工的姓名、部门名称和工资。
+	select e.ename, d.dname, s.sal
+	from emp e
+	join dept d
+	on e.deptno = d.deptno;
+
+
+28、列出所有部门的详细信息和人数
+	select d.deptno,d.dname,d.loc
+	from emp e
+	join dept d
+	on e.deptno = d.deptno
+	group by d.deptno,d.dname,d.loc;
+
+29、列出各种工作的最低工资及从事此工作的雇员姓名
+	select e.ename, t.*
+	from emp e
+	join (select job, min(sal) as minsal from emp group by job) t
+	on e.job = t.job and e.sal = t.minsal;
+
+30、列出各个部门的MANAGER(领导)的最低薪金
+	select job, min(sal)
+	from emp
+	where job = 'manager'
+	group by deptno;
+
+31、列出所有员工的年工资,按年薪从低到高排序
+	select ename, (sal + comm) * 12 yearsal
+	from emp 
+	order by yearsal asc;
+
+32、求出员工领导的薪水超过3000的员工名称与领导名称
+	select a.ename, b.ename
+	from emp a
+	join emp b
+	on a.mgr = b.empno
+	where b.sal > 3000;
+
+33、求出部门名称中,带'S'字符的部门员工的工资合计、部门人数.
+	select d.deptno, d.dname, d.loc, count(e.ename), ifnull(sum(e.sal), 0)
+	from emp e
+	join dept d
+	on e.deptno = d.deptno
+	where d.dname like "%s%"
+	group by d.deptno, d.dname, d.loc;
+
+34、给任职日期超过30年的员工加薪10%.
+	update emp set sal =sal * 1.1 where timestampdiff(YEAR,hiredate,now()) > 30;
