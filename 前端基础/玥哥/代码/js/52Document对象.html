@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document对象</title>
+
+</head>
+
+<body>
+    <div id="pn" class="cls">动力节点</div> <br>
+    <div class="cls">powernode</div> <br>
+
+    <input type="checkbox" name="hobby"> 抽烟
+    <input type="checkbox" name="hobby"> 喝酒
+    <input type="checkbox" name="hobby"> 烫头
+
+    <script>
+        /*
+        Document对象
+        getElementById  根据id属性值获取，返回单个Element对象
+        getElementsByTagName   根据标签名称获取，返回Element对象数组
+        getElementsByClassName  根据class属性值获取，返回Element对象数组
+        getElementsByName 根据name属性值获取，返回Element对象数组
+        */
+
+        /* var ele = document.getElementById("pn");
+        console.log(ele); */
+
+        /* var eles = document.getElementsByTagName("input");
+        console.log(eles);
+        console.log(eles[0]); */
+
+        /* var eles = document.getElementsByClassName("cls");
+        console.log(eles);
+
+        for (var i = 0; i < eles.length; i++) {
+            console.log(eles[i]);
+        } */
+
+        var eles = document.getElementsByName("hobby");
+        console.log(eles);
+
+        for (var i = 0; i < eles.length; i++) {
+            console.log(eles[i]);
+        }
+
+    </script>
+</body>
+
+</html>

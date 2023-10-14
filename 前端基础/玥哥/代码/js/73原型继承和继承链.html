@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>原型继承和继承链</title>
+
+    <script>
+        /*
+              继承：子类继承父类，子类拥有父类的属性和方法
+              js继承：对象继承另一个对象，对象中拥有另一个对象的属性和方法
+              
+              js对象 拥有 原型的属性和方法 -> 对象
+        */
+
+        function Person(name, age) {
+            this.name = name;
+            this.age = age;
+            /* this.eat = function () {
+                console.log("吃东西");
+            } */
+        }
+
+        function Student(score) {
+            this.score = score;
+        }
+
+        Object.prototype.eat = function () {
+            console.log("Object原型中的eat方法");
+        }
+        Student.prototype = new Person("张三", 23);
+
+        var stu = new Student(80);
+        console.log(stu.score);
+        console.log(stu.name);
+        console.log(stu.age);
+        stu.eat();
+
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

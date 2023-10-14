@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>函数</title>
+    <script>
+        /*
+        函数的定义
+         function  函数名(参数1, 参数2, ... , 参数3) {
+             // 需要执行的代码块  
+         }
+         1、function是一个关键字, 和var、typeof一样, 都是关键字, 后面要加空格;
+         2、函数名的命名规范和变量命名一样, 只能是字母、数字、下划线、美元符号, 不能以数字开头, 一般采用驼峰式命名;
+         3、函数名后的()中放置函数形参, 形参可以为任意多个(意味着可以没有形参), 如有有多个形参用","隔开;
+         4、函数{}中就是需要执行的代码块。
+
+         函数的调用
+         函数名(实参1, 实参2, ... , 实参3);
+        */
+
+        function add(a, b) {
+            return a + b;
+        }
+
+        var num = add(2, 3);
+        var num2 = add(20, 30);
+
+        console.log(num);
+        console.log(num2);
+
+    </script>
+</head>
+
+<body>
+</body>

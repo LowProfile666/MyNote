@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>自增自减运算符</title>
+    <script>
+        /*
+        自增自减运算符：作用是对于变量做自增1的操作，或者自减1的操作
+        自增++
+        自减--
+        
+        【1】单独使用在前在后没有区别
+        【2】组合使用
+        在前：先做自增，然后将自增后的结果带入参与运算
+        在后：先将原来的值带入参与运算，运算完毕以后，立即自增
+        */
+
+        /* var num = 1;
+        num--; //单独使用
+        console.log(num); */
+
+        /*  var num = 1;
+         var num2 = num++;
+         console.log(num);
+         console.log(num2); */
+
+        var num1 = 2;
+        var num2 = 3;
+
+
+        console.log(num1++ + ++num2);//6
+        console.log(num1);//3
+        console.log(num2);//4
+
+
+    </script>
+</head>
+
+<body>
+</body>

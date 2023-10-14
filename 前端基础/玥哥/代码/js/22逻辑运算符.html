@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>逻辑运算符</title>
+    <script>
+        /*
+        逻辑运算符：表示两个布尔值的逻辑关系
+        与：与运算符表示并且的关系，两个参与运算的布尔值，都为true，结果才是true。只要有false，结果就是false
+        或：或运算符表示或者的关系，两个参与运算的布尔值，有一个为true，结果即为true,都为false，结果就是false
+        */
+
+        console.log(true && true); // true
+        console.log(true && false); //false
+        console.log(false && false); // false
+
+        console.log("----------------");
+
+        console.log(true || true); // true
+        console.log(true || false); //true
+        console.log(false || false); // false
+
+        var num = 10;
+
+        //逻辑运算符布尔值的来源，可以来源于条件表达式的运算结果
+        console.log(num >= 5 && num <= 15);
+
+        //非：取反操作
+        console.log(!true); //false
+        console.log(!false); //true
+    </script>
+</head>
+
+<body>
+</body>

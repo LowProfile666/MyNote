@@ -1,0 +1,52 @@
+<head>
+    <meta charset="utf-8" />
+    <title>行内元素</title>
+    <style>
+        /* 
+        内联元素又称为行内元素，内联元素不可以设置宽（width）和高（height），
+        但可以与其他行内元素位于同一行，行内元素内尽量不要包含块级元素。
+        行内元素的高度一般由元素内部的字体大小决定，宽度由内容的长度控制。
+        只能设置左右方向的padding和margin值，上下无法设置。
+        常见的行内元素有：a，em，strong，span, i, u, del等。
+
+        行内元素的特点：
+        1.可以和别的行内元素和行内块级元素共享一行；
+        2.不能设置高度属性（height）和宽度属性（width），另外内边距和外边距部分可控制；
+        3.行内标签的宽度只与内容有关；
+        4.行内元素只能容纳文本或者其他行内元素。 
+        */
+        #div1 {
+            border: 3px red solid;
+        }
+
+        #div2 {
+            border: 2px green solid;
+            text-align: center;
+        }
+
+        #span1 {
+            /* margin-top: 20px;
+            margin-bottom: 20px;
+            margin-left: 20px; */
+            /* margin-right: 30px; */
+
+            padding-right: 20px;
+
+            border: 1px blue solid;
+        }
+
+        #span2 {
+            border: 1px blue solid;
+        }
+    </style>
+
+<body>
+    <div id="div1">
+        <div id="div2">
+            <span id="span1">span1</span>
+            <span id="span2">span2</span>
+        </div>
+    </div>
+</body>
+
+</html>

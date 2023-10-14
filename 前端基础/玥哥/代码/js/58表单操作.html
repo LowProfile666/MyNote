@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>表单操作</title>
+</head>
+
+<body>
+    <div id="parent">
+        <form action="#" method="get">
+            姓名:<input type="text" name="username" id="username"><br>
+            女<input type="radio" class="sex" value="woman" id="1">
+            男<input type="radio" class="sex" value="man" id="2"><br>
+            故乡：<select id="city">
+                <option value="023" id="chongqing">重庆</option>
+                <option value="021" id="beijing">北京</option>
+                <option value="027" id="wuhan">武汉</option>
+                <option value="020" id="shanghai">上海</option>
+                <input type="submit">
+        </form>
+    </div>
+
+    <script>
+        //获取或者设置表单的value信息
+        /* var ele = document.getElementById("username");
+        ele.value = "张三";
+        console.log(ele.value); */
+
+        //获取单选框选中状态，或者设置选中状态
+        /*  var ele = document.getElementById("1");
+         ele.checked = true; */
+
+        //设置下拉框
+        /* var ele = document.getElementById("beijing");
+        ele.selected = true; */
+
+        //设置禁用效果
+        var ele = document.getElementById("2");
+        ele.disabled = true;
+
+    </script>
+</body>
+
+</html>

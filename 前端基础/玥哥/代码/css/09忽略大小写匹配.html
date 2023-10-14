@@ -1,0 +1,26 @@
+<head>
+    <meta charset="utf-8" />
+    <title>忽略大小写匹配</title>
+    <style>
+        /* 第一个选择器将会匹配一个开头为a的值，这样它只匹配了第一项，因为另外两项开头是大写的 A */
+        /* li[class^="a"] {
+            color: red;
+        } */
+
+        /* 第二个选择器使用了大小写不敏感的标记，于是匹配了所有项 */
+        li[class^="a" i] {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Case-insensitivity</h1>
+    <ul>
+        <li class="a">Item 1</li>
+        <li class="A">Item 2</li>
+        <li class="Ab">Item 3</li>
+    </ul>
+</body>
+
+</html>

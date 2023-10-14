@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>if语句</title>
+    <script>
+        /*
+         流程控制是我们可以在程序的执行过程中控制程序的流程和执行的顺序
+ 
+         选择语句
+         if语句
+         if
+         if...else
+         if...else...if
+ 
+         switch语句
+ 
+         循环语句
+         for
+         while
+         do...while
+        */
+
+
+        /*
+         if
+         if(布尔值){
+             条件成立，就执行if的语句体
+         }
+ 
+         后续代码
+
+
+         if...else
+         if(布尔值){
+            条件成立，就执行语句体1;
+         }else{
+            条件不成立，就执行语句体2;
+         }
+
+
+         if...else...if
+         if(判断条件){
+            执行语句体1;
+         }else if(判断条件){
+            执行语句体2;
+         }else if(判断条件){
+            执行语句体3;
+         }else{
+            如果上面的判断都不成立，就执行else的语句
+         }
+
+        */
+
+        var age = 155;
+        /* if (age >= 18) {
+            console.log("成年");
+        } */
+
+        /* if (age >= 18) {
+            console.log("成年");
+        } else {
+            console.log("未成年");
+        } */
+
+        if (age >= 0 && age <= 10) {
+            console.log("儿童");
+        } else if (age > 10 && age <= 20) {
+            console.log("少年");
+        } else if (age > 20 && age <= 30) {
+            console.log("青年");
+        } else if (age > 30 && age <= 60) {
+            console.log("中年");
+        } else if (age > 60 && age < 120) {
+            console.log("老年");
+        } else {
+            console.log("年龄有误");
+        }
+
+        console.log("后续代码");
+
+    </script>
+</head>
+
+<body>
+</body>

@@ -1,0 +1,89 @@
+<head>
+    <meta charset="utf-8" />
+    <title>非关系选择器优先级</title>
+    <!-- 
+        0. !important 优先级高于行内
+
+        1.行内样式优先级大于其他
+
+        2.内部样式和外部样式，会根据加载顺序，加载进文档，形成文档流
+          分析这个文档流中的这些选择器优先级（内部和外部引入进来的）
+          和内部引入还是外部引入无关
+
+        3. 拿到文档流，分析文档流的这些选择器的优先级
+
+        id选择器
+        属性选择器  伪类选择器
+        类选择器
+        标签选择器
+        全局选择器
+
+        4.在文档流中，有两个优先级相同的选择器，最终谁生效
+          就近原则，最后一个选择器会生效
+
+        5. 可以做到子父继承，部分属性
+           父容器的样式，会传递给子容器，子容器具备同样的样式
+           优先级最低的
+           一旦子有样式，就会覆盖掉父传递过来的，使用自己的
+        
+     -->
+
+    <!-- <style>
+        #one {
+            color: blue;
+        }
+    </style>
+
+    <link rel="stylesheet" href="css/index.css">
+
+    <style>
+        #one {
+            color: red;
+        }
+    </style> -->
+
+
+    <style>
+        #one {
+            color: deeppink;
+        }
+
+        p[class] {
+            color: yellow;
+        }
+
+        p:first-child {
+            color: chocolate;
+        }
+
+        .classOne {
+            color: green;
+        }
+
+        p {
+            color: blue;
+        }
+
+        * {
+            color: red !important;
+        }
+
+        div {
+            background-color: blueviolet;
+        }
+
+        span {
+            background-color: cyan;
+        }
+    </style>
+
+<body>
+    <p id="one" class="classOne" style="color: gray;">段落</p>
+
+    <div>
+        段落
+        <span>行内</span>
+    </div>
+</body>
+
+</html>

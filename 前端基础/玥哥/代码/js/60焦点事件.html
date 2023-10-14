@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>焦点事件</title>
+</head>
+
+<body>
+    昵称: <input type="text" name="username" id="username"> <span id="info"></span>
+    <script>
+        var ele = document.getElementById("username");
+        ele.onfocus = function () {
+            document.getElementById("info").innerHTML = "请输入6-12位的昵称";
+        }
+
+        ele.onblur = function () {
+            var reg = /^\w{6,12}$/;
+            var flag = reg.test(ele.value);
+            if (flag) {
+                document.getElementById("info").innerHTML = "验证通过";
+            } else {
+                document.getElementById("info").innerHTML = "验证不通过";
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>创建自定义对象二</title>
+    <script>
+        /*
+            通过字面量创建对象
+        */
+
+        var obj = {
+            name: "张三",
+            age: 18,
+            show: function (girlfriend) {
+                console.log(this.name + "的女朋友是:" + girlfriend);
+            }
+        }
+
+        console.log(obj.name);
+        console.log(obj.age);
+        obj.show("new 对象");
+
+    </script>
+
+<body>
+</body>

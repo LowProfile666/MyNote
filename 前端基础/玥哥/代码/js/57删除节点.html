@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>删除节点</title>
+</head>
+
+<body>
+    <div id="parent">
+        <h1>我是标题</h1>
+        <p id="title">好好学习,天天向上</p>
+        <a href="http://www.baidu.com">百度一下</a>
+    </div>
+
+    <script>
+        /* var parent = document.getElementById("parent");
+        var title = document.getElementById("title");
+        parent.removeChild(title); */
+
+        var title = document.getElementById("title");
+        title.parentNode.removeChild(title);
+
+    </script>
+</body>
+
+</html>

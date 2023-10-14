@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>隐式转换</title>
+    <script>
+        /*
+            隐式转换指的是，我们没有使用转换语法完成转换，而是在运算的过程中，完成的转换
+            我们来看一下常见的隐式转换场景
+             1. 一侧有string，+会发生字符串拼接，会将数据转换字符串类型
+
+
+             2. 一侧有number，另一侧是基本类型 +号运算的时候会将数据转换number类型
+             有意义的转为1
+             true
+
+
+             无意义的转为0
+             false null
+
+             注意NaN undefined特殊 不会转换
+
+
+             3. 在使用判断逻辑时
+             null undefined '' false  NaN这几个是false，其他情况都是true
+
+             4.==
+             （1） NaN 和其他任何类型比较，永远返回false
+             （2） string 和number 比较，先将string转为number类型
+             （3） null和undefined比较，结果是true。除此之外，null、undefined和其他任何结果比较，值都为false
+        */
+
+        // var str = "hello" + 100;
+        // console.log(str);
+
+        // var num = 1 + undefined;
+        // console.log(num);
+
+        /*  var num = 10;
+         if (num) {
+             console.log("条件成立");
+         } */
+
+        /* if (NaN) {
+            console.log("条件成立");
+        } */
+
+        /* var b = NaN == NaN;
+        console.log(b); */
+
+        /* var b = 1 == '1';
+        console.log(b); */
+
+        /* var b = null == undefined;
+        console.log(b); */
+
+        /* var b1 = undefined == 0;
+        var b2 = undefined == false;
+        console.log(b1);
+        console.log(b2); */
+
+    </script>
+</head>
+
+<body>
+</body>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>表单事件</title>
+
+
+</head>
+
+<body>
+    <form action="#" id="form">
+        <input type="text" name="username" placeholder="请输入用户名..."> <br>
+        <input type="password" name="password" placeholder="请输入密码..."> <br>
+    </form>
+    <button id="submit">提交数据</button>
+    <button id="reset">重置数据</button>
+    <script>
+
+        var form = document.getElementById("form");
+
+        var submit = document.getElementById("submit");
+        submit.onclick = function () {
+            form.submit();
+        }
+
+        var reset = document.getElementById("reset");
+        reset.onclick = function () {
+            form.reset();
+        }
+
+    </script>
+</body>
+
+
+</html>

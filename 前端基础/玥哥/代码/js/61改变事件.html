@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>改变事件</title>
+</head>
+
+<body>
+    故乡：<select name="city" id="city">
+        <option value="1">北京</option>
+        <option value="2">上海</option>
+        <option value="3">广州</option>
+        <option value="4">武汉</option>
+        <script>
+            var city = document.getElementById("city");
+            city.onchange = function () {
+                console.log("选中的城市是:" + this.value);
+            }
+        </script>
+</body>
+
+</html>

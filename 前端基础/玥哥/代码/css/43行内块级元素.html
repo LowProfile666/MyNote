@@ -1,0 +1,29 @@
+<head>
+    <meta charset="utf-8" />
+    <title>行内块级元素</title>
+    <style>
+        /* 
+        行内块级元素既有块级元素的特点，又有内联元素的特点。可以与其他行内元素位于同一行，宽度由内容的长度控制，但可以设置宽（width）和高（height），也可以设置四个方向的padding(内边距)和margin(外边距)值。
+        常见的行内块级元素有img和input。
+        行内块级元素的特点：
+        1.行内块级元素可以设置宽度（width）和高度（height）属性；
+        2.行内元素可以和别的行内元素和行内块级元素共享一行。   
+       */
+
+        #img1 {
+            width: 500px;
+            height: 500px;
+            margin-top: 200px;
+        }
+    </style>
+
+<body>
+    <div id="div1">
+        <div id="div2">
+            <img src="img/动力节点.jpeg" id="img1">
+            <img src="img/动力节点.jpeg" id="img2">
+        </div>
+    </div>
+</body>
+
+</html>

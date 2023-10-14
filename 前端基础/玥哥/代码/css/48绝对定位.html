@@ -1,0 +1,36 @@
+<html>
+
+<head>
+    <style>
+        /* 
+        绝对定位
+        1.如果没有父容器，或者父容器没有定位，就以浏览器为定位标准
+        2.如果父容器有定位，就以父容器为定位标准    
+        */
+        #div1 {
+            background-color: aqua;
+            position: absolute;
+            right: 0px;
+            top: 0px;
+        }
+
+        #div2 {
+            background-color: red;
+            width: 500px;
+            height: 500px;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="div2">
+        父容器
+        <div id="div1">
+            绝对定位
+        </div>
+    </div>
+</body>
+
+</html>

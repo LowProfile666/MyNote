@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>元素关系操作</title>
+</head>
+
+<body>
+    <div id="parent">
+        <button id="child1">子节点1</button>
+        <button id="child2">子节点2</button>
+    </div>
+
+    <script>
+        /* var ele = document.getElementById("child1");
+        var ele2 = ele.parentNode;
+        console.log(ele2); */
+
+        var ele = document.getElementById("parent");
+        var eles = ele.children;
+
+        for (var i = 0; i < eles.length; i++) {
+            console.log(eles[i]);
+        }
+
+    </script>
+</body>
+
+</html>

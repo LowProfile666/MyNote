@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Boolean转换</title>
+    <script>
+        /* 
+        当value其值为 0、-0、null、""、false、undefined 或 NaN 时，那么Boolean()转换成Boolean类型的值为 false。
+        其他值会被转为true
+        */
+
+        var b = Boolean(0);
+        console.log(b);
+        console.log(typeof b);
+
+        console.log(Boolean(-0));
+        console.log(Boolean(null));
+        console.log(Boolean(undefined));
+        console.log(Boolean(""));
+        console.log(Boolean(NaN));
+        console.log(Boolean(false));
+        console.log(Boolean(1));
+
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>

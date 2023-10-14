@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>插入节点</title>
+</head>
+
+<body>
+    <div id="parent">
+        <h1 id="title">我是标题</h1>
+    </div>
+
+    <script>
+        //p标签对象
+        var p = document.createElement("p");// <p></p>
+        p.innerText = "动力节点,powernode";
+
+        //父节点
+        var parent = document.getElementById("parent");
+
+        //父节点中的指定节点
+        var title = document.getElementById("title");
+
+        parent.insertBefore(p, title);
+    </script>
+</body>
+
+</html>

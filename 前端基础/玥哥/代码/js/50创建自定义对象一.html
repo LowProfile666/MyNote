@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>创建自定义对象一</title>
+    <script>
+        /*
+         new关键字创建对象
+        */
+
+        var obj = new Object();
+        obj.name = "张三";
+        obj.sleep = function () {
+            console.log("学生" + this.name + "在睡觉");
+        }
+
+        console.log(obj.name);
+        obj.sleep();
+    </script>
+
+<body>
+</body>

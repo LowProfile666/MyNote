@@ -1,0 +1,39 @@
+<head>
+    <meta charset="utf-8" />
+    <title>属性选择器</title>
+    <style>
+        /* 使用li[class]，我们就能匹配任何有 class 属性的选择器。这匹配了除了第一项以外的所有项 */
+        /* li[class] {
+            color: red;
+        } */
+
+        /* li[class="a"]匹配带有一个a类的选择器，不过不会选中一部分值为a而另一部分是另一个用空格隔开的值的类，它选中了第二项。 */
+        /* li[class="a"] {
+            color: red;
+        } */
+
+        /* li[class~="a"]会匹配一个a类，不过也可以匹配一列用空格分开、包含a类的值，它选中了第二和第三项。  */
+        /* li[class~="a"] {
+            color: red;
+        } */
+
+        /* li[class|="top"]匹配带有一个名为attr的属性的元素，其值可正为value，或者开始为value，后面紧随着一个连字符。 */
+        li[class|="top"] {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Attribute presence and value selectors</h1>
+    <ul>
+        <li>Item 1</li>
+        <li class="a">Item 2</li>
+        <li class="a b">Item 3</li>
+        <li class="ab">Item 4</li>
+        <li class="top-a">Item 5</li>
+        <li class="top-b">Item 6</li>
+    </ul>
+</body>
+
+</html>

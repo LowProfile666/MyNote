@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>函数arguments对象</title>
+    <script>
+        /*
+        实参：函数在调用的时候实际传入的参数  1, 2, 3
+        形参：函数在定义时，声明的变量 fun(a, b, c)
+
+        使用实参给对应的形参进行赋值，形参具备了实参的值
+
+        arguments封装的是实参的对象
+        */
+
+        function fun(a, b, c) {
+            console.log(arguments);
+            console.log(arguments.length);
+            console.log(fun);
+            console.log(arguments.callee);
+
+            console.log(a);
+            console.log(b);
+            console.log(c);
+
+            console.log(arguments[0]);
+            console.log(arguments[1]);
+            console.log(arguments[2]);
+            console.log(arguments[3]);
+        }
+
+        fun(1, 2, 3, 4);
+
+    </script>
+</head>
+
+<body>
+</body>

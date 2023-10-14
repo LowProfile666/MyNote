@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Element对象</title>
+
+</head>
+
+<body>
+    <div id="pn" class="cls">动力节点</div> <br>
+    <div class="cls">powernode</div> <br>
+
+    <input type="checkbox" name="hobby"> 抽烟
+    <input type="checkbox" name="hobby"> 喝酒
+    <input type="checkbox" name="hobby"> 烫头
+
+    <script>
+        var ele = document.getElementById("pn");
+        //获取属性的属性值
+        /* var attr = ele.getAttribute("class");
+        console.log(attr); */
+
+        //判断属性是否存在
+        /* var flag = ele.hasAttribute("name");
+        console.log(flag); */
+
+        //设置或者添加属性
+        ele.setAttribute("name", "powernode");
+        ele.setAttribute("name", "power");
+
+        //移除属性
+        ele.removeAttribute("name");
+
+
+    </script>
+</body>
+
+</html>

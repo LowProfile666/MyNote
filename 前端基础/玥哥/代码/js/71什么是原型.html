@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>原型</title>
+    <script>
+        /*
+            原型是什么？
+            每个对象都有一个他的原型对象,他可以使用原型对象中的所有的属性和方法
+        */
+
+        let stu = {
+            name: "张三"
+        }
+
+        //获取他的原型对象
+        stu.__proto__.eat = function () {
+            console.log("吃饭");
+        }
+
+        stu.eat();
+
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

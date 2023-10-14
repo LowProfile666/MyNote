@@ -1,0 +1,33 @@
+<head>
+    <meta charset="utf-8" />
+    <title>组合选择器优先级</title>
+    <style>
+        /*1个id选择符 1个元素选择符 1个类选择符  1-1-1*/
+        /* div #box-second-id .box-three-class {
+            color: red;
+        } */
+
+        /*2个id选择符 1个元素选择符   2-0-1*/
+        div #box-second-id #box-three-id {
+            color: red;
+        }
+
+        /*2个id选择符 1个元素选择符   2-0-1*/
+        div #box-second-id #box-three-id {
+            color: blue;
+        }
+
+        /*最后在浏览器上面显示 blue 颜色的文字*/
+    </style>
+
+<body>
+    <div class="box-first-class" id="box-first-id">
+        <div class="box-second-class" id="box-second-id">
+            <div class="box-three-class" id="box-three-id">
+                我是一个p标签
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

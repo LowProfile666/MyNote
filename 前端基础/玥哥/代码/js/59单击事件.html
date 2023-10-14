@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>单击操作</title>
+</head>
+
+<body>
+    <div id="one">动力节点</div>
+    <input type="button" id="btn" value="点我改变内容">
+
+    <script>
+        /*
+        事件源:按钮
+        事件：点击
+        驱动程序：将div中的标签体内容改变
+        */
+
+        var btn = document.getElementById("btn");
+
+        //将事件源和事件绑定，并指定了驱动程序
+        btn.onclick = function () {
+            document.getElementById("one").innerHTML = "powernode";
+        }
+
+    </script>
+</body>
+
+</html>

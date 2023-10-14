@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>构造函数创建对象</title>
+
+    <script>
+        /*
+        function 构造方法(参数,参数){
+            this.属性 = 值;
+            this.方法 = function(){
+                方法体;
+            }
+        }
+        */
+
+        function Person(name, age) {
+            this.name = name;
+            this.age = age;
+            this.eat = function () {
+                console.log("吃饭");
+            }
+        }
+
+        var person = new Person("张三", 23);
+        console.log(person.name);
+        console.log(person.age);
+        person.eat();
+
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

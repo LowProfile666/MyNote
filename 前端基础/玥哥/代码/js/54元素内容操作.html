@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>元素内容操作</title>
+</head>
+
+<body>
+    <div id="pn" class="cls">
+        <span>动力节点</span>
+    </div>
+
+    <script>
+        /*
+            innerHTML 获取元素内容，包括标签
+            innerText 获取元素内容，不包含标签
+        */
+
+        var ele = document.getElementById("pn");
+        //var inner = ele.innerHTML;
+        //var inner = ele.innerText;
+        //console.log(inner);
+
+        // ele.innerHTML += "<span>powernode</span>";
+
+        ele.innerText = "powernode";
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,49 @@
+<head>
+    <meta charset="utf-8" />
+    <title>块级元素</title>
+    <style>
+        /* 
+        元素分类
+        块级元素
+        行内元素
+        行内块级元素
+
+
+        块级元素排斥其他元素与其位于同一行，可以设定元素的宽（width）和高（height），
+        块级元素一般是其他元素的容器，可容纳块级元素和行内元素。可设置四个方向的padding和margin值。
+        常见的块级元素有：body, div，p，h1~h6，ul，ol，li，pre等。
+        块级元素具有以下特点：
+        1.总是在新行上开始，占据一整行；
+        2.高度属性（height）和宽度属性（width）可以设置，并且外边距和内边距都可控制；
+        3.宽始终是与父元素宽度一样，与内容无关；
+        4.它可以容纳行内元素和其它块级元素。
+        */
+        #div1 {
+            border: 3px red solid;
+        }
+
+        #div2 {
+            height: 60px;
+            /* width: 100px; */
+            border: 2px green solid;
+        }
+
+        #span1 {
+            border: 1px blue solid;
+        }
+
+        #span2 {
+            border: 1px blue solid;
+        }
+    </style>
+
+<body>
+    <div id="div1">
+        <div id="div2">
+            <span id="span1">span</span>
+            <span id="span2">span</span>
+        </div>
+    </div>
+</body>
+
+</html>
