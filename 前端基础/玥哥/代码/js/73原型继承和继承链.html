@@ -25,9 +25,12 @@
             this.score = score;
         }
 
+        // 当Student的原型Person中没有eat方法时，会逐级向上找，最终找到Object类
         Object.prototype.eat = function () {
             console.log("Object原型中的eat方法");
         }
+
+        // Student继承Person的属性和方法
         Student.prototype = new Person("张三", 23);
 
         var stu = new Student(80);

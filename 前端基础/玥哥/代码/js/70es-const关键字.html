@@ -4,14 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <title>const关键字</title>
+    <!-- 声明常量，常量的值不能被更改 -->
     <script>
         // const a = 5;
-        // a = 10;
+        // a = 10;  // 会报错
         // console.log(a);
 
+        // const 只限制数组变量的引用，不限制元素
         /*  const arr = [1, 2, 3, 4, 5];
-         arr = [10, 20, 30];
-         arr[0] = 100;
+         arr = [10, 20, 30];  // 会报错
+         arr[0] = 100;  // 不报错
          console.log(arr); */
 
         const b = {
@@ -22,9 +24,10 @@
         /* b = {
             name: "李四",
             age: 24
-        } */
+        }   // 会报错
+        */
 
-        b.name = "zhangsan";
+        b.name = "zhangsan";  // 不报错
 
         console.log(b);
 

@@ -15,6 +15,8 @@
         }
 
         //获取他的原型对象
+        // stu.__proto__ 获得原型
+        // stu.__proto__.eat 绑定方法
         stu.__proto__.eat = function () {
             console.log("吃饭");
         }
