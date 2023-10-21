@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>data也可以是一个函数</title>
+    <!-- 安装Vue -->
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <!-- 容器 -->
+    <div id="app">
+        <h1>{{msg}}</h1>
+    </div>
+    <!-- vue代码 -->
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            // data : {
+            //     msg : 'Hello Vue!'
+            // }
+            // data functions should return an object：data函数应该返回一个对象。
+            // data 也可以是一个函数。
+            // 如果是函数的话，必须使用return语句返回{}对象。
+            // data可以是直接的对象，也可以是一个函数，什么时候使用直接的对象？什么时候使用函数呢？（等你学到组件的时候自然就明白了。）
+            // data : function(){
+            //     return {
+            //         msg : 'Hello Vue!'
+            //     }
+            // }
+
+            // 在对象当中，函数的 :function 可以省略
+            data(){
+                return {
+                    msg : 'Hello Zhangsan!'
+                }
+            }
+        })
+
+        // 关于配置项：enumerable、configurable
+        let phone = {
+            name : '苹果X'
+        }
+
+        // 给phone对象新增一个color属性
+        Object.defineProperty(phone, 'color', {
+            value : '奶奶灰',
+            
+            // true表示该属性是可以遍历的。（可枚举的，可迭代的。）
+            // false表示该属性是不可遍历的。
+            enumerable : false,
+
+            // true表示该属性是可以被删除的。
+            // false表示该属性是不可以被删除的。
+            configurable : false
+        })
+
+    </script>
+</body>
+</html>

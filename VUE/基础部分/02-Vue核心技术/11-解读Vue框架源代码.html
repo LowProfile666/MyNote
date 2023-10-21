@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>解读Vue框架源代码</title>
+    <!-- 安装Vue -->
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <!-- 
+        Vue框架源代码中关键性代码：
+        1. var data = vm.$options.data;
+            注意：这是获取data。程序执行到这里的时候vm上还没有 _data 属性。
+        2. data = vm._data = isFunction(data) ? getData(data, vm) : data || {};
+            程序执行完这个代码之后，vm对象上多了一个_data这样的属性。
+            通过以上源码解读，可以得知data不一定是一个{}，也可以是一个函数。
+            代码含义：
+                如果data是函数，则调用getData(data, vm)来获取data。
+                如果data不是函数，则直接将data返回，给data变量。并且同时将data赋值给vm._data属性了。
+            有一个疑问？
+                程序执行到这里，为什么要给vm扩展一个_data属性呢？
+                    _data属性，以"_"开始，足以说明，这个属性是人家Vue框架底层需要访问的。
+                    Vue框架底层它使用vm._data这个属性干啥呢？
+                        vm._data是啥？
+                            vm._data 是：{
+                                            name : 'jackson',
+                                            age : 35
+                                        }
+                vm._data 这个属性直接指向了底层真实的data对象。通过_data访问的name和age是不会走数据代理机制的。
+                通过vm._data方式获取name和age的时候，是不会走getter和setter方法的。
+            
+            注意：对于Vue实例vm来说，不仅有_data这个属性，还有一个$data这个属性。
+                   _data 是框架内部使用的，可以看做私有的。
+                   $data 这是Vue框架对外公开的一个属性，是给我们程序员使用。
+
+        3. 重点函数：
+            function isReserved(str) {
+                var c = (str + '').charCodeAt(0);
+                return c === 0x24 || c === 0x5f;
+            }
+            这个函数是用来判断字符串是否以 _ 和 $ 开始的。
+            true表示以_或$开始的。
+            false表示不是以_或$开始的。
+        4. proxy(vm, "_data", key);
+            通过这行代码直接进入代理机制（数据代理）。
+        5. 重点函数proxy
+            function proxy(target, sourceKey, key) { // target是vm，sourceKey是"_data"，key是"age"
+                sharedPropertyDefinition.get = function proxyGetter() {
+                    return this["_data"]["age"];
+                };
+                sharedPropertyDefinition.set = function proxySetter(val) {
+                    this["_data"]["age"] = val;
+                };
+                Object.defineProperty(vm, 'age', sharedPropertyDefinition);
+            }
+     -->
+     
+    <!-- 容器 -->
+    <div id="app">
+        <h1>姓名：{{name}}</h1>
+        <h1>年龄：{{age}}岁</h1>
+    </div>
+
+    <!-- vue代码 -->
+    <script>
+
+        function isReserved(str) {
+            var c = (str + '').charCodeAt(0);
+            return c === 0x24 || c === 0x5f;
+        }
+
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                name : 'jackson',
+                age : 35
+            }
+        })
+
+        // 如果我们程序员不想走代理的方式读取data，想直接读取data当中的数据，可以通过_data和$data属性来访问。
+        // 建议使用$data这个属性。
+        console.log('name = ' + vm.$data.name)
+        console.log('age = ' + vm.$data.age)
+        
+    </script>
+</body>
+</html>

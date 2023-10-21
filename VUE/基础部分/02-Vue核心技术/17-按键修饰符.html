@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>按键修饰符</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <!-- 
+        9个比较常用的按键修饰符：
+            .enter
+            .tab （必须配合keydown事件使用。）
+            .delete (捕获“删除”和“退格”键)
+            .esc
+            .space
+            .up
+            .down
+            .left
+            .right
+        怎么获取某个键的按键修饰符？
+            第一步：通过event.key获取这个键的真实名字。
+            第二步：将这个真实名字以kebab-case风格进行命名。
+                PageDown是真实名字。经过命名之后：page-down
+        按键修饰符是可以自定义的？
+            通过Vue的全局配置对象config来进行按键修饰符的自定义。
+            语法规则：
+                Vue.config.keyCodes.按键修饰符的名字 = 键值
+        系统修饰键：4个比较特殊的键
+            ctrl、alt、shift、meta
+            对于keydown事件来说：只要按下ctrl键，keydown事件就会触发。
+            对于keyup事件来说：需要按下ctrl键，并且加上按下组合键，然后松开组合键之后，keyup事件才能触发。
+     -->
+    <div id="app">
+        <h1>{{msg}}</h1>
+        回车键：<input type="text" @keyup.enter="getInfo"><br>
+        回车键（键值）：<input type="text" @keyup.13="getInfo"><br>
+        delete键：<input type="text" @keyup.delete="getInfo"><br>
+        esc键：<input type="text" @keyup.esc="getInfo"><br>
+        space键：<input type="text" @keyup.space="getInfo"><br>
+        up键：<input type="text" @keyup.up="getInfo"><br>
+        down键：<input type="text" @keyup.down="getInfo"><br>
+        left键：<input type="text" @keyup.left="getInfo"><br>
+        right键：<input type="text" @keyup.right="getInfo"><br>
+        <!-- tab键无法触发keyup事件。只能触发keydown事件。 -->
+        tab键： <input type="text" @keyup.tab="getInfo"><br>
+        tab键（keydown）： <input type="text" @keydown.tab="getInfo"><br>
+        PageDown键： <input type="text" @keyup.page-down="getInfo"><br>
+        huiche键： <input type="text" @keyup.huiche="getInfo"><br>
+        ctrl键(keydown)： <input type="text" @keydown.ctrl="getInfo"><br>
+        ctrl键(keyup)： <input type="text" @keyup.ctrl="getInfo"><br>
+        ctrl键(keyup)： <input type="text" @keyup.ctrl.i="getInfo"><br>
+    </div>
+
+    <script>
+
+        // 自定义了一个按键修饰符：.huiche 。代表回车键。
+        Vue.config.keyCodes.huiche = 13
+
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : '按键修饰符'
+            },
+            methods : {
+                getInfo(event){
+                    // 当用户键入回车键的时候，获取用户输入的信息。
+                    //if(event.keyCode === 13){
+                        console.log(event.target.value)
+                    //}
+                    console.log(event.key)
+                }
+            }
+        })
+    </script>
+</body>
+</html>

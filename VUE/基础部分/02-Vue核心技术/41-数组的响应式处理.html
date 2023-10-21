@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数组的响应式处理</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <!-- 
+        1. 通过数组的下标去修改数组中的元素，默认情况下是没有添加响应式处理的。怎么解决？
+        
+        2. 第一种方案：
+            vm.$set(数组对象, 下标, 值)
+            Vue.set(数组对象, 下标, 值)
+
+        3. 第二种方案：
+            push()
+            pop()
+            reverse()
+            splice()
+            shift()
+            unshift()
+            sort()
+
+            在Vue当中，通过以上的7个方法来给数组添加响应式处理。
+     -->
+    <div id="app">
+        <h1>{{msg}}</h1>
+        <ul>
+            <li v-for="user in users">
+                {{user}}
+            </li>
+        </ul>
+        <ul>
+            <li v-for="vip in vips" :key="vip.id">
+                {{vip.name}}
+            </li>
+        </ul>
+    </div>
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : '数组的响应式处理',
+                users : ['jack', 'lucy', 'james'],
+                vips : [
+                    {id:'111', name:'zhangsan'},
+                    {id:'222', name:'lisi'}
+                ]
+            }
+        })
+    </script>
+</body>
+</html>

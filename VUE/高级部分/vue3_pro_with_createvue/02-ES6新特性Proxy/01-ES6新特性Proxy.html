@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ES6新特性Proxy</title>
+</head>
+<body>
+    <script>
+        // 目标对象
+        let user = {
+            name : 'jack'
+        }
+
+        // 通过Proxy来生成代理对象
+        // 代理模式的原理：通过代理对象去完成目标对象的任务，同时还可以额外新增一些程序。
+        let userProxy = new Proxy(user, {
+            // 主要是通过这些配置项来完成响应式处理的。
+            // 当你读取的时候，get执行。
+            // target参数是代表目标对象。
+            // propertyName参数代表的是目标对象上的属性名，是一个字符串
+            get(target, propertyName){
+                console.log('读取了')
+                //return target[propertyName]
+                return Reflect.get(target, propertyName)
+            },
+            // 当你修改某个属性的时候，或者新增某个属性的时候，set执行。
+            // set方法有三个参数：
+            // target目标对象
+            // propertyName属性名
+            // value具体赋什么值
+            set(target, propertyName,value){
+                console.log('修改了或者添加了')
+                //target[propertyName] = value
+                Reflect.set(target, propertyName,value)
+            },
+            // 当你删除某个属性的时候，deleteProperty就会执行
+            // deleteProperty方法同样有两个参数：
+            // 第一个参数目标对象
+            // 第二个参数属性名
+            deleteProperty(target, propertyName){
+                console.log('删除了')
+                //return delete target[propertyName]
+                return Reflect.deleteProperty(target, propertyName)
+            }
+        })
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue的事件绑定</title>
+    <!-- 安装Vue -->
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <!-- 
+        Vue事件处理:
+            1.指令的语法格式：
+                <标签 v-指令名:参数名="表达式">{{插值语法}}</标签>
+                “表达式”位置都可以写什么？
+                    常量、JS表达式、Vue实例所管理的XXX
+            2. 在Vue当中完成事件绑定需要哪个指令呢？
+                v-on指令。
+                语法格式：
+                    v-on:事件名="表达式"
+                例如：
+                    v-on:click="表达式" 表示当发生鼠标单击事件之后，执行表达式。
+                    v-on:keydown="表达式" 表示当发生键盘按下事件之后，执行表达式。
+            3. 在Vue当中，所有事件所关联的回调函数，需要在Vue实例的配置项methods中进行定义。
+                methods是一个对象：{}
+                在这个methods对象中可以定义多个回调函数。
+            4. v-on指令也有简写形式
+                v-on:click 简写为 @click
+                v-on:keydown 简写为 @keydown
+                v-on:mouseover 简写为 @mouseover
+                ....
+            5. 绑定的回调函数，如果函数调用时不需要传递任何参数，小括号()可以省略。
+            6. Vue在调用回调函数的时候，会自动给回调函数传递一个对象，这个对象是：当前发生的事件对象。
+            7. 在绑定回调函数的时候，可以在回调函数的参数上使用 $event 占位符，Vue框架看到这个 $event 占位符之后，会自动将当前事件以对象的形式传过去。
+     -->
+    <!-- 容器 -->
+    <div id="app">
+        <h1>{{msg}}</h1>
+        <!-- 使用javascript原生代码如何完成事件绑定。 -->
+        <button onclick="alert('hello')">hello</button>
+        <!-- 使用Vue来完成事件绑定 -->
+        <!-- 以下是错误的，因为alert()并没有被Vue实例管理。 -->
+        <!-- <button v-on:click="alert('hello')">hello</button> -->
+        <!-- 以下是错误的，因为sayHello()并没有被Vue实例管理。 -->
+        <!-- <button v-on:click="sayHello()">hello</button> -->
+        <!-- 正确的写法 -->
+        <button v-on:click="sayHello()">hello</button>
+        <!-- v-on指令的简写形式 -->
+        <button @click="sayHi()">hi button</button>
+        <button @click="sayHi($event, 'jack')">hi button2</button>
+        <!-- 绑定的回调函数，如果不需要传任何参数，小括号() 可以省略 -->
+        <button @click="sayWhat">what button</button>
+    </div>
+    <!-- vue代码 -->
+    <script>
+        // 自定义一个函数
+        // function sayHello(){
+        //     alert('hello')
+        // }
+
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : 'Vue的事件绑定'
+            },
+            methods : {
+                // 回调函数
+                // sayHello : function(){
+                //     alert('hello')
+                // }
+                // : function 可以省略
+                sayHello(){
+                    alert('hello2')
+                },
+                sayHi(event, name){
+                    console.log(name, event)
+                    //alert("hi " + name)
+                },
+                sayWhat(event){
+                    //console.log(event)
+                    //console.log(event.target)
+                    //console.log(event.target.innerText)
+                    //alert('what...')
+                }
+            }
+        })
+    </script>
+</body>
+</html>

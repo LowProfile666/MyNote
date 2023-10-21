@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue的其它指令</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1 v-cloak>{{msg}}</h1>
+        <h1 v-pre>欢迎学习Vue框架！</h1>
+        <h1 v-pre>{{msg}}</h1>
+        <ul>
+            <li v-for="user,index of users" :key="index" v-once>
+                {{user}}
+            </li>
+        </ul>
+
+        <ul>
+            <li v-for="user,index of users" :key="index">
+                {{user}}
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : 'Vue的其它指令',
+                users : ['jack', 'lucy', 'james']
+            }
+        })
+    </script>
+</body>
+</html>

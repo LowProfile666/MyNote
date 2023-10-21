@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue的生命周期</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>{{msg}}</h1>
+        <h3>计数器：{{counter}}</h3>
+        <h3 v-text="counter"></h3>
+        <button @click="add">点我加1</button>
+        <button @click="destroy">点我销毁</button>
+    </div>
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : 'Vue生命周期',
+                counter : 1
+            },
+            methods: {
+                add(){
+                    console.log('add....')
+                    this.counter++
+                },
+                destroy(){
+                    // 销毁vm
+                    this.$destroy()
+                },
+                /* m(){
+                    console.log('m....')
+                } */
+            },
+            watch : {
+                counter(){
+                    console.log('counter被监视一次！')
+                }
+            },
+            /*
+            1.初始阶段
+                el有，template也有，最终编译template模板语句。
+                el有，template没有，最终编译el模板语句。
+                el没有的时候，需要手动调用 vm.$mount(el) 进行手动挂载，然后流程才能继续。此时如果template有，最终编译template模板语句。
+                el没有的时候，需要手动调用 vm.$mount(el) 进行手动挂载，然后流程才能继续。此时如果没有template，最终编译el模板语句。
+
+                结论：
+                    流程要想继续：el必须存在。
+                    el和template同时存在，优先选择template。如果没有template，才会选择el。
+            */
+            beforeCreate() {
+                // 创建前
+                // 创建前指的是：数据代理和数据监测的创建前。
+                // 此时还无法访问data当中的数据。包括methods也是无法访问的。
+                console.log('beforeCreate', this.counter)
+                // 调用methods报错了，不存在。
+                //this.m()
+            },
+            created() {
+                // 创建后
+                // 创建后表示数据代理和数据监测创建完毕，可以访问data中的数据了。
+                console.log('created', this.counter)
+                // 可以访问methods了。
+                //this.m()
+            },
+            // 2.挂载阶段
+            beforeMount() {
+                // 挂载前
+                console.log('beforeMount')
+            },
+            mounted() {
+                // 挂载后
+                console.log('mounted')
+                console.log(this.$el)
+                console.log(this.$el instanceof HTMLElement)
+            },
+            // 3.更新阶段
+            beforeUpdate() {
+                // 更新前
+                console.log('beforeUpdate')
+            },
+            updated() {
+                // 更新后
+                console.log('updated')
+            },
+            // 4.销毁阶段
+            beforeDestroy() {
+                // 销毁前
+                console.log('beforeDestroy')
+                console.log(this)
+                this.counter = 1000
+            },
+            destroyed() {
+                // 销毁后
+                console.log('destroyed')
+                console.log(this)
+            },
+        })
+    </script>
+</body>
+</html>

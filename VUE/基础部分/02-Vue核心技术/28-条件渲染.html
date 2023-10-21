@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>条件渲染</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>{{msg}}</h1>
+        <!-- 
+            v-if指令的值：true/false
+                true: 表示该元素会被渲染到页面上。
+                false: 表示该元素不会被渲染到页面上。（注意：不是修改了CSS样式，是这个元素压根没有加载）
+         -->
+        <div v-if="false">{{msg}}</div>
+
+        <div v-if="2 === 1">{{msg}}</div>
+
+        <button @click="counter++">点我加1</button>
+
+        <h3>{{counter}}</h3>
+
+        <img :src="imgPath1" v-if="counter % 2 === 1">
+        <!-- 提醒：v-if和v-else之间不能断开。 -->
+        <!-- <div></div> -->
+        <!-- <img :src="imgPath2" v-if="counter % 2 === 0"> -->
+        <!-- 为了提高效率，可以使用v-else指令 -->
+        <img :src="imgPath2" v-else>
+
+        <br><br>
+
+        温度：<input type="number" v-model="temprature"><br><br>
+
+        <!-- 天气：<span v-if="temprature <= 10">寒冷</span>
+        <span v-if="temprature > 10 && temprature <= 25">凉爽</span>
+        <span v-if="temprature > 25">炎热</span> -->
+
+        天气：<span v-if="temprature <= 10">寒冷</span>
+        <!-- v-if v-else-if v-else三者在使用的时候，中间不能断开。 -->
+        <!-- <br> -->
+        <span v-else-if="temprature <= 25">凉爽</span>
+        <span v-else>炎热</span>
+
+        <br><br><br>
+
+        <!-- 
+            v-show指令是通过修改元素的CSS样式的display属性来达到显示和隐藏的。
+            v-if和v-show应该如何选择？
+                1. 如果一个元素在页面上被频繁的隐藏和显示，建议使用v-show，因为此时使用v-if开销比较大。
+                2. v-if的优点：页面加载速度快，提高了页面的渲染效率。
+         -->
+        <div v-show="false">你可以看到我吗？</div>
+
+        <!-- template标签/元素只是起到占位的作用，不会真正的出现在页面上，也不会影响页面的结构。 -->
+        <template v-if="counter === 10">
+            <input type="text">
+            <input type="checkbox">
+            <input type="radio">            
+        </template>
+
+    </div>
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : '条件渲染',
+                counter : 1,
+                imgPath1 : '../img/1.jpg',
+                imgPath2 : '../img/2.jpg',
+                temprature : 0
+            }
+        })
+    </script>
+</body>
+</html>

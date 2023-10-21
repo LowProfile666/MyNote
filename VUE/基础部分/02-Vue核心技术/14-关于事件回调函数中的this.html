@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于事件回调函数中的this</title>
+    <!-- 安装Vue -->
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <!-- 容器 -->
+    <div id="app">
+        <h1>{{msg}}</h1>
+        <h1>计数器：{{counter}}</h1>
+        <button @click="counter++">点击我加1</button>
+        <button @click="add">点击我加1</button>
+        <button @click="add2">点击我加1（箭头函数）</button>
+    </div>
+    <!-- vue代码 -->
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : '关于事件回调函数中的this',
+                counter : 0
+            },
+            // 1.methods对象中的方法可以通过vm去访问吗？可以。
+            // 2.methods对象中的方法有没有做数据代理呢？没有。
+            methods : {
+                add(){
+                    //counter++; // 错误的。
+                    // 在这里需要操作counter变量？怎么办？
+                    //console.log(vm === this)
+                    //console.log(this)
+                    this.counter++;
+                    //vm.counter++;
+                },
+                add2:()=>{
+                    //this.counter++;
+                    //console.log(this === vm)
+                    //箭头函数中没有this，箭头函数中的this是从父级作用域当中继承过来的。
+                    //对于当前程序来说，父级作用域是全局作用域:window
+                    console.log(this)
+                },
+                sayHi(){
+                    alert('hi...')
+                }
+            }
+        })
+
+    </script>
+</body>
+</html>

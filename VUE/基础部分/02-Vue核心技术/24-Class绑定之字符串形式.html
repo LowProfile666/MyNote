@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class绑定之字符串形式</title>
+    <script src="../js/vue.js"></script>
+    <style>
+        .static{
+            border: 1px solid black;
+            background-color: aquamarine;
+        }
+        .big{
+            width: 200px;
+            height: 200px;
+        }
+        .small{
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>{{msg}}</h1>
+        <!-- 静态写法 -->
+        <div class="static small">{{msg}}</div>
+        <br><br>
+        <button @click="changeBig">变大</button>
+        <button @click="changeSmall">变小</button>
+        <!-- 动态写法：动静都有 -->
+        <!-- 适用场景：如果确定动态绑定的样式个数只有1个，但是名字不确定。 -->
+        <div class="static" :class="c1">{{msg}}</div>
+    </div>
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : 'Class绑定之字符串形式',
+                c1 : 'small'
+            },
+            methods: {
+                changeBig(){
+                    this.c1 = 'big'
+                },
+                changeSmall(){
+                    this.c1 = 'small'
+                }
+            },
+        })
+    </script>
+</body>
+</html>

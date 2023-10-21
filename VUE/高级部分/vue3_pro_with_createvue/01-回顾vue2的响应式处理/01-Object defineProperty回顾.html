@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>回顾Object.defineProperty是如何实现响应式处理的</title>
+</head>
+<body>
+    <script>
+        // 创建一个user1对象
+        let user1 = {
+            name : 'jack'
+        }
+
+        // 创建一个user2对象
+        let user2 = {}
+
+        // 给user2扩展一个属性name
+        Object.defineProperty(user2, 'name', {
+            // 数据代理
+            get(){
+                console.log('get方法执行了。')
+                return user1.name
+            },
+            // 数据劫持
+            set(value){
+                // 改数据
+                user1.name = value
+                // 同时在这里可以进行响应式处理，更新页面
+                console.log('这里进行响应式处理，页面已经更新.')
+            }
+        })
+    </script>
+</body>
+</html>

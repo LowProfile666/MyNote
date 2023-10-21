@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>组件嵌套</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+        // 创建Y1组件
+        const y1 = {
+            template : `
+                <div>
+                    <h3>Y1组件</h3>
+                </div>
+            `
+        }
+        // 创建X1组件
+        const x1 = {
+            template : `
+                <div>
+                    <h3>X1组件</h3>
+                </div>
+            `
+        }
+        // 创建Y组件
+        const y = {
+            template : `
+                <div>
+                    <h2>Y组件</h2>
+                    <y1></y1>
+                </div>
+            `,
+            components : {y1}
+        }
+        // 创建X组件
+        const x = {
+            template : `
+                <div>
+                    <h2>X组件</h2>
+                    <x1></x1>
+                </div>
+            `,
+            components : {x1}
+        }
+        // 创建app组件
+        const app = {
+            template : `
+                <div>
+                    <h1>App组件</h1>
+                    <x></x>
+                    <y></y>
+                </div>
+            `,
+            // 注册X组件
+            components : {x,y}
+        }
+        // vm
+        const vm = new Vue({
+            el : '#root',
+            template : `
+                <app></app>
+            `,
+            // 注册app组件
+            components : {app}
+        })
+    </script>
+</body>
+</html>

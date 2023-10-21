@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>template配置项详解</title>
+    <!-- 安装Vue -->
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <!-- 指定挂载位置 -->
+    <!-- 注意：以下代码就是只有Vue框架能够看懂的代码了。下面的代码就是一个模板语句。这个代码是需要Vue框架编译，然后渲染的。 -->
+    <div id="app">
+        <div>
+            <h1>{{msg}}</h1>
+            <h1>{{name}}</h1>
+        </div>
+    </div>
+
+    <!-- vue程序 -->
+    <script>
+        // Vue.config是Vue的全局配置对象。
+        // productionTip属性可以设置是否生成生产提示信息。
+        // 默认值：true。如果是false则表示阻止生成提示信息。
+        Vue.config.productionTip = false
+
+        /* 
+        关于template配置项：
+            1.template后面指定的是模板语句，但是模板语句中只能有一个根节点。
+            2.只要data中的数据发生变化，模板语句一定会重新编译。（只要data变，template就会重新编译，重新渲染）
+            3.如果使用template配置项的话，指定挂载位置的元素会被替换。
+            4.好消息：目前我们可以不使用template来编写模板语句。这些模板语句可以直接写到html标签中。Vue框架能够找到并编译，然后渲染。
+            5.如果直接将模板语句编写到HTML标签中，指定的挂载位置就不会被替换了。
+        关于$mount('#app')？
+            也可以不使用$mount('#app')的方式进行挂载了。
+            在Vue中有一个配置项：el
+            el配置项和$mount()可以达到同样的效果。
+            el配置项的作用？
+                告诉Vue实例去接管哪个容器。
+                el : '#app'，表示让Vue实例去接管id='app'的容器。
+            el其实是element的缩写。被翻译为元素。
+        */
+        new Vue({
+            // 错误的
+            //template : '<h1>{{msg}}</h1><h1>动力节点老杜</h1>',
+            /* template : `
+            <div>
+                <h1>{{msg}}</h1>
+                <h1>{{name}}</h1>
+            </div>
+            `, */
+            data : {
+                msg : 'Hello Vue!!!!!!!',
+                name : 'a动力节点老杜!!!!!!'
+            },
+            el : '#app'
+            //el : document.getElementById('app')
+        })
+        //}).$mount('#app')
+        
+    </script>
+</body>
+</html>

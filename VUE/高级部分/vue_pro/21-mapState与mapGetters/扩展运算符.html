@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>回顾ES6中的扩展运算符...</title>
+</head>
+<body>
+    <script>
+        let arr = [1,2,3,34,5,6,6,6]
+        // 把数组两边的中括号脱掉。
+        console.log(...arr)
+
+        let o1 = {
+            x : 1,
+            y : 1
+        }
+
+        // ...o1 表示把o1对象上的 {} 脱掉
+        //console.log(...o1) // 语法错误
+
+        // 脱掉之后再穿上
+        console.log({...o1})
+
+        // 脱掉之后再穿上，生成了一个全新的对象
+        let o2 = {...o1}
+
+        console.log(o1 === o2)
+
+        // 如果...扩展运算符使用在对象上，一般用于对象属性的合并。
+        let o3 = {
+            x : 1,
+            y : 1
+        }
+        let o4 = {
+            k : 1,
+            f : 1
+        }
+        let o5 = {
+            m : 1,
+            n : 1
+        }
+
+        // 以上的o3 o4 o5对象中所有的属性全部合并，生成一个全新的对象
+        let o6 = {...o3, ...o4, ...o5}
+
+        console.log(o6)
+
+        let o7 = {
+            x : 1,
+            y : 1
+        }
+
+        let o8 = {
+            k : 1,
+            ...o7,
+            f : 1
+        }
+
+        console.log(o8)
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue的其它指令</title>
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1 v-cloak>{{msg}}</h1>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            let scriptElt = document.createElement('script')
+            scriptElt.src = '../js/vue.js'
+            document.head.append(scriptElt)
+        }, 3000)
+
+        setTimeout(() => {
+            const vm = new Vue({
+                el : '#app',
+                data : {
+                    msg : 'Vue的其它指令'
+                }
+            })
+        }, 4000)
+    </script>
+</body>
+</html>

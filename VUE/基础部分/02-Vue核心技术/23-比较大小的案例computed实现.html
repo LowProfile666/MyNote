@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>比较大小的案例computed实现</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <!-- 
+        1. computed和watch如果都能够完成某个功能，优先选择computed。
+        2. 有一种情况下，必须使用watch，computed无法完成！
+            如果在程序当中采用了异步的方式，只能使用watch。
+        3. 什么时候使用箭头函数？什么时候使用普通函数？
+            看看这个函数是否属于Vue管理的。
+            是Vue管理的函数：统一写普通函数。
+            不是Vue管理的函数：统一写箭头函数。
+     -->
+    <div id="app">
+        <h1>{{msg}}</h1>
+        数值1：<input type="number" v-model="num1"><br>
+        数值2：<input type="number" v-model="num2"><br>
+        比较大小：{{compareResult}}
+    </div>
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : '比较大小的案例',
+                num1 : 0,
+                num2 : 0
+            },
+            computed : {
+                // 计算属性的简写形式
+                compareResult(){
+                    let result = this.num1 - this.num2
+                    // 这里采用了异步方式，这里的箭头函数是javascript引擎去调用。所以最终return的时候，也会将值返回给javascript引擎。
+                    setTimeout(() => {
+                        if(result == 0){
+                            return this.num1 + ' = ' + this.num2
+                        }else if(result > 0){
+                            return  this.num1 + ' > ' + this.num2
+                        }else {
+                            return  this.num1 + ' < ' + this.num2
+                        }    
+                    }, 1000 * 3)
+                    
+                }
+            }
+        })
+    </script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>侦听/监视 属性的变化</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>{{msg}}</h1>
+        数字：<input type="text" v-model="number"><br>
+        数字：<input type="text" v-model="a.b"><br>
+        数字：<input type="text" v-model="a.c"><br>
+        数字：<input type="text" v-model="a.d.e.f"><br>
+        数字(后期添加监视)：<input type="text" v-model="number2"><br>
+    </div>
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                number2 : 0,
+                msg : '侦听属性的变化',
+                number : 0,
+                // a属性中保存的值是一个对象的内存地址。
+                // a = 0x2356
+                a : {
+                    b : 0,
+                    c : 0,
+                    d : {
+                        e : {
+                            f : 0
+                        }
+                    }
+                }
+            },
+            computed : {
+                hehe(){
+                    return 'haha' + this.number
+                }
+            },
+            watch : {
+                // 可以监视多个属性
+                // 监视哪个属性，请把这个属性的名字拿过来即可。
+                // 可以监视Vue的原有属性
+                /* number : {
+                    // 初始化的时候，调用一次handler方法。
+                    immediate : true,
+                    // 这里有一个固定写死的方法，方法名必须叫做：handler
+                    // handler方法什么时候被调用呢？当被监视的属性发生变化的时候，handler就会自动调用一次。
+                    // handler方法上有两个参数：第一个参数newValue，第二个参数是oldValue
+                    // newValue是属性值改变之后的新值。
+                    // oldValue是属性值改变之前的旧值。
+                    handler(newValue, oldValue){
+                        console.log(newValue, oldValue)
+                        // this是当前的Vue实例。
+                        // 如果该函数是箭头函数，这个this是window对象。不建议使用箭头函数。
+                        console.log(this)
+                    }
+                }, */
+                // 无法监视b属性，因为b属性压根不存在。
+                /* b : {  
+                    handler(newValue, oldValue){
+                        console.log('@')
+                    } 
+                } */
+                
+                // 如果监视的属性具有多级结构，一定要添加单引号：'a.b'
+                /* 'a.b' : {  
+                    handler(newValue, oldValue){
+                        console.log('@')
+                    } 
+                },
+
+                'a.c' : {  
+                    handler(newValue, oldValue){
+                        console.log('@')
+                    } 
+                }, */
+
+                a : {
+                    // 启用深度监视，默认是不开启深度监视的。
+                    // 什么时候开启深度监视：当你需要监视一个具有多级结构的属性，并且监视所有的属性，需要启用深度监视。
+                    deep : true,  
+
+                    handler(newValue, oldValue){
+                        console.log('@')
+                    } 
+                },
+
+                // 注意：监视某个属性的时候，也有简写形式，什么时候启用简写形式？
+                // 当只有handler回调函数的时候，可以使用简写形式。
+                number(newValue, oldValue){
+                    console.log(newValue, oldValue)
+                }
+
+                // 也可以监视计算属性
+                /* hehe : {
+                    handler(a , b){
+                        console.log(a, b)
+                    }
+                } */
+            }
+        })
+
+        // 如何后期添加监视？调用Vue相关的API即可。
+        // 语法：vm.$watch('被监视的属性名', {})
+        /* vm.$watch('number2', {
+            immediate : true,
+            deep : true,
+            handler(newValue, oldValue){
+                console.log(newValue, oldValue)
+            }
+        }) */
+
+        // 这是后期添加监视的简写形式。
+        vm.$watch('number2', function(newValue, oldValue){
+            console.log(newValue, oldValue)
+        })
+
+    </script>
+</body>
+</html>

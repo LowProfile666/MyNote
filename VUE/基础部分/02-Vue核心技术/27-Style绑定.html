@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Style绑定</title>
+    <script src="../js/vue.js"></script>
+    <style>
+        .static {
+            border: 1px solid black;
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>{{msg}}</h1>
+        <!-- 静态写法 -->
+        <div class="static" style="background-color: green;">{{msg}}</div>
+        <br>
+        <!-- 动态写法：字符串形式 -->
+        <div class="static" :style="myStyle">{{msg}}</div>
+        <br>
+        <!-- 动态写法：对象形式 -->
+        <div class="static" :style="{backgroundColor: 'gray'}">{{msg}}</div>
+        <br>
+        <div class="static" :style="styleObj1">{{msg}}</div>
+        <br>
+        <!-- 动态写法：数组形式 -->
+        <div class="static" :style="styleArray">{{msg}}</div>
+    </div>
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : 'Style绑定',
+                myStyle : 'background-color: gray;',
+                styleObj1 : {
+                    backgroundColor: 'green'
+                },
+                styleArray : [
+                    {backgroundColor: 'green'},
+                    {color : 'red'}
+                ]
+            }
+        })
+    </script>
+</body>
+</html>

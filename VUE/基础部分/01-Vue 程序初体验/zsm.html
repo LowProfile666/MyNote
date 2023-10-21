@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test</title>
+    <script src="../js/vue.js"></script>
+</head>
+
+<body>
+    <span id="app">{{name}}</span>
+    <script>
+        
+            // 这是一个普通的对象
+            let phone = {}
+
+            // 临时变量
+            let temp
+
+            // 给上面的phone对象新增一个color属性
+            Object.defineProperty(phone, 'color', {
+                //value : '太空灰',
+                //writable : true,
+                // getter方法配置项
+                get: function () {
+                    console.log('getter方法执行了@@@');
+                    //return '动态'
+                    //return this.color
+                    return temp
+                },
+                // setter方法配置项
+                set: function (val) {
+                    console.log('setter方法执行了@@@', val);
+                    //this.color = val
+                    temp = val
+                }
+            })
+
+       </script>
+    </script>
+</body>
+
+</html>

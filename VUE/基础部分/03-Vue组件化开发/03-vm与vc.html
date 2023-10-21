@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vm与vc</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>{{msg}}</h1>
+        <user></user>
+        <user></user>
+        <user></user>
+    </div>
+    <script>
+
+        // 这个不是给Vue扩展counter属性。
+        // 这个是给“Vue的原型对象”扩展一个counter属性。
+        Vue.prototype.counter = 1000
+
+        // 创建组件
+        const user = Vue.extend({
+            template : `
+            <div>
+                <h1>user组件</h1>
+            </div>
+            `,
+            mounted(){
+                // this是VueComponent实例
+                // user是什么呢？？？？是一个全新的构造函数 VueComponent构造函数。
+                //console.log('vc', this === user)
+                // 为什么要这样设计？为了代码复用。
+                // 底层实现原理：
+                // VueComponent.prototype.__proto__ = Vue.prototype
+                console.log('vc.counter', this.counter)
+                // 这个访问不了，因为msg是vm实例上的属性。
+                //console.log('vc.msg', this.msg)
+            }
+        })
+
+        console.log('user.prototype.__proto__ === Vue.prototype' , user.prototype.__proto__ === Vue.prototype)
+
+        console.log(user)
+
+        // vm
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : 'vm与vc'
+            },
+            components : {
+                user
+            },
+            mounted() {
+                // this是Vue实例
+                console.log('vm', this)
+            },
+        })
+
+        console.log('vm.counter', vm.counter)
+        // 本质上是这样的：
+        console.log('vm.counter', vm.__proto__.counter)
+
+        /* function test(){
+            var Sub = function User(){
+                this.name = 'admin'
+            }
+            return Sub
+        }
+
+        let a = test()
+        // 通过构造函数创建对象
+        console.log(new a()) */
+
+        /* console.log(a)
+        let b = test()
+        console.log(b)
+        console.log(a === b) */
+
+        // prototype __proto__
+        // 构造函数（函数本身又是一种类型，代表Vip类型）
+        function Vip(){}
+
+        // Vip类型/Vip构造函数，有一个 prototype 属性。
+        // 这个prototype属性可以称为：显式的原型属性。
+        // 通过这个显式的原型属性可以获取：原型对象
+        // 获取Vip的原型对象
+        let x = Vip.prototype
+
+        // 通过Vip可以创建实例
+        let a = new Vip()
+        /* let b = new Vip()
+        let c = new Vip() */
+        // 对于实例来说，都有一个隐式的原型属性: __proto__
+        // 注意：显式的(建议程序员使用的)。隐式的（不建议程序员使用的。）
+        // 这种方式也可以获取到Vip的原型对象
+        let y = a.__proto__
+        /* b.__proto__
+        c.__proto__ */
+
+        // 原型对象只有一个，其实原型对象都是共享的。
+        console.log(x === y) // true
+
+        // 这个不是给Vip扩展属性
+        // 是在给“Vip的原型对象”扩展属性
+        Vip.prototype.counter = 1000
+
+        // 通过a实例可以访问这个扩展的counter属性吗？可以访问。为什么？原理是啥？
+        // 访问原理：首先去a实例上找counter属性，如果a实例上没有counter属性的话，会沿着__proto__这个原型对象去找。
+        // 下面代码看起来表面上是a上有一个counter属性，实际上不是a实例上的属性，是a实例对应的原型对象上的属性counter。
+        console.log(a.counter)
+        //console.log(a.__proto__.counter)
+        
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>过滤器</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <!-- 
+        需求：
+            从服务器端返回了一个商品的价格price，这个price的值可能是这几种情况：''、null、undefined、60.5
+            要求：
+                如果是''、null、undefined ，页面上统一显示为 - 
+                如果不是 ''、null、undefined，则页面上显示真实的数字即可。 
+        在Vue3当中，已经将过滤器语法废弃了。
+     -->
+    <div id="app">
+        <h1>{{msg}}</h1>
+        <h2>商品价格：{{formatPrice}}</h2>
+        <h2>商品价格：{{formatPrice2()}}</h2>
+        <h2>商品价格：{{price | filterA | filterB(3)}}</h2>
+        <input type="text" :value="price | filterA | filterB(3)">
+    </div>
+
+    <hr>
+
+    <div id="app2">
+        <h2>商品价格：{{price | filterA | filterB(3)}}</h2>
+    </div>
+
+    <script>
+
+        // 配置全局的过滤器。
+        Vue.filter('filterA', function(val){
+            if(val === null || val === undefined || val === ''){
+                return '-'
+            }
+            return val
+        })
+
+        Vue.filter('filterB', function(val, number){
+            return val.toFixed(number)
+        })
+
+        const vm2 = new Vue({
+            el : '#app2',
+            data : {
+                price : 20.3
+            }
+        })
+
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : '过滤器',
+                price : 50.6
+            },
+            methods: {
+                formatPrice2(){
+                    if(this.price === '' || this.price === undefined || this.price === null){
+                        return '-'
+                    }
+                    return this.price
+                }
+            },
+            computed : {
+                formatPrice(){
+                    if(this.price === '' || this.price === undefined || this.price === null){
+                        return '-'
+                    }
+                    return this.price
+                }
+            },
+            /* filters : {
+                // 局部过滤器
+                filterA(val){
+                    if(val === null || val === undefined || val === ''){
+                        return '-'
+                    }
+                    return val
+                },
+                filterB(val, number){
+                    // 确保传递过来的数据val，保留两位小数。
+                    return val.toFixed(number)
+                }
+            } */
+        })
+    </script>
+</body>
+</html>

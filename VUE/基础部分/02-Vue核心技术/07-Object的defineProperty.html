@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object.defineProperty()</title>
+</head>
+
+<body>
+    <!-- 
+        Object.defineProperty()
+        1. 这个方法是ES5新增的。
+        2. 这个方法的作用是：给对象新增属性，或者设置对象原有的属性。
+        3. 怎么用？
+            Object.defineProperty(给哪个对象新增属性, '新增的这个属性名叫啥', {给新增的属性设置相关的配置项key:value对})
+        4. 第三个参数是属性相关的配置项，配置项都有哪些？每个配置项的作用是啥？
+            value 配置项：给属性指定值
+            writable 配置项：设置该属性的值是否可以被修改。true表示可以修改。false表示不能修改。
+            getter方法 配置项：不需要我们手动调用的。当读取属性值的时候，getter方法被自动调用。
+                * getter方法的返回值非常重要，这个返回值就代表这个属性它的值。
+            setter方法 配置项：不需要我们手动调用的。当修改属性值的时候，setter方法被自动调用。
+                * setter方法上是有一个参数的，这个参数可以接收传过来的值。
+            注意：当配置项当中有setter和getter的时候，value和writable配置项都不能存在。
+     -->
+    <script>
+
+        // 这是一个普通的对象
+        let phone = {}
+
+        // 临时变量
+        let temp
+
+        // 给上面的phone对象新增一个color属性
+        Object.defineProperty(phone, 'color', {
+            //value : '太空灰',
+            //writable : true,
+            // getter方法配置项
+            get: function () {
+                console.log('getter方法执行了@@@');
+                //return '动态'
+                //return this.color  // 这会产生递归
+                return temp
+            },
+            // setter方法配置项
+            set: function (val) {
+                console.log('setter方法执行了@@@', val);
+                //this.color = val  // 这会产生递归
+                temp = val
+            }
+        })
+
+    </script>
+</body>
+
+</html>

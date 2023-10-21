@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>比较大小的案例watch实现</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>{{msg}}</h1>
+        数值1：<input type="number" v-model="num1"><br>
+        数值2：<input type="number" v-model="num2"><br>
+        比较大小：{{compareResult}}
+    </div>
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : '比较大小的案例',
+                num1 : 0,
+                num2 : 0,
+                compareResult : ''
+            },
+            watch : {
+                // 监视num1
+                num1 : {
+                    immediate : true,
+                    /* handler(newValue, oldValue){
+                        console.log(newValue, oldValue)
+                    } */
+                    handler(val){
+                        //console.log(val)
+                        let result = val - this.num2
+                        // 这个箭头函数也不是Vue管理的。是javascript引擎负责管理的。调用这个箭头函数的还是window。
+                        // 箭头函数没有this，只能向上一级找this，上一级是num1，num1是Vue实例的属性，所以this是Vue实例。
+                        setTimeout(() => {
+                            console.log(this)
+                            if(result == 0){
+                                this.compareResult = val + ' = ' + this.num2
+                            }else if(result > 0){
+                                this.compareResult = val + ' > ' + this.num2
+                            }else {
+                                this.compareResult = val + ' < ' + this.num2
+                            }    
+                        }, 1000 * 3)
+                        
+                    }
+                },
+                // 监视num2
+                num2 : {
+                    immediate : true,
+                    /* handler(newValue, oldValue){
+                        console.log(newValue, oldValue)
+                    } */
+                    handler(val){
+                        //console.log(val)
+                        let result = this.num1 - val
+                        /* setTimeout(() => {
+                            // 虽然这个函数是箭头函数，但是this是Vue实例。
+                            console.log(this)
+                            if(result == 0){
+                                this.compareResult = this.num1 + ' = ' + val
+                            }else if(result > 0){
+                                this.compareResult = this.num1 + ' > ' + val
+                            }else {
+                                this.compareResult = this.num1 + ' < ' + val
+                            }    
+                        }, 1000 * 3) */
+
+                        // 这里虽然是普通函数，但是这个函数并不是Vue管理的。是window负责调用的。
+                        // 所以这个普通函数当中的this是window。
+                        setTimeout(function(){
+                            // 虽然这个函数是普通函数，但是this是window。
+                            console.log(this)
+                            if(result == 0){
+                                this.compareResult = this.num1 + ' = ' + val
+                            }else if(result > 0){
+                                this.compareResult = this.num1 + ' > ' + val
+                            }else {
+                                this.compareResult = this.num1 + ' < ' + val
+                            }    
+                        }, 1000 * 3)
+                        
+                    }
+                }
+
+            }
+        })
+    </script>
+</body>
+</html>

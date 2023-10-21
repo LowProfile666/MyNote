@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反转字符串计算属性实现</title>
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <!-- 
+        计算属性：
+        1. 什么是计算属性？
+            使用Vue的原有属性，经过一系列的运算/计算，最终得到了一个全新的属性，叫做计算属性。
+            Vue的原有属性: data对象当中的属性可以叫做Vue的原有属性。
+            全新的属性: 表示生成了一个新的属性，和data中的属性无关了，新的属性也有自己的属性名和属性值。
+        2. 计算属性怎么用？
+            语法格式：需要一个新的配置项 computed
+                computed : {
+                    // 这是一个计算属性
+                    计算属性1 : {
+                        // setter 和 getter方法。
+                        // 当读取计算属性1的值的时候，getter方法被自动调用。
+                        get(){
+
+                        },
+                        // 当修改计算属性1的值的时候，setter方法被自动调用。
+                        set(val){
+
+                        }
+                    },
+                    // 这是另一个计算属性
+                    计算属性2 : {},
+                }
+        3. 计算属性的作用？
+            代码得到了复用。
+            代码更加便于维护了。
+            代码的执行效率高了。
+     -->
+    <div id="app">
+        <h1>{{msg}}</h1>
+        输入的信息：<input type="text" v-model="info"> <br>
+        反转的信息：{{reversedInfo}}<br>
+        反转的信息：{{reversedInfo}}<br>
+        反转的信息：{{reversedInfo}}<br>
+        反转的信息：{{reversedInfo}}<br>
+        反转的信息：{{reversedInfo}}<br>
+        {{hehe}} <br>
+        {{hehe}} <br>
+        {{hehe}} <br>
+        {{hehe}} <br>
+        {{hehe}} <br>
+        {{hello()}} <br>
+        {{hello()}} <br>
+        {{hello()}} <br>
+        {{hello()}} <br>
+        {{hello()}} <br>
+    </div>
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                msg : '计算属性-反转字符串案例',
+                info : ''
+            },
+            methods : {
+                hello(){
+                    console.log('hello方法执行了')
+                    return 'hello'
+                }
+            },
+            computed : {
+                // 可以定义多个计算属性
+                hehe : {
+                    // get方法的调用时机包括两个
+                    // 第一个时机：第一次访问这个属性的时候。
+                    // 第二个时机：该计算属性所关联的Vue原有属性的值发生变化时，getter方法会被重新调用一次。
+                    get(){
+                        console.log('getter方法调用了')
+                        //console.log(this === vm)
+                        return 'haha' + this.info
+                    },
+                    // 不能使用箭头函数，使用箭头函数会导致this的指向是：window
+                    // get:()=>{
+                    //     console.log('getter方法调用了')
+                    //     console.log(this === vm)
+                    //     return 'haha'
+                    // },
+                    set(val){
+                        console.log('setter方法调用了')
+                        //console.log(this === vm)
+                    }
+                },
+                // 完整写法
+                /* reversedInfo : { 
+                    get(){
+                        return this.info.split('').reverse().join('')
+                    },
+                    // 当修改计算属性的时候，set方法被自动调用。
+                    set(val){
+                        //console.log('setter方法被调用了。')
+                        // 不能这么做，这样做就递归了。
+                        //this.reversedInfo = val
+                        // 怎么修改计算属性呢？原理：计算属性的值变还是不变，取决于计算属性关联的Vue原始属性的值。
+                        // 也就是说：reversedInfo变还是不变，取决于info属性的值变不变。
+                        // 本质上：修改计算属性，实际上就是通过修改Vue的原始属性来实现的。
+                        this.info = val.split('').reverse().join('')
+                    }
+                } */
+
+                // 简写形式：set不需要的时候。
+                reversedInfo(){ 
+                    return this.info.split('').reverse().join('')
+                }
+            }
+        })
+    </script>
+</body>
+</html>

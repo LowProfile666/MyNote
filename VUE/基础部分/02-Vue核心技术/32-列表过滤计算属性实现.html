@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>列表过滤计算属性实现</title>
+    <script src="../js/vue.js"></script>
+    <style>
+        th,td{border: 1px solid black;}
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>{{msg}}</h1>
+        <input type="text" placeholder="请输入搜索关键字" v-model="keyword">
+        <table>
+            <tr>
+                <th>序号</th>
+                <th>英雄</th>
+                <th>能量值</th>
+                <th>选择</th>
+            </tr>
+            <tr v-for="(hero,index) in filteredHeros" :key="hero.id">
+                <td>{{index+1}}</td>
+                <td>{{hero.name}}</td>
+                <td>{{hero.power}}</td>
+                <td><input type="checkbox"></td>
+            </tr>
+        </table>
+    </div>
+    <script>
+        const vm = new Vue({
+            el : '#app',
+            data : {
+                keyword : '',
+                msg : '列表过滤',
+                heros : [
+                    {id:'101',name:'艾格文',power:10000},
+                    {id:'102',name:'麦迪文',power:9000},
+                    {id:'103',name:'古尔丹',power:8000},
+                    {id:'104',name:'萨尔',power:6000}
+                ]
+            },
+            computed : {
+                filteredHeros(){
+                    // 执行过滤
+                    return this.heros.filter((hero) => {
+                        return hero.name.indexOf(this.keyword) >= 0
+                    })
+                }
+            }
+        })
+    </script>
+</body>
+</html>

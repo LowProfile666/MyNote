@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第一个Vue程序</title>
+    <!-- 安装vue：当你使用script进行Vue安装之后，上下文中就注册了一个全局变量：Vue -->
+    <script src="../js/vue.js"></script>
+</head>
+<body>
+    <!-- 指定Vue实例的挂载位置。 -->
+    <!-- <div id="app"></div> -->
+    <hr>
+    <div id="app"></div>
+
+    <script>
+        /* 
+        第一步：创建Vue实例
+        1. 为什么要new Vue()，直接调用Vue()函数不行吗？
+            不行，因为直接调用Vue()函数，不创建实例的话，会出现以下错误：
+                Vue is a constructor and should be called with the `new` keyword
+        2. 关于Vue构造函数的参数：options？
+            option翻译为选项
+            options翻译为多个选项
+            Vue框架要求这个options参数必须是一个纯粹的JS对象：{}
+            在{}对象中可以编写大量的key:value对。
+            一个key:value对就是一个配置项。
+            主要是通过options这个参数来给Vue实例指定多个配置项。
+        3. 关于template配置项：
+            template翻译为：模板。
+            template配置项用来指定什么？用来指定模板语句，模板语句是一个字符串形式的。
+            什么是模板语句？
+                Vue框架自己制定了一些具有特殊含义的特殊符号。
+                Vue的模板语句是Vue框架自己搞的一套语法规则。
+                我们写Vue模板语句的时候，不能乱写，要遵守Vue框架的模板语法规则。
+            模板语句可以是一个纯粹的HTML代码，也可以是Vue中的特殊规则。也可以是HTML代码 + Vue的特殊规则。
+            template后面的模板语句会被Vue框架的编译器进行编译，转换成浏览器能够识别的HTML代码。
+        */
+        const myVue = new Vue({
+            template : '<h1>Hello Vue!!!!!</h1>'
+        })
+
+        /* 
+        第二步：将Vue实例挂载到id='app'的元素位置。
+        1. Vue实例都有一个$mount()方法，这个方法的作用是什么？
+            将Vue实例挂载到指定位置。
+        2. #app 显然是ID选择器。这个语法借鉴了CSS。
+        */
+        myVue.$mount('#app')
+        //myVue.$mount(document.getElementById('app'))
+    </script>
+</body>
+</html>

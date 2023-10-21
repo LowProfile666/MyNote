@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手写Vue框架数据代理的实现</title>
+    <!-- 安装我们自己的Vue -->
+    <script src="../js/myvue.js"></script>
+    <!-- 安装Vue -->
+    <!-- <script src="../js/vue.js"></script> -->
+</head>
+<body>
+    <!-- 容器 -->
+    <!-- <div id="app">
+        <h1>{{msg}}</h1>
+    </div> -->
+
+    <!-- Vue代码 -->
+    <script>
+        // const vm = new Vue({
+        //     el : '#app',
+        //     data : {
+        //         msg : 'Hello Vue!',
+        //         name : 'jackson',
+        //         age : 30
+        //     }
+        // })
+
+        const vm = new Vue({
+            data : {
+                msg : 'Hello Vue!',
+                _name : 'jackson',
+                $age : 30
+            }
+        })
+
+    </script>
+
+</body>
+</html>
