@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,6 +9,7 @@
     <!-- 安装Vue -->
     <script src="../js/vue.js"></script>
 </head>
+
 <body>
     <!-- 
         Vue事件处理:
@@ -51,6 +53,9 @@
         <button @click="sayHi($event, 'jack')">hi button2</button>
         <!-- 绑定的回调函数，如果不需要传任何参数，小括号() 可以省略 -->
         <button @click="sayWhat">what button</button>
+        <!-- 注意：当省略了小括号后，调回调函数的时候，才会传一个对象过去，会把当前的事件以对象的形式传过去 -->
+        <!-- <button @click="sayWhat()">what button</button> 这个样子的是不会传事件对象的-->
+        <!-- <button @click="sayWhat($event)">what button</button> 不省略小括号只能使用占位符 -->
     </div>
     <!-- vue代码 -->
     <script>
@@ -60,31 +65,32 @@
         // }
 
         const vm = new Vue({
-            el : '#app',
-            data : {
-                msg : 'Vue的事件绑定'
+            el: '#app',
+            data: {
+                msg: 'Vue的事件绑定'
             },
-            methods : {
+            methods: {
                 // 回调函数
                 // sayHello : function(){
                 //     alert('hello')
                 // }
                 // : function 可以省略
-                sayHello(){
+                sayHello() {
                     alert('hello2')
                 },
-                sayHi(event, name){
+                sayHi(event, name) {
                     console.log(name, event)
                     //alert("hi " + name)
                 },
-                sayWhat(event){
-                    //console.log(event)
-                    //console.log(event.target)
-                    //console.log(event.target.innerText)
+                sayWhat(event) {  // event是事件对象
+                    console.log(event)
+                    //console.log(event.target)  // 事件发生的地方
+                    //console.log(event.target.innerText)  // 事件发生的控件上的文本
                     //alert('what...')
                 }
             }
         })
     </script>
 </body>
+
 </html>
