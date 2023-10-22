@@ -43,7 +43,7 @@
         down键：<input type="text" @keyup.down="getInfo"><br>
         left键：<input type="text" @keyup.left="getInfo"><br>
         right键：<input type="text" @keyup.right="getInfo"><br>
-        <!-- tab键无法触发keyup事件。只能触发keydown事件。 -->
+        <!-- tab键无法触发keyup事件。只能触发keydown事件。因为按住不松手的话就会一直触发keydown事件 -->
         tab键： <input type="text" @keyup.tab="getInfo"><br>
         tab键（keydown）： <input type="text" @keydown.tab="getInfo"><br>
         PageDown键： <input type="text" @keyup.page-down="getInfo"><br>
@@ -56,6 +56,7 @@
     <script>
 
         // 自定义了一个按键修饰符：.huiche 。代表回车键。
+        // 自定义按键名必须是小写
         Vue.config.keyCodes.huiche = 13
 
         const vm = new Vue({
