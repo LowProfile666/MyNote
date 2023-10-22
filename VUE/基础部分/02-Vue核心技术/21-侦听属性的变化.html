@@ -49,7 +49,7 @@
                     immediate : true,
                     // 这里有一个固定写死的方法，方法名必须叫做：handler
                     // handler方法什么时候被调用呢？当被监视的属性发生变化的时候，handler就会自动调用一次。
-                    // handler方法上有两个参数：第一个参数newValue，第二个参数是oldValue
+                    // handler方法上有两个参数：第一个参数newValue，第二个参数是oldValue（名字可以随便取）
                     // newValue是属性值改变之后的新值。
                     // oldValue是属性值改变之前的旧值。
                     handler(newValue, oldValue){

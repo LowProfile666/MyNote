@@ -32,6 +32,7 @@
                     // 这是另一个计算属性
                     计算属性2 : {},
                 }
+            可以使用 vm.计算属性 来实现访问，但是不能使用 vm._data.计算属性，因为计算属性和 data 对象没有关系了。
         3. 计算属性的作用？
             代码得到了复用。
             代码更加便于维护了。
@@ -45,11 +46,13 @@
         反转的信息：{{reversedInfo}}<br>
         反转的信息：{{reversedInfo}}<br>
         反转的信息：{{reversedInfo}}<br>
+        <!-- 有缓存机制，computed 中的方法就调用了一次 -->
         {{hehe}} <br>
         {{hehe}} <br>
         {{hehe}} <br>
         {{hehe}} <br>
         {{hehe}} <br>
+        <!-- 没有缓存机制，method 中的方法调用了多次 -->
         {{hello()}} <br>
         {{hello()}} <br>
         {{hello()}} <br>
@@ -78,7 +81,8 @@
                     get(){
                         console.log('getter方法调用了')
                         //console.log(this === vm)
-                        return 'haha' + this.info
+                        // return 'haha'  // 没有关联原有属性
+                        return 'haha' + this.info  // 关联了原有属性 info
                     },
                     // 不能使用箭头函数，使用箭头函数会导致this的指向是：window
                     // get:()=>{

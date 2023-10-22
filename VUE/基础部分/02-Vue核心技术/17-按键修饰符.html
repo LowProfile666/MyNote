@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,6 +8,7 @@
     <title>按键修饰符</title>
     <script src="../js/vue.js"></script>
 </head>
+
 <body>
     <!-- 
         9个比较常用的按键修饰符：
@@ -28,9 +30,9 @@
             语法规则：
                 Vue.config.keyCodes.按键修饰符的名字 = 键值
         系统修饰键：4个比较特殊的键
-            ctrl、alt、shift、meta
-            对于keydown事件来说：只要按下ctrl键，keydown事件就会触发。
-            对于keyup事件来说：需要按下ctrl键，并且加上按下组合键，然后松开组合键之后，keyup事件才能触发。
+            ctrl、alt、shift、meta（win键）
+            对于keydown事件来说：只要按下系统修饰键，keydown事件就会触发。
+            对于keyup事件来说：需要按下系统修饰键，并且加上按下组合键，然后松开组合键之后，keyup事件才能触发。
      -->
     <div id="app">
         <h1>{{msg}}</h1>
@@ -50,7 +52,15 @@
         huiche键： <input type="text" @keyup.huiche="getInfo"><br>
         ctrl键(keydown)： <input type="text" @keydown.ctrl="getInfo"><br>
         ctrl键(keyup)： <input type="text" @keyup.ctrl="getInfo"><br>
+        <!-- 下面这种方式限制了只能按下 ctrl+i 才会触发事件 -->
         ctrl键(keyup)： <input type="text" @keyup.ctrl.i="getInfo"><br>
+        alt键(keydown)：<input type="text" @keydown.alt="getInfo"><br>
+        alt键(keyup)：<input type="text" @keyup.alt="getInfo"><br>
+        shift键(keydown)：<input type="text" @keydown.shift="getInfo"><br>
+        shift键(keyup)：<input type="text" @keyup.shift="getInfo"><br>
+        meta键(keydown)：<input type="text" @keydown.meta="getInfo"><br>
+        meta键(keyup)：<input type="text" @keyup.meta="getInfo"><br>
+        
     </div>
 
     <script>
@@ -60,15 +70,15 @@
         Vue.config.keyCodes.huiche = 13
 
         const vm = new Vue({
-            el : '#app',
-            data : {
-                msg : '按键修饰符'
+            el: '#app',
+            data: {
+                msg: '按键修饰符'
             },
-            methods : {
-                getInfo(event){
+            methods: {
+                getInfo(event) {
                     // 当用户键入回车键的时候，获取用户输入的信息。
                     //if(event.keyCode === 13){
-                        console.log(event.target.value)
+                    console.log(event.target.value)
                     //}
                     console.log(event.key)
                 }
@@ -76,4 +86,5 @@
         })
     </script>
 </body>
+
 </html>
