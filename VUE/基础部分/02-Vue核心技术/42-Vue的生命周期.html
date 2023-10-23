@@ -51,6 +51,7 @@
                     流程要想继续：el必须存在。
                     el和template同时存在，优先选择template。如果没有template，才会选择el。
             */
+            // 这个 create 是指 数据代理和数据监测 的创建，而不是vm的创建
             beforeCreate() {
                 // 创建前
                 // 创建前指的是：数据代理和数据监测的创建前。
@@ -87,10 +88,13 @@
                 console.log('updated')
             },
             // 4.销毁阶段
+            // 销毁指的是将 vm 身上的监视器、子组件、自定义事件监听器等解绑，并不是销毁了 vm
+            // 如果 vue 版本较低的话，只会卸载掉 自定义事件监听器；如果 vue 版本高点，会卸载掉所有的事件监听器
             beforeDestroy() {
                 // 销毁前
                 console.log('beforeDestroy')
                 console.log(this)
+                // 虽然在卸载前 vm 还和事件监听器等有联系，但是不能使用，以下代码会让内存中的数据变化，但是页面不会修改
                 this.counter = 1000
             },
             destroyed() {

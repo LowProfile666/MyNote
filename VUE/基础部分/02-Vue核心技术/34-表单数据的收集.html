@@ -11,10 +11,13 @@
     <div id="app">
         <h1>{{msg}}</h1>
         <form @submit.prevent="send">
+            <!-- v-model 有一个 .trim 修饰符，去除前后空白 -->
             用户名：<input type="text" v-model.trim="user.username"><br><br>
             密码：<input type="password" v-model="user.password"><br><br>
+            <!-- v-model 有一个 .number 修饰符，会将数据转换成数字类型-->
             年龄：<input type="number" v-model.number="user.age"><br><br>
             性别：
+            <!-- 对于单选按钮来说，使用 v-model 绑定 value 的时候要手动加上 value 属性，因为单选按钮不想文本框，它没办法赋值 -->
                 男<input type="radio" name="gender" value="1" v-model="user.gender">
                 女<input type="radio" name="gender" value="0" v-model="user.gender"><br><br>
             爱好：
@@ -30,6 +33,11 @@
                     <option value="ss">硕士</option>
                 </select><br><br>
             简介：
+            <!-- v-model 有一个 .lazy 修饰符，懒惰修饰符，当失去焦点后才会更新属性里的值 
+                即数据不会立即同步到 Vue 实例的数据属性，而是等待特定事件触发后再同步。
+                默认情况下，v-model 会在每次输入事件（通常是input事件）时立即更新数据，
+                但使用 lazy 修饰符后，它会等待 change 事件而不是 input 事件。
+            -->
                 <textarea cols="50" rows="15" v-model.lazy="user.introduce"></textarea><br><br>
             <input type="checkbox" v-model="user.accept">阅读并接受协议<br><br>
             <!-- <button @click.prevent="send">注册</button> -->
@@ -41,6 +49,7 @@
             el : '#app',
             data : {
                 user : {
+                    // 让数据有默认值，通过双向绑定就可以设置页面的默认选中
                     username : '',
                     password : '',
                     age : '',

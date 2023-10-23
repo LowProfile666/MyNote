@@ -12,6 +12,7 @@
         <h1>{{msg}}</h1>
 
         <h2>遍历对象的属性</h2>
+        <!-- v-for(前面的是属性值，后面的是属性名字) -->
         <ul>
             <li v-for="(value, propertyName) of user">
                 {{propertyName}},{{value}}
@@ -19,6 +20,7 @@
         </ul>
 
         <h2>遍历字符串</h2>
+        <!-- v-for(前面的是字符串中的每个字符，后面的是下标（从0开始）) -->
         <ul>
             <li v-for="(c,index) of str">
                 {{index}},{{c}}
@@ -26,6 +28,7 @@
         </ul>
 
         <h2>遍历指定的次数</h2>
+        <!-- v-for(前面的是数字，后面的是下标) -->
         <ul>
             <li v-for="(num,index) of counter">
                 {{index}}, {{num}}

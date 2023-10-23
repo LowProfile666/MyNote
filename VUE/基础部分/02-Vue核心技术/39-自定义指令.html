@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>自定义指令</title>
     <script src="../js/vue.js"></script>
+    <!-- 自定义指令需要在 directives 配置项中 -->
 </head>
 <body>
     <div id="app">
@@ -73,7 +74,7 @@
                 // 指令2
                 // ...
                 // 关于指令的名字：1. v- 不需要写。 2. Vue官方建议指令的名字要全部小写。如果是多个单词的话，请使用 - 进行衔接。
-                // 这个回调函数的执行时机包括两个：第一个：标签和指令第一次绑定的时候。第二个：模板被重新解析的时候。
+                // 这个回调函数的执行时机包括两个：第一个：标签和指令第一次绑定的时候。第二个：模板被重新解析的时候（Data发生改变的时候）。
                 // 这个回调函数有两个参数：第一个参数是真实的dom元素。 第二个参数是标签与指令之间绑定关系的对象。
                 // 这种方式属于函数式方式。
                 /* 'text-danger' : function(element, binding){

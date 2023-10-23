@@ -10,11 +10,15 @@ class Vue {
             let firstChar = propertyName.charAt(0)
             if(firstChar != '_' && firstChar != '$'){
                 Object.defineProperty(this, propertyName, {
+                    // 数据代理
                     get(){
                         return options.data[propertyName]
                     },
-                    set(val){
+                    // 数据劫持
+                    set(val) {
+                        // 1. 修改内存中该对象的属性值
                         options.data[propertyName] = val
+                        // 2. 重新渲染页面
                     }
                 })
             }

@@ -56,6 +56,7 @@
                     handler(val){
                         this.filteredHeros = this.heros.filter((hero) => {
                             return hero.name.indexOf(val) >= 0
+                            // str.indexOf("")返回字符串在str中第一次出现的下标
                         })
                     }
                 }
