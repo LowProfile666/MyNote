@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <title>组件嵌套</title>
     <script src="../js/vue.js"></script>
+    <!-- 
+        注册子组件时注意：子组件要注册在父组件之前，否则页面渲染到了父组件时找不到子组件
+        嵌套的子组件只能使用在父组件的 template 模板语句中
+
+        另外，对象中的属性 key 和 value 如果名字一样，可以只写一个
+            x : x ==> x
+    -->
 </head>
 <body>
     <div id="root"></div>

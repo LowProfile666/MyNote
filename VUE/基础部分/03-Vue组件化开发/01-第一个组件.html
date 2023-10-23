@@ -12,9 +12,11 @@
         组件的使用分为三步：
             第一步：创建组件
                 Vue.extend({该配置项和new Vue的配置项几乎相同，略有差别})
+                    但是 Vue.extend 可以省略
                 区别有哪些？
                     1. 创建Vue组件的时候，配置项中不能使用el配置项。（但是需要使用template配置项来配置模板语句。）
                     2. 配置项中的data不能使用直接对象的形式，必须使用function。
+                        这样保证多个地方使用这个组件的对象时，一个地方修改了属性值不会影响其他地方的这个属性值
             第二步：注册组件
                 局部注册：
                     在配置项当中使用components，语法格式：
@@ -33,6 +35,8 @@
                 第二种：首字母大写，后面都是小写
                 第三种：kebab-case命名法（串式命名法。例如：user-login）
                 第四种：CamelCase命名法（驼峰式命名法。例如：UserLogin），但是这种方式只允许在脚手架环境中使用。
+                        如果使用驼峰命名法，还可以使用 usrt-login 来调用
+                        
                 不要使用HTML内置的标签名作为组件的名字。
                 在创建组件的时候，通过配置项配置一个name，这个name不是组件的名字，是设置Vue开发者工具中显示的组件的名字。
      -->
@@ -166,7 +170,7 @@
         Vue.component('userlogin', userLoginComponent)
 
         const vm2 = new Vue({
-            el : '#app2'
+            el : '#app2',
         })
 
         // Vue实例
@@ -182,6 +186,8 @@
                 //userlogin : userLoginComponent
             }
         })
+
+        // 配置项中的data不能使用直接对象的形式，必须使用function。
 
         /* let data = {
             counter : 1
