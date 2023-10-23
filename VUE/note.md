@@ -68,3 +68,8 @@ VScode快速生成代码片段
 ```
 
 Vscode有个这样的插件：JavaScript (ES6) code snippets
+
+
+# Vue 脚手架
+先确保 npm 能用，需要安装 Node.js。
+Vue 脚手架（Vue CLI：Command Line Interface）是 Vue 官方提供的开发平台，可以将我们的 .vue 的代码进行编译生成 html、css、js 代码，并将这些代码自动发布到它的自带的服务器上。
