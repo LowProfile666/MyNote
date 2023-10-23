@@ -8,3 +8,5 @@ new Vue({
     // 注册App组件
     components : {App}
 })
+
+// main.js 为入口文件

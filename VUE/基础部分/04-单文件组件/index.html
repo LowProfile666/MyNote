@@ -5,6 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>单文件组件</title>
+    <!-- 
+        一个组件对应一个文件，一个扩展名为 .vue 的文件，这是 vue 框架的特有文件扩展名 
+        文件名的命名规范和组件名的命名规范相同
+        xxx.vue 文件中包含：
+            结构 HTML：<template></template>
+            样式 CSS ：<style></style>
+            交互 JS  ：<script></script>
+    -->
 </head>
 <body>
     <div id="root"></div>
@@ -12,3 +20,7 @@
     <script src="./main.js"></script>
 </body>
 </html>
+<!-- 
+    这个代码运行后不成功，会有报错：Uncaught SyntaxError: Cannot use import statement outside a module
+    因为需要使用到 Vue 的脚手架 Vue CLI
+-->
