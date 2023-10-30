@@ -1,69 +1,3 @@
-# 关于直播
-
-1. 什么时间直播？
-   - 晚上8:00到10:00
-2. 每周直播几天？
-   - 3天（周一、周三、周五）
-   - 本周比较特殊：周四周五周六三天直播，从下周开始就是一三五直播。
-3. 直播什么内容？
-   - 从JavaWEB开始。（Servlet为核心，从Servlet开始学习。）
-   - JSP（JSP使用较少了，但是还有用，所以时间上少一些。快速地学习一下JSP。）
-   - AJAX（异步通信技术。）
-   - jQuery（JavaScript库。）
-   - MyBatis
-   - Spring
-   - SpringMVC
-   - SpringBoot
-   - SpringCloud
-   - ....
-
-# 需要提前准备了哪些技术，接下来的课才能听懂？
-
-- JavaSE（Java语言的标准版，Java提供的最基本的类库）
-  - Java的开发环境搭建
-  - Java的基础语法
-  - Java的面向对象
-  - 数组
-  - 常用类
-  - 异常
-  - 集合
-  - 多线程
-  - IO流
-  - 反射机制
-  - 注解Annotation
-  - .....
-- MySQL（数据库）
-  - 最基本的要求是：能够编写增删改查等简单的SQL语句即可。
-- JDBC（Java语言链接数据库）
-  - 这是一套Java语言链接数据库的接口。
-- WEB前端（会一些）
-  - HTML（网页）
-  - CSS（层叠样式表语言，修饰HTML）
-  - JavaScript（一种脚本语言，运行在浏览器当中，让浏览器中的元素可以增删改。让网页产生更强的交互效果）
-- WEB后端
-  - Servlet（Server Applet：服务器端的Java小程序）
-  - JSP
-  - AJAX
-  - jQuery
-  - MyBatis
-  - Spring
-  - SpringMVC
-  - SpringBoot
-  - SpringCloud
-  - ......
-
-# Typora软件介绍
-
-- Markdown文本编辑器（可以编辑xxx.md文件）
-
-  ```java
-  public class Test{
-      public static void main(String[] args){
-          System.out.println("Test code!");
-      }
-  }
-  ```
-
 # Servlet
 
 ## 关于系统架构
@@ -230,7 +164,15 @@
   - CATALINA_HOME=Tomcat服务器的根
   - PATH=%JAVA_HOME%\bin;%CATALINA_HOME%\bin
 - 启动Tomcat： startup
-- 关闭Tomcat：stop （shutdown.bat文件重命名为stop.bat，为什么？原因是shutdown命令和windows中的关机命令冲突。所以修改一下。）
+- 关闭Tomcat：stop （将shutdown.bat文件重命名为stop.bat，为什么？原因是shutdown命令和windows中的关机命令冲突。所以修改一下。）
+
+  - 关闭时报错：
+    ```text
+    错误: 加载主类 org.apache.catalina.startup.Bootstrap 时出现 LinkageError
+            java.lang.UnsupportedClassVersionError: org/apache/catalina/startup/Bootstrap has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 60.0
+    ```
+
+    原因：jdk版本太低，所以更新jdk版本即可（当前jdk为16，tomcat为11，后将jdk改为21，jdk变成21后，还没有修改配置环境的路径就可以直接使用了）
 
 - 怎么测试Tomcat服务器有没有启动成功呢？
   - 打开浏览器，在浏览器的地址栏上输入URL即可：
@@ -274,7 +216,7 @@
 
 ## 对于一个动态的web应用来说，一个请求和响应的过程有多少个角色参与，角色和角色之间有多少个协议
 
-![BS结构系统的通信原理2](D:\course\01-Servlet\文档\BS结构系统的通信原理2.png)
+![BS结构系统的通信原理2](https://gitee.com/LowProfile666/image-bed/raw/master/img/202310302019385.png)
 
 - 有哪些角色（在整个BS结构的系统当中，有哪些人参与进去了）
   - 浏览器软件的开发团队（浏览器软件太多了：谷歌浏览器、火狐浏览器、IE浏览器....）
@@ -288,7 +230,7 @@
   - Browser  和   WebServer之间有一套传输协议：HTTP协议。（超文本传输协议。）
   - webapp开发团队  和  DB Server的开发团队之间有一套规范：JDBC规范。
 
-![BS结构系统的角色和协议](D:\course\01-Servlet\文档\BS结构系统的角色和协议.png)
+![BS结构系统的角色和协议](https://gitee.com/LowProfile666/image-bed/raw/master/img/202310302020431.png)
 
 - Servlet规范是一个什么规范？
   - 遵循Servlet规范的webapp，这个webapp就可以放在不同的WEB服务器中运行。（因为这个webapp是遵循Servlet规范的。）

@@ -1,9 +1,9 @@
-package com.bjpowernode.servlet;
+package com.zsm.servlet;
 
 import javax.servlet.Servlet;
 
-// ³äµ±µÄ½ÇÉ«·¢ÉúÁË¸Ä±ä:webapp¿ª·¢Õß
-// Ö»ÒªÊÇÎÒÃÇwebapp¿ª·¢ÕßĞ´µÄXXXServlet¶¼ÒªÊµÏÖServlet½Ó¿Ú
+// å……å½“çš„è§’è‰²å‘ç”Ÿäº†æ”¹å˜:webappå¼€å‘è€…
+// åªè¦æ˜¯æˆ‘ä»¬webappå¼€å‘è€…å†™çš„XXXServletéƒ½è¦å®ç°Servletæ¥å£
 public class BankServlet implements Servlet{
 	public void service(){
 		System.out.println("BankServlet's service...");

@@ -5,41 +5,43 @@ import java.util.Properties;
 import java.io.FileReader;
 import javax.servlet.Servlet;
 
-// ³äµ±Tomcat·şÎñÆ÷µÄ¿ª·¢Õß
+// å……å½“TomcatæœåŠ¡å™¨çš„å¼€å‘è€…
 public class Tomcat{
 	public static void main(String[] args) throws Exception{
-		System.out.println("Tomcat·şÎñÆ÷Æô¶¯³É¹¦£¬¿ªÊ¼½ÓÊÕÓÃ»§µÄ·ÃÎÊ¡£");
+		System.out.println("TomcatæœåŠ¡å™¨å¯åŠ¨æˆåŠŸï¼Œå¼€å§‹æ¥æ”¶ç”¨æˆ·çš„è®¿é—®ã€‚");
 
-		// ¼òµ¥µÄÊ¹ÓÃScannerÀ´Ä£ÄâÒ»ÏÂÓÃ»§µÄÇëÇó
-		// ÓÃ»§·ÃÎÊ·şÎñÆ÷ÊÇÍ¨¹ıä¯ÀÀÆ÷ÉÏµÄ¡°ÇëÇóÂ·¾¶¡±
-		// Ò²¾ÍÊÇËµÓÃ»§ÇëÇóÂ·¾¶²»Í¬£¬ºóÌ¨Ö´ĞĞµÄServlet²»Í¬¡£
+		// ç®€å•çš„ä½¿ç”¨Scanneræ¥æ¨¡æ‹Ÿä¸€ä¸‹ç”¨æˆ·çš„è¯·æ±‚
+		// ç”¨æˆ·è®¿é—®æœåŠ¡å™¨æ˜¯é€šè¿‡æµè§ˆå™¨ä¸Šçš„â€œè¯·æ±‚è·¯å¾„â€
+		// ä¹Ÿå°±æ˜¯è¯´ç”¨æˆ·è¯·æ±‚è·¯å¾„ä¸åŒï¼Œåå°æ‰§è¡Œçš„Servletä¸åŒã€‚
 		/*
 			/userList    UserListServlet
 			/login		 UserLoginServlet
 			/bank		 BankServlet
 			......
 		*/
-		System.out.print("ÇëÊäÈëÄúµÄ·ÃÎÊÂ·¾¶£º");
+		System.out.print("è¯·è¾“å…¥æ‚¨çš„è®¿é—®è·¯å¾„ï¼š");
 		Scanner s = new Scanner(System.in);
 
-		// ÓÃ»§µÄÇëÇóÂ·¾¶  /bbbb
-		String key = s.nextLine(); // Tomcat·şÎñÆ÷ÒÑ¾­»ñÈ¡µ½ÁËÓÃ»§µÄÇëÇóÂ·¾¶ÁË¡£
+		// ç”¨æˆ·çš„è¯·æ±‚è·¯å¾„  /bbbb
+		String key = s.nextLine(); // TomcatæœåŠ¡å™¨å·²ç»è·å–åˆ°äº†ç”¨æˆ·çš„è¯·æ±‚è·¯å¾„äº†ã€‚
 
-		// Tomcat·şÎñÆ÷Ó¦¸ÃÍ¨¹ıÓÃ»§µÄÇëÇóÂ·¾¶ÕÒ¶ÔÓ¦µÄXXXServlet
-		// ÇëÇóÂ·¾¶ºÍXXXServletÖ®¼äµÄ¹ØÏµÓ¦¸ÃÓÉË­Ö¸¶¨ÄØ£¿
-		// ¶ÔÓÚTomcat·şÎñÆ÷À´ËµĞèÒª½âÎöÅäÖÃÎÄ¼ş
+		// TomcatæœåŠ¡å™¨åº”è¯¥é€šè¿‡ç”¨æˆ·çš„è¯·æ±‚è·¯å¾„æ‰¾å¯¹åº”çš„XXXServlet
+		// è¯·æ±‚è·¯å¾„å’ŒXXXServletä¹‹é—´çš„å…³ç³»åº”è¯¥ç”±è°æŒ‡å®šå‘¢ï¼Ÿ
+		// å¯¹äºTomcatæœåŠ¡å™¨æ¥è¯´éœ€è¦è§£æé…ç½®æ–‡ä»¶
+		// ResourceBundle bundle = ResourceBundle.getBundle("web");
 		FileReader reader = new FileReader("web.properties");
 		Properties pro = new Properties();
 		pro.load(reader);
 		reader.close();
 
-		// Í¨¹ıkey»ñÈ¡value
+		// é€šè¿‡keyè·å–value
 		String className = pro.getProperty(key);
-		// Í¨¹ı·´Éä»úÖÆ´´½¨¶ÔÏó
+		System.out.println(className);
+		// é€šè¿‡åå°„æœºåˆ¶åˆ›å»ºå¯¹è±¡
 		Class clazz = Class.forName(className);
-		Object obj = clazz.newInstance(); // objµÄÀàĞÍ¶ÔÓÚTomcat·şÎñÆ÷¿ª·¢ÈËÔ±À´Ëµ²»ÖªµÀ¡£
+		Object obj = clazz.newInstance(); // objçš„ç±»å‹å¯¹äºTomcatæœåŠ¡å™¨å¼€å‘äººå‘˜æ¥è¯´ä¸çŸ¥é“ã€‚
 		
-		// µ«ÊÇTomcat·şÎñÆ÷µÄ¿ª·¢ÕßÖªµÀ£¬ÄãĞ´µÄXXXXServletÒ»¶¨ÊµÏÖÁËServlet½Ó¿Ú
+		// ä½†æ˜¯TomcatæœåŠ¡å™¨çš„å¼€å‘è€…çŸ¥é“ï¼Œä½ å†™çš„XXXXServletä¸€å®šå®ç°äº†Servletæ¥å£
 		Servlet servlet = (Servlet)obj;
 		servlet.service();
 

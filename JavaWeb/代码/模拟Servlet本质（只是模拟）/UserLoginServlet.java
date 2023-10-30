@@ -1,8 +1,8 @@
-package com.bjpowernode.servlet;
+package com.zsm.servlet;
 
 import javax.servlet.Servlet;
 
-// ³äµ±µÄ½ÇÉ«·¢ÉúÁË¸Ä±ä:webapp¿ª·¢Õß
+// å……å½“çš„è§’è‰²å‘ç”Ÿäº†æ”¹å˜:webappå¼€å‘è€…
 
 public class UserLoginServlet implements Servlet{
 	public void service(){
