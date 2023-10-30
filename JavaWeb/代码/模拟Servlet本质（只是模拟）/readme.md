@@ -1,5 +1,7 @@
 # 模拟Servlet本质
 
+![image-20231030221411987](https://gitee.com/LowProfile666/image-bed/raw/master/img/202310302214624.png)
+
 - 充当SUN公司的角色，制定Servlet规范
   - javax.servlet.Servlet接口
 - 充当Tomcat服务器的开发者
@@ -26,9 +28,9 @@
     - 这些都是Servlet规范中规定的。
 - Tomcat服务器要遵循Servlet规范。JavaWEB程序员也要遵循这个Servlet规范。这样Tomcat服务器和webapp才能解耦合。
 
-Java使用 DOS 窗口带包编译运行时：
+Java使用 DOS 窗口带包编译时：
 
 ```shell
-javac -d . Tomcat
+javac -d . Tomcat.java
 ```
 
