@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jQuery的jsonp封装解决ajax跨域问题</title>
+</head>
+<body>
+
+<!--引入jQuery库：这个jQuery库是官网的，不是咱们手写封装的山寨版。-->
+<script type="text/javascript" src="/a/js/jquery-3.6.0.min.js"></script>
+
+<script type="text/javascript">
+
+    // 这个函数不需要你写，jQuery可以自动帮助你生成
+    //function jQuery3600508253314856699_1655528968612(json){ // 系统自动生成的这个函数默认情况，会自动调用success的回调函数。 }
+
+    // 自定义的函数
+    function sayHello(data){
+        $("#mydiv").html("欢迎你：" + data.username)
+    }
+
+    $(function(){
+        $("#btn").click(function(){
+            // 发送所谓的ajax请求（其实本质上并不是一个ajax请求。只是披着ajax的皮。乔装打扮的ajax。）
+            $.ajax({
+                type : "GET", // jsonp请求只支持get请求。
+                // 虽然这里的url是这样写的，但实际上发送的请求是：/b/jsonp3?callback=jQuery3600508253314856699_1655528968612&_=1655528968613
+                // callback=jQuery3600508253314856699_1655528968612
+                // callback就是我们之前的fun
+                // jQuery3600508253314856699_1655528968612就是我们之前的sayHello，而这个名字是jQuery自动为我们生成的。
+                url : "http://localhost:8081/b/jsonp3",
+                dataType : "jsonp", // 指定数据类型是jsonp形式。【最关键的是它】
+                jsonp : "fun", // 不采用默认的参数名callback，用这个属性来指定具体的参数名。
+                jsonpCallback : "sayHello" // 不采用默认的回调函数，用这个属性来指定具体的回调函数。
+                /*success : function(data){ // data变量用来接收服务器端的响应(data是一个json：{"username":"lisi"})
+                    $("#mydiv").html("欢迎你：" + data.username)
+                }*/
+            })
+        })
+    })
+</script>
+
+<button id="btn">jQuery库封装的jsonp</button>
+
+<div id="mydiv"></div>
+
+</body>
+</html>

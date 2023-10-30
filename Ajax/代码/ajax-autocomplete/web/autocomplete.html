@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ajax实现搜索联想和自动补全功能</title>
+    <style>
+        .userInput {
+            width: 300px;
+            height: 25px;
+            font-size: 20px;
+            padding-left: 5px;
+        }
+
+        .showDataDiv {
+            width: 310px;
+            border: 1px solid lightgray;
+            background-color: antiquewhite;
+            display: none;
+        }
+
+        .showDataDiv p {
+            padding-left: 5px;
+            margin-top: 2px;
+            margin-bottom: 2px;
+        }
+
+        .showDataDiv p:hover{
+            cursor: pointer;
+            border: 1px blue solid;
+            background-color: aliceblue;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+    /*不使用jQuery，也不使用我们自己写的jQuery库。使用原生的ajax实现搜索联想和自动补全。*/
+    window.onload = () => {
+        document.getElementById("keywords").onkeyup = function(){
+            if (this.value == "") {
+                document.getElementById("datadiv").style.display = "none"
+            }else{
+                // 发送ajax请求
+                // 1. 创建AJAX核心对象
+                const xmlHttpRequest = new XMLHttpRequest();
+                // 2. 注册回调函数
+                xmlHttpRequest.onreadystatechange = () => {
+                    if (xmlHttpRequest.readyState == 4) {
+                        if (xmlHttpRequest.status >= 200 && xmlHttpRequest.status < 300) {
+                            // [{"content":"javascript"},{"content":"javaweb"},{"content":"java..."}]
+                            const json = JSON.parse(xmlHttpRequest.responseText);
+                            // 遍历数组
+                            let html = ""
+                            for (let i = 0; i < json.length; i++) {
+                                html += "<p onclick='setInput(\""+json[i].content+"\")'>"+json[i].content+"</p>"
+                            }
+                            document.getElementById("datadiv").innerHTML = html
+                            // 显示出来
+                            document.getElementById("datadiv").style.display = "block"
+                        }
+                    }
+                }
+                // 3. 开启通道
+                xmlHttpRequest.open("GET", "/ajax-autocomplete/query?_="+new Date().getTime()+"&keywords=" + this.value, true)
+                // 4. 发送请求
+                xmlHttpRequest.send()
+            }
+
+        }
+    }
+
+    function setInput(content){
+        document.getElementById("keywords").value = content
+        document.getElementById("datadiv").style.display = "none"
+    }
+</script>
+
+<input type="text" class="userInput" id="keywords">
+
+<div id="datadiv" class="showDataDiv">
+    <!--<p>北京疫情最新情况</p>
+    <p>北京天气</p>
+    <p>北京时间</p>
+    <p>北京人</p>-->
+</div>
+</body>
+</html>

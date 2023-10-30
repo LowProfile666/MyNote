@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jsonp跨域</title>
+</head>
+<body>
+
+<!--<script type="text/javascript" src="http://localhost:8081/b/jsonp2?fun=sayHello"></script>-->
+
+<script type="text/javascript">
+  // 自定义的函数
+  function sayHello(data){ // data是一个json：{"username" : "lucy"}
+    document.getElementById("mydiv").innerHTML = data.username
+  }
+
+  window.onload = () => {
+    document.getElementById("btn").onclick = () => {
+      // 加载script元素
+      // 创建script元素对象
+      const htmlScriptElement = document.createElement("script");
+      // 设置script的type属性
+      htmlScriptElement.type = "text/javascript"
+      // 设置script的src属性
+      htmlScriptElement.src = "http://localhost:8081/b/jsonp2?fun=sayHello"
+      // 将script对象添加到body标签中（这一步就是加载script）
+      document.getElementsByTagName("body")[0].appendChild(htmlScriptElement)
+    }
+  }
+</script>
+
+<button id="btn">jsonp解决跨域问题，达到ajax局部刷新的效果</button>
+
+<div id="mydiv"></div>
+
+</body>
+</html>

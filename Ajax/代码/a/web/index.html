@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>a应用的index页面</title>
+</head>
+<body>
+<!--通过超链接的方式可以跨域吗？可以-->
+<a href="http://localhost:8081/b/index.html">b的index页面（跨域访问）</a>
+
+<!--form表单发送请求可以跨域吗？可以-->
+<form action="http://localhost:8081/b/user/reg" method="post">
+    用户名：<input type="text" name="username"><br>
+    密码：<input type="password" name="password"><br>
+    <input type="submit" value="注册">
+</form>
+
+<br><br><br>
+
+<!--通过js代码中的window.location.href/document.location.href可以跨域吗？可以-->
+<button onclick="window.location.href='http://localhost:8081/b/index.html'">b的index页面(跨域访问)1</button>
+<button onclick="document.location.href='http://localhost:8081/b/index.html'">b的index页面(跨域访问)2</button>
+
+<!--使用script标签可以加载js文件，这个可以跨域吗？可以-->
+<script type="text/javascript" src="http://localhost:8081/b/my.js"></script>
+
+<br>
+
+<!--加载其他站点的图片，可以跨域吗？可以-->
+<img src="http://localhost:8081/b/bd_logo.png" />
+
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>测试：ajax跨域访问会不会有问题？？？</title>
+</head>
+<body>
+<script type="text/javascript">
+    /*window.onload = function(){
+        document.getElementById("btn").onclick = function(){
+
+        }
+    }*/
+
+    /*
+     * 默认情况下：发送ajax跨域请求的时候会出现以下错误：
+     * Access to XMLHttpRequest at 'http://localhost:8081/b/hello' from origin 'http://localhost:8080' has been blocked by CORS policy:
+     * No 'Access-Control-Allow-Origin' header is present on the requested resource.
+     * 出现这个错误的根本原因是：跨域的时候，不允许共享同一个XMLHttpRequest对象。因为共享同一个XMLHttpRequest对象是不安全的。
+     * 重点提示：CORS策略阻止（这个ajax跨域请求被：同源策略阻止。）
+     * 什么是同源策略？？？？？
+     *      同源策略是浏览器的一种安全策略。
+     * 什么是同源？什么是不同源？
+     *      协议一致、域名一致、端口号一致。才是同源。
+     *      只要上面的任一元素不一致，就是不同源。
+     *      同源：XMLHttpRequest对象可以共享。
+     *      不同源：XMLHttpRequest对象不可以共享。
+     */
+    // 使用ES6新特性：箭头函数
+    window.onload = () => {
+        document.getElementById("btn").onclick = () => {
+            // 发送ajax的跨域请求
+            // 1. 创建核心对象
+            // let是一个关键字，可以定义变量。
+            // ES6的新特性：let和const关键字都可以定义变量。
+            // 注意：在JS中声明变量，可以使用：var let const。他们之间有什么区别？自己研究。
+            let xmlHttpRequest = new XMLHttpRequest();
+            // 2. 注册回调函数
+            xmlHttpRequest.onreadystatechange = () => {
+                if (xmlHttpRequest.readyState == 4) {
+                    if (xmlHttpRequest.status >= 200 && xmlHttpRequest.status < 300) {
+                        document.getElementById("mydiv").innerHTML = xmlHttpRequest.responseText
+                    }
+                }
+            }
+            // 3. 开启通道
+            xmlHttpRequest.open("GET", "http://localhost:8081/b/hello", true)
+            // 4. 发送请求
+            xmlHttpRequest.send()
+        }
+    }
+
+</script>
+<button id="btn">发送ajax跨域请求</button>
+<div id="mydiv"></div>
+</body>
+</html>

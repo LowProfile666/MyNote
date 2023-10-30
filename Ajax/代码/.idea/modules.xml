@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/a/a.iml" filepath="$PROJECT_DIR$/a/a.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ajax/ajax.iml" filepath="$PROJECT_DIR$/ajax/ajax.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ajax-autocomplete/ajax-autocomplete.iml" filepath="$PROJECT_DIR$/ajax-autocomplete/ajax-autocomplete.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ajax-encoding/ajax-encoding.iml" filepath="$PROJECT_DIR$/ajax-encoding/ajax-encoding.iml" />
+      <module fileurl="file://$PROJECT_DIR$/b/b.iml" filepath="$PROJECT_DIR$/b/b.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fastjson/fastjson.iml" filepath="$PROJECT_DIR$/fastjson/fastjson.iml" />
+      <module fileurl="file://$PROJECT_DIR$/httpclient/httpclient.iml" filepath="$PROJECT_DIR$/httpclient/httpclient.iml" />
+      <module fileurl="file://$PROJECT_DIR$/old-request/old-request.iml" filepath="$PROJECT_DIR$/old-request/old-request.iml" />
+    </modules>
+  </component>
+</project>

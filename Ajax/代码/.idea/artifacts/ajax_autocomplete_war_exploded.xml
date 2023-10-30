@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="ajax-autocomplete:war exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/ajax_autocomplete_war_exploded</output-path>
+    <root id="root">
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="ajax-autocomplete" />
+        </element>
+      </element>
+      <element id="javaee-facet-resources" facet="ajax-autocomplete/web/Web" />
+    </root>
+  </artifact>
+</component>
