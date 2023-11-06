@@ -1,3 +1,5 @@
+配置系统和日志系统没有细看。
+
 # .Net Core
 
 官方文档：https://learn.microsoft.com/en-us/dotnet/
@@ -5,6 +7,8 @@
 ## 介绍
 
 DotNet Core 是一个平台。
+
+C# 运行在 .NET 平台上。
 
 
 
@@ -33,6 +37,16 @@ DotNet Core 是一个平台。
 其他命令可以在 .NET 文档中查看 CLI 。
 
 ## 程序的发布
+
+两种文件：
+
++ `.csproj`：记录项目的描述信息
++ `.cs`：源代码文件
++ 在 .NET Core 中，默认所有文件都配置在 `.csproj` 中，除非手动 remove 掉
+
+发布：
+
++ 右键单击项目，选发布
 
 部署模式：
 
@@ -175,7 +189,7 @@ static async Task Main(string[] args)
 
 ## 异步方法不等于多线程
 
-异步方法的代码并不会自动再新县城中执行，除非把代码当道新县城中执行。
+异步方法的代码并不会自动在新线程中执行，除非把代码放到新线程中执行。
 
 ## 没有 async 的异步方法
 
@@ -231,7 +245,7 @@ static Task<string> ReadAsync(int num)
 
 有时需要提前终止任务，比如：请求超时、用户取消请求。
 
-很多异步放啊都有 CancellationToken 参数，用于获得提前终止执行的信号。
+很多异步方法都有 CancellationToken 参数，用于获得提前终止执行的信号。
 
 cancellationToken 结构体：
 
@@ -595,7 +609,7 @@ foreach(int i in res)
 
 `IEnumerable<>` 要 `using System.Collection.Generic;` ， `Where()` 方法必须要 `using System.Linq;` 
 
-`Where` 方法会遍历集合中每个元素，对于每个元素都调用 lambda 表达式`a => a > 10` ，判断以下是否为 true，是则将这个数放到返回的集合中。
+`Where` 方法会遍历集合中每个元素，对于每个元素都调用 lambda 表达式`a => a > 10` ，判断一下是否为 true，是则将这个数放到返回的集合中。
 
 自己模拟实现一个 `Where` 方法：
 
@@ -699,6 +713,10 @@ static void Main(string[] args)
 
 ### Where 方法
 
+```c#
+public static IEnumerable<TSource> Where<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+```
+
 每一项数据都会经过 predicate 的测试，如果针对一个元素，predicate 执行的返回值为 true，那么这个元素就会梵高返回值中。
 
 Where 参数是一个 lambda 表达式格式的匿名方法，方法的参数 e 表示当前判断的元素对象。参数的名字不一定非要叫 e，不过一般 lambda 表达式中的变量名长度都不长。
@@ -749,7 +767,7 @@ Console.WriteLine(e);  // id = 2, name = Jack, age = 32, gender=True, salary = 1
 // Unhandled exception. System.InvalidOperationException: Sequence contains no elements
 ```
 
-`SingleOrDefault`：最多只有一条满足要求的数据，如果集合中有多条满足要去的数据，会报错；没有满足要求的数据，则会返回一个默认值。
+`SingleOrDefault`：最多只有一条满足要求的数据，如果集合中有多条满足要去的数据，会报错；没有满足要求的数据，则会返回一个默认值（类型的默认值）。
 
 ```C#
 Employee e = list.SingleOrDefault(e => e.Name == "ZSM");
@@ -780,6 +798,22 @@ Console.WriteLine(e1 == null);  // True
 ```
 
 ### 排序
+
+```c#
+public static IOrderedEnumerable<TSource> OrderBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+```
+
+> * **public static**: 这意味着这是一个公开的静态方法。  
+> * **IOrderedEnumerable<TSource>**: 是返回类型，表示一个已排序的序列。  
+> * **OrderBy<TSource, TKey>**: 方法名称，表示我们正在对`TSource`类型的元素按照`TKey`类型的键进行排序。  
+> * **this IEnumerable<TSource> source**: `this`关键字表示这是一个扩展方法，它可以在每个`IEnumerable<TSource>`上调用，就好像它是该类型的一个实例方法。  
+> * **Func<TSource, TKey> keySelector**: 这是一个委托，用于从`TSource`中提取`TKey`类型的键，基于这个键进行排序。
+>
+> 这个`OrderBy`方法有两个类型参数，分别是`TSource`和`TKey`，但实际的方法参数只有一个，那就是`keySelector`。
+>
+> 这是因为`TSource`和`TKey`是类型参数，它们用于定义方法的泛型类型，而不是实际传递给方法的值。实际上，当你调用这个方法时，你不需要为这两个类型参数提供具体的值，编译器会根据你传递的`IEnumerable<TSource>`和`keySelector`函数的类型来推断它们。
+>
+> 因此，从实际使用的角度来看，你只需要提供一个参数，即`keySelector`函数。这个函数告诉`OrderBy`方法如何从你的序列中提取一个键来进行排序。
 
 `OrderBy()`：对数据进行正序排序。对原数据不产生影响，会返回一个排序后的集合。
 
@@ -879,6 +913,26 @@ foreach (var e in items)
 
 `Count()`：获取总个数
 
+```c#
+int maxAge = list.Max(e => e.Age);
+Console.WriteLine($"最大年龄:{maxAge}");
+
+long minId = list.Min(e => e.Id);
+Console.WriteLine($"最小Id:{minId}");
+
+double avgSalary = list.Average(e => e.Salary);
+Console.WriteLine($"平均工资:{avgSalary}");
+
+int sumSalary = list.Sum(e => e.Salary);
+Console.WriteLine($"工资总和:{sumSalary}");
+
+int count = list.Count();
+Console.WriteLine($"总条数:{count}");
+
+int minSalary2 = list.Where(e => e.Age > 30).Min(e => e.Salary);
+Console.WriteLine($"大于30岁的人群中的最低工资:{minSalary2}");
+```
+
 LINQ 中的所有扩展方法几乎都是针对 IEnumerable 接口的，而几乎所有能返回集合的都返回 IEnumerable，所以是可以把几乎所有方法“链式使用”的。
 
 ### 分组
@@ -917,9 +971,32 @@ foreach (var g in items)
 }
 ```
 
+输出结果：
+
+```
+28
+Employee { Id = 1, Name = jerry, Age = 28, Gender = True, Salary = 5000 }
+===========================
+33
+Employee { Id = 2, Name = jim, Age = 33, Gender = True, Salary = 3000 }
+Employee { Id = 8, Name = jack, Age = 33, Gender = True, Salary = 8000 }
+===========================
+35
+Employee { Id = 3, Name = lily, Age = 35, Gender = False, Salary = 9000 }
+Employee { Id = 6, Name = nancy, Age = 35, Gender = False, Salary = 8000 }
+Employee { Id = 7, Name = zack, Age = 35, Gender = True, Salary = 8500 }
+===========================
+16
+Employee { Id = 4, Name = lucy, Age = 16, Gender = False, Salary = 2000 }
+===========================
+25
+Employee { Id = 5, Name = kimi, Age = 25, Gender = True, Salary = 1000 }
+===========================
+```
+
 ### 投影
 
-把集合中的每一项转换为另一种类型。
+把集合中的每一项映射为另一种类型。
 
 比如：拿出 list 中的所有 Age 数据
 
@@ -936,6 +1013,16 @@ foreach(var i in ages)
 ```c#
 IEnumerable<string> ages = list.Select(e => e.Age + "," + e.Name);
 foreach(var i in ages)
+{
+    Console.WriteLine(i);
+}
+```
+
+将人投影为狗类型：
+
+```c#
+var dogs = list.Select(e => new Dog { Age = e.Age, Name = e.Name });
+foreach (var i in dogs)
 {
     Console.WriteLine(i);
 }
@@ -968,6 +1055,32 @@ Lucy 25 女
 Rose 32 女
 Jim 19 男
 */
+```
+
+按年龄分组，输出每一组里的最大工资、最小工资以及人数。
+
+```c#
+var items = list.GroupBy(e => e.Age).Select(e => new
+    {
+        Age = e.Key,
+        MaxSal = e.Max(e => e.Salary),
+        MinSal = e.Min(e => e.Salary),
+        Count = e.Count()
+    }) ;
+foreach (var i in items)
+{
+    Console.WriteLine($"年龄：{i.Age}, 最大工资：{i.MaxSal}, 最小工资：{i.MinSal}, 总人数：{i.Count}");
+}
+```
+
+输出结果：
+
+```
+年龄：28, 最大工资：5000, 最小工资：5000, 总人数：1
+年龄：33, 最大工资：8000, 最小工资：3000, 总人数：2
+年龄：35, 最大工资：9000, 最小工资：8000, 总人数：3
+年龄：16, 最大工资：2000, 最小工资：2000, 总人数：1
+年龄：25, 最大工资：1000, 最小工资：1000, 总人数：1
 ```
 
 ### 集合转换
@@ -1003,6 +1116,8 @@ foreach(var i in items)
 */
 ```
 
+在 `OrderBy(e => e.Key)` 这，因为前面 `GroupBy(e => e.Age)` 返回的是一个 `IEnumerable<IGrouping<int, Employee>>` ，所以 `GroupBy` 后的方法的参数都是 `IGrouping` 类型的，想要用 Age 来排序的话，只能用 IGrouping 的 Key。
+
 ## 查询语法
 
 使用 Where、OrderBy、Select 等扩展方法进行数据查询的写法叫做“LINQ方法语法”。
@@ -1017,6 +1132,13 @@ foreach(var i in items)
 {
     Console.WriteLine(i);
 }
+/*
+{ Age = 28, Name = jerry, Gender = 男 }
+{ Age = 33, Name = jack, Gender = 男 }
+{ Age = 35, Name = lily, Gender = 女 }
+{ Age = 35, Name = nancy, Gender = 女 }
+{ Age = 35, Name = zack, Gender = 男 }
+*/
 ```
 
 （1）：`Gender = e.Gender ? "男" : "女"` 必须要写 Gender= ，其他字段会自动以 . 后面的名字命名。
@@ -1032,6 +1154,8 @@ foreach (var i in items)
     Console.WriteLine(i);
 }
 ```
+
+以上两种写法的编译结果是一样的。
 
 ## 性能与面试
 
@@ -1056,7 +1180,7 @@ double ave = s.Split(',').Select(e => Convert.ToInt32(e)).Average();
 Console.WriteLine(ave);
 ```
 
-【例题2】：统计一个字符串中每个字母出现的频率（忽略大小写），然后按照从高到低的顺序输出出现频率高于 2 次的单词喝其出现的频率。
+【例题2】：统计一个字符串中每个字母出现的频率（忽略大小写），然后按照从高到低的顺序输出出现频率高于 2 次的单词和其出现的频率。
 
 ```c#
 string s = "HelloWorld, HHHaaa, java C# is nb.";
@@ -1089,6 +1213,10 @@ foreach (var i in items)
 + 服务容器：负责管理注册的服务
 + 查询服务：创建对象及关联对象
 + 对象生命周期：Transient（瞬态）、Scoped（范围）、Singleton（单例）
+  + Transient：获取一次就要 new 一个对象
+  + Scoped：在指定的范围中，每次获取都是同一个对象
+  + Singleton：无论谁获取这个服务，拿到的都是一个对象
+
 
 ## .NET 中使用 DI
 
@@ -1218,7 +1346,7 @@ IServiceProvider 的服务定位器方法：
 
 ## 依赖注入
 
-依赖注入是有“传染性”的，如果一个类的对象是通过 DI 创建的，那么这个类的构造函数中声明的所有服务里欸选哪个的参数都会被 DI 赋值；但是如果一个对象是程序员手动创建的，那么这个对象就和 DI 没有关系，它的构造函数中声明的服务烈性就不会被自动赋值。
+依赖注入是有“传染性”的，如果一个类的对象是通过 DI 创建的，那么这个类的构造函数中声明的所有服务类型的参数都会被 DI 赋值；但是如果一个对象是程序员手动创建的，那么这个对象就和 DI 没有关系，它的构造函数中声明的服务类型参数就不会被自动赋值。
 
 .NET 的 DI 默认是构造函数注入。
 
@@ -1237,6 +1365,7 @@ static void Main(string[] args)
         c.Test();
     }
 }
+
 class Controller
 {
     private readonly ILog log;
@@ -1253,6 +1382,7 @@ class Controller
         log.Log("上传完毕");
     }
 }
+
 interface ILog
 {
     public void Log(string msg);
@@ -1266,6 +1396,7 @@ class LogImpl : ILog
 
     }
 }
+
 interface IConfig
 {
     public string GetValue(string name);
@@ -1277,6 +1408,7 @@ class ConfigImpl : IConfig
         return "hello";
     }
 }
+
 interface IStorage
 {
     public void Save(string content, string name);
@@ -1316,7 +1448,7 @@ class StorageImpl : IStorage
 
 实现 1：
 
-> 1、创建四个 .NET Core 类库项目，ConfigServices 是配置服务的项目，LogServices 是日志服务的项目，MailServices 是邮件发送器的项目，然后再建一个 .NET Core 控制台项目 MailServicesConsole 来调用 MailServices 。MailServices 项目引用 ConfigServices 项目和 LogServices 项目，而 MailServicesConsole 项目引用 MailServices 项目。
+> 1、创建3个 .NET Core 类库项目，ConfigServices 是配置服务的项目，LogServices 是日志服务的项目，MailServices 是邮件发送器的项目，然后再建一个 .NET Core 控制台项目 MailServicesConsole 来调用 MailServices 。MailServices 项目引用 ConfigServices 项目和 LogServices 项目，而 MailServicesConsole 项目引用 MailServices 项目。
 >
 > 2、编写类库项目 LogServices，创建 ILogProvider 接口，编写实现类 ConsoleLogProvider。编写一个 ConsoleLogProviderExtensions 定义的扩展方法 AddConsoleLog，namespace 和 IServiceCollection 一致。
 
@@ -1383,8 +1515,8 @@ Password=123456
 2、NuGet 安装 Microsoft.Extensions.Configuration 和 Microsoft.Extensions.Configuration.Json 。
 
 ```
-Install-Package Microsoft.Extensions.Configuration
-Install-Package Microsoft.Extensions.Configuration.Json 
+Install-Package Microsoft.Extensions.Configuration  # 配置框架的包
+Install-Package Microsoft.Extensions.Configuration.Json  # 读json文件的包
 ```
 
 3、编写代码，先用简单的方式读取配置。
@@ -1406,7 +1538,7 @@ Install-Package Microsoft.Extensions.Configuration.Json
 
 optional 参数表示这个文件是否可选。初学时，建议optional 设置为 true，这样写错了的话能够及时发现。
 
-reloadOnchange 参数表示如果文件修改了，是否重新加载配置。
+reloadOnchange 参数表示如果文件修改了，是否立即重新加载配置。
 
 绑定读取配置：
 
@@ -1426,7 +1558,7 @@ class Proxy
 Install-Package Microsoft.Extensions.Configuration.Binder
 ```
 
-3、Server server = configRoot.GetSection("proxy").Get<Server>()
+3、Server server = configRoot.GetSection("Proxy").Get<Server>()
 
 ```c#
 static void Main(string[] args)
@@ -1445,15 +1577,33 @@ static void Main(string[] args)
 
 1、推荐使用选项方式读取，和 DI 结合更好，且更好利用 reloadonchange 机制
 
-2、NuGet安装: Microsoft.Extensions.Options.Microsoft.Extensions.Configuration.Binder，当然也需要Microsoft.Extensions.Configuration .Microsoft.Extensions.Configuration.Json .
+2、NuGet安装: `Microsoft.Extensions.Options`，`Microsoft.Extensions.Configuration.Binder`，当然也需要`Microsoft.Extensions.Configuration` ，`Microsoft.Extensions.Configuration.Json `.
 
-3、读取配置的时候，DI要声明IOptions<T>lOptionsMonitor<T>、IOptionsSnapshot<T>等类型Options<T>不会读取到新的值; 和IOptionsMonitor相比lOptionsMonitor会在同一个范围内 (比如ASP.NET Core一个请求中)保持一致。建议用IOptionsSnapshot。
+3、读取配置的时候，DI要声明IOptions<T>、lOptionsMonitor<T>、IOptionsSnapshot<T>等类型。
+Options<T>不会读取到新的值; 和IOptionsMonitor相比，IOptionsSnapshot会在同一个范围内 (比如ASP.NET Core一个请求中)保持一致。建议用IOptionsSnapshot。
 
-在读取配置的地方，用IOptionsSnapshot<T>注入。不要在构造函数里直接读取IOptionsSnapshottvalue，而是到用到的地方再读取，否则就无法更新变化。
+在读取配置的地方，用IOptionsSnapshot<T>注入。不要在构造函数里直接读取IOptionsSnapshot.Value，而是到用到的地方再读取，否则就无法更新变化。
+
+```c#
+class Demo
+{
+    // private readonly Config optConfig;
+	private readonly IOptionsSnapshot<DbSettings> optDbSettings;
+	public Demo(IOptionsSnapshot<DbSettings> optDbSettings)
+	{
+         // this.optDbSettings = optDbSettings.Value;
+		this.optDbSettings = optDbSettings;
+	}
+}
+```
 
 ### 其他配置提供者
 
 1、配置框架还支持从命令行参数、环境变量等地方读取。
+
+```bash
+a.exe name="zs" age=5
+```
 
 2、NuGet安装Microsoft.Extensions.Configuration.CommandLine.
 
@@ -1462,14 +1612,27 @@ static void Main(string[] args)
 4、参数支持多种格式，比如: server=127.0.0.1、server=127.0.0.1、--server 127.0.0.1注意在键值之间加空格)、/server=127.0.0.1、/server 127.0.0.1 (注意在键值之间加空格)。格式不能混用
 
 5、调试的时候，VS中简化命令行传参数的方法
+右击项目，选择属性，选择调试，选择打开调试配置文件UI，可以配置参数。
 
 **扁平化配置**
 
-1、对于环境变量、命令行等简单的键值对结构，如果想要进行复杂结构的配置，需要进行“扁乎化处理”。对于配置的名字需要采用“层级配置”。例如: abe。对于数字这样配置: `a:b:c:0`、`a:b:c:1`、`a:b:c:2`。
+1、对于环境变量、命令行等简单的键值对结构，如果想要进行复杂结构的配置，需要进行“扁平化处理”。对于配置的名字需要采用“层级配置”。例如: a\:b\:e。对于数字这样配置: `a:b:c:0`、`a:b:c:1`、`a:b:c:2`。
 
 2、演示一下。
 
+```bash
+a.exe proxy:address="ssss" proxy:ids:0=1 proxy:ids:1=2
+```
+
 3、这个知识点在自定义配置Provider中还会用到
+
+**环境变量配置**
+
+1、NuGet安装：Microsoft.Extensions.Configuration.EnvironmentVariables。
+
+2、然后configurationBuilder. AddEnvironmentVariables()。AddEnvironmentVariables() 有无参数和有prefix参数的两个重载版本。无参数版本会把程序相关的所有环境变量都加载进来，由于有可能和系统中已有的环境变量冲突，因此建议用有prefix（前缀）参数的AddEnvironmentVariables()。读取配置的时候，prefix参数会被忽略。
+
+3、VS中调试时，避免修改系统环境变量，直接在VS中设置环境变量的方法。
 
 **其他配置源**
 
@@ -1501,7 +1664,7 @@ web.config 的形式：
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?><configuration>
-    <connectionStrings>
+    <connectionStrings>  
         <add name="connstr1" connectionString="Data Source=;lnitialCatalog=DemoDB;User ID=sa;Password=123456"providerName="System.Data.SqlClient"/>
     </connectionStrings>
     <appSettings>
@@ -1512,6 +1675,9 @@ web.config 的形式：
     </appSettings>
 </configuration>
 ```
+
++ ` <connectionStrings>`：配置连接字符串，多个字符串使用多个 `add` 子节点
++ `<appSettings>`：普通的配置
 
 ### 开发数据库配置提供者
 
@@ -1790,10 +1956,20 @@ Entity Framework Core
 
 1、ORM:Object Relational Mapping。让开发者用对象操作的形式操作关系数据库。
 
-比如插入：User user = new User(Name="admin"Password="123")orm.Save(user);
+比如插入：
 
-比如查询：Book b = orm.Books.Single(b=>b.Id==3 || b.Name.Contains("NET"));
-  				string bookName = b.Name!string aName = b.Author.Name;
+```c#
+User user = new User(Name="admin"Password="123");
+orm.Save(user);
+```
+
+比如查询：
+
+```c#
+Book b = orm.Books.Single(b=>b.Id==3 || b.Name.Contains("NET"));
+string bookName = b.Name;
+string aName = b.Author.Name;
+```
 
 2、有哪些ORM: EF core、Dapper、SqlSugar、FreeSql等
 
@@ -1822,9 +1998,14 @@ EF Core 与其他 ORM 相比：
 
 3、对于SQLServer支持最完美， MySQL、PostgreSQL也不错 (有能解决的小坑) 。这三者是.NET圈中用的最多的二个。本课程主要用SOLServer讲，如果用其他数据库只要改行代码+绕一些小坑即可，大部分代码用法不变。EFCore能尽量屏蔽底层数据库差异。
 
-开发环境搭建1：
+### 开发环境搭建1
 
-1、经典步骤:建实体类；建配置类；建DbContext；生成数据库编写调用EF Core的业务代码。
+1、经典步骤
+
++ 建实体类；
++ 建配置类；
++ 建DbContext；
++ 生成数据库编写调用EF Core的业务代码。
 
 2、Book.cs
 
@@ -1838,44 +2019,77 @@ public class Book
 }
 ```
 
-3、
+Person.cs
 
 ```c#
-Install-Package Microsoft.EntityFrameworkCore.SqlServer
+public class Person
+{
+    public long Id { get; set; }
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
 ```
 
-开发环境搭建2：
-
-创建实现了 IEntityTypeConfiguration 接口的实体配置类，配置实体类和数据库表的对应关系
+3、安装包
 
 ```c#
-class BookConfig :IEntityTypeConfiguration<Book>
+Install-Package Microsoft.EntityFrameworkCore.SqlServer  // SqlServer的
+Install-Package Pomelo.EntityFrameworkCore.MySql  // MySQL的
+```
+
+### 开发环境搭建2
+
+创建实现了 IEntityTypeConfiguration 接口的实体配置类，配置实体类和数据库表的对应关系。
+
+也可以不创建配置类，那就是使用约定。
+
+BookConfig.cs
+
+```c#
+public class BookConfig :IEntityTypeConfiguration<Book>
 {
     public void Configure(EntityTypeBuilder<Book> builder)
     {
-        builder.ToTable("T_Books");
+        builder.ToTable("T_Books");  // 表名：T_Boooks，表中字段就是Book类的属性
     }
 }
 ```
 
-开发环境搭建3：
+PersonConfig.cs
+
+```c#
+public class PersonConfig : IEntityTypeConfiguration<Person>
+{
+    public void Configure(EntityTypeBuilder<Person> builder)
+    {
+        builder.ToTable("T_Persons");
+    }
+}
+```
+
+### 开发环境搭建3
 
 创建继承自 DbContext 的类
 
 ```c#
 class TestDbContext:DhContext
 {
-    public DbSet<Book> Books i {get; set}; 
+    // 实体
+    public DbSet<Book> Books i { get; set }
+    public DbSet<Person> Persons { get; set; }
     // 链接数据库
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        string connStr = "Server=:Database=demol:Trusted_Connection=True;MultipleActiveResultSets=true";
-        optionsBuilder.UseSqlServer(connStr);
+        base.OnConfiguring(optionsBuilder);
+        // MySQL 数据库连接
+        optionsBuilder.UseMySql("Server=localhost;Port=3306;Database=efcoretest;Uid=root;Pwd=123;",
+				new MySqlServerVersion(new Version("8.0.30")));
     }
     // 加载所有的 IEntityTypeConfiguration
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        // 从指定的程序集里面加载所有的IEntityTypeConfiguration
         modelBuilder.ApplyConfigurationsFromAssembly(this.GetType().Assembly);
     }
 }
@@ -1889,9 +2103,13 @@ class TestDbContext:DhContext
 
 根据对象的定义变化，自动更新数据库中的表以及表结构的操作，叫做Migration (迁移)。迁移可以分为多步 (项目进化) ，也可以回滚。
 
-开发环境搭建4：
+### 开发环境搭建4
 
 为了使用生成数据库的工具，Nuget安装Microsoft.EntityFrameworkCore.Tools，
+
+```
+Install-Package Microsoft.EntityFrameworkCore.Tools
+```
 
 1、再在“程序包管理器控制台”中执行如下命令
 
@@ -1904,7 +2122,7 @@ Add-Migration InitialCreate  // InitialCreate 可以为任意合法字符
 2、代码需要执行后才会应用对数据库的操作。“程序包管理器控制台”中执行
 
 ```c#
-Update-database
+Update-Database
 ```
 
 3、查看一下数据库，表建好了。
@@ -1927,17 +2145,23 @@ builder.Property(e => e.AuthorName).HasMaxLength(20).IsRequired();
 
 4、执行Add-Migration AddAuthorName_ModifyTitle。取名字有意义
 
+可能会提示：`An operation was scaffolded that may result in the loss of data. Please review the migration for accuracy.` ，意思是一个操作被搭建（scaffolded）出来，可能会导致数据丢失。请检查这次迁移的准确性。
+
+因为这次给字段限制了长度，所以可能导致精度丢失。
+
 5、Update-Database
 
 ## 增删改查
 
-插入数据
+### 插入
 
 1、只要操作Books属性，就可以向数据库中增加数据，但是通过C#代码修改Books中的数据只是修改了内存中的数据。对Books做修改后，需要调用DbContext的异步方法SaveChangesAsync()把修改保存到数据库。也有同步的保存方法SaveChanges()，但是用EF Core都推荐用异步方法
 
 2、EF Core默认会跟踪(Track)实体类对象以及DbSet的改变。
 
 ```c#
+// Program.cs
+
 // ctx 相当于逻辑上的数据库
 using (MyDbContext ctx = new MyDbContext())
 {
@@ -1950,14 +2174,20 @@ using (MyDbContext ctx = new MyDbContext())
 }
 ```
 
-查询数据
+`ctx.Persons.Add(p);` 也可以不用写 `.Persons`，直接写成：`ctx.Add(p); ` 也可以，它会自动根据对象的类型来决定加入哪个表中。
+
+`SaveChanges()` 方法在最后执行一次就可以了。
+
+### 查询
 
 1、DbSet实现了IEnumerable<T>接口，因此可以对DbSet实施Linq操作来进行数据查询。EF Core会把Linq操作转换为SOL语句。面向对象，而不是面向数据库(SQL)。
 
 2、查询价格大于 80 的书
 
 ```java
- var books = ctx.Books.Where(b => b.Price > 80);
+// Program.cs
+
+var books = ctx.Books.Where(b => b.Price > 80);
 foreach (var book in books)
 {
     Console.WriteLine(book.Title);
@@ -1967,13 +2197,17 @@ foreach (var book in books)
 查询名字为“C语言”的书
 
 ```c#
+// Program.cs
+
 var book = ctx.Books.Single(b => b.Title == "C语言");
 Console.WriteLine(book.Id + " " + book.Title + " " + book.Price);     
 ```
 
-3、可以使用OrderBv操作进行数据的排序
+3、可以使用OrderBy操作进行数据的排序
 
 ```c#
+// Program.cs
+
 IEnumerable<Book> books = ctx.Books.OrderByDescending(b => b.Price);
 foreach (var book in books)
 {
@@ -1983,12 +2217,14 @@ foreach (var book in books)
 
 大部分Linq操作都能用于EFCore。
 
-修改、删除
+### 修改、删除
 
 1、要对数据进行修改，首先需要把要修改的数据查询出来，然后再对查询出来的对象进行修改，然后再执行SaveChangesAsync()
 保存修改。
 
 ```c#
+// Program.cs
+
 var book = ctx.Books.Single(b => b.Title == "C语言");
 book.AuthorName = "ZSM";
 ctx.SaveChanges();
@@ -1997,38 +2233,65 @@ ctx.SaveChanges();
 2、删除也是先把要修改的数据查询出来，然后再调用DbSet或者DbContext的Remove方法把对象删除，然后再执行SaveChangesAsync0保存修改。
 
 ```c#
+// Program.cs
+
 var book = ctx.Books.Single(b => b.Id == 2);
 ctx.Books.Remove(book);
 ctx.SaveChanges(); 
 ```
 
+批量修改：将所有书的价格都上涨一块：
+
+```c#
+// Program.cs
+
+foreach (var book in dc.Books)
+{
+    book.Price++;
+}
+```
+
+这种目前批量修改、删除多条数据的方法在数据库里是进行了n次update操作，所以如果数据很多的话，效率很低。
+
++ 局限性：性能低：查出来，再一条条Update、Delete，而不能执行Update ... where；delete ... where；
+
+一个开源的高效批量修改、删除的开源项目。Zack.EFCore.Batch https://github.com/yangzhongke/Zack.EFCore.Batch
+
 ## 实体的配置
 
-约定配置
+### 约定配置
+
 主要规则:
 
-1:表名采用DbContext中的对应的DbSet的属性名。
+1：表名采用DbContext中的对应的DbSet的属性名。
 
-2:数据表列的名字采用实体类属性的名字，列的数据类型采用和实体类属性类型最兼容的类型。
+2：数据表列的名字采用实体类属性的名字，列的数据类型采用和实体类属性类型最兼容的类型。
 
-3:数据表列的可空性取决于对应实体类属性的可空性
+3：数据表列的可空性取决于对应实体类属性的可空性。
 
-4:名字为Id的属性为主键，如果主键为short,int 或者long类型，则默认采用自增字段，如果主键为Guid类型则默认采用默认的Guid生成机制生成主键值。
+4：名字为Id的属性为主键，如果主键为short, int 或者 long类型，则默认采用自增字段，如果主键为Guid类型，则默认采用默认的Guid生成机制生成主键值。
 
 两种配置方式
 
-l、Data Annotation
+### Data Annotation
 
 把配置以特性 (Annotation)的形式标注在实体类中。
 
 ```c#
-[Table("T Books")]
-public class Book{}
+[Table("T_Cats")]
+public class Cat
+{
+    public long Id { get; set; }
+    
+    [Required]
+    [MaxLength(22)]
+    public string Name { get; set; }
+}
 ```
 
 优点。简单，缺点:耦合。
 
-2、Fluent API
+### Fluent API
 
 ```c#
 builder ToTabre'T Books'):
@@ -2040,80 +2303,250 @@ builder ToTabre'T Books'):
 
 Fluent API 
 
-1、视图与实体类映射: modelBuilder.Entity<Blog>0.ToView("blogsView"):
+1、视图与实体类映射: 
 
-2、排除属性映射:modelBuilder.Entity<Blog>().lgnore(b => b. Name2)
+```c#
+modelBuilder.Entity<Blog>0.ToView("blogsView"):
+```
 
-3、配置列名:modelBuilder.Entity<Blog>0.Property(b>b.BlogId).HasColumnName("blog_id");
+2、排除属性映射:
 
-4、配置列数据类型:builder.Property(e => e.Title) .HasColumnType("varchar(200)")
+```c#
+modelBuilder.Entity<Blog>().lgnore(b => b. Name2)
+```
+
+3、配置列名:
+
+```c#
+modelBuilder.Entity<Blog>0.Property(b>b.BlogId).HasColumnName("blog_id");
+```
+
+4、配置列数据类型:
+
+```c#
+builder.Property(e => e.Title).HasColumnType("varchar(200)")
+```
 
 5、配置主键
-默认把名字为Id或者“实体类型+Id“的属性作为主键，可以用HasKevO来配置其他属性作为主键。modelBuilder.Entity<Student>0.HasKey(c =>cNumber);支持复合主键，但是不建议使用。
+默认把名字为Id或者“实体类型+Id“的属性作为主键，可以用HasKev()来配置其他属性作为主键。
 
-6、生成列的值：modelBuilder.Entity<Student>0).Property(b =>b.Number).ValueGeneratedOnAdd0;
+```c#
+modelBuilder.Entity<Student>0.HasKey(c =>cNumber);
+```
 
-7、可以用HasDefaultValue0为属性设定默认值modelBuilder.Entity<Student>0.Property(b =>b.Age).HasDefaultValue(6);
+支持复合主键，但是不建议使用。
 
-8、索引：modelBuilder.Entity<Blog>().HasIndex(b => b.Url);	
-	 复合索引：modelBuilder.Entity<Person>().HasIndex(p => new { p.FirstName,p.LastName ));
-	 唯一索引: IsUnique0;聚集索引: IsClustered()
+6、生成列的值：
 
-9... 用EF Core太多高级特性的时候谨慎，尽量不要和业务逻辑混合在一起，以免“不能自拔”。比如Ignore、Shadow、Table Splitting等......
+```c#
+modelBuilder.Entity<Student>().Property(b =>b.Number).ValueGeneratedOnAdd();
+```
+
+7、设定默认值，可以用HasDefaultValue()为属性
+
+```c#
+modelBuilder.Entity<Student>0.Property(b =>b.Age).HasDefaultValue(6);
+```
+
+8、索引：
+
+```c#	
+modelBuilder.Entity<Blog>().HasIndex(b => b.Url);
+```
+
+复合索引：
+
+```c#
+modelBuilder.Entity<Person>().HasIndex(p => new { p.FirstName,p.LastName ));
+```
+
+唯一索引:
+
+```c#
+modelBilder.Entity<Book>().HasIndex(b => b.Title).IsUnique();
+```
+
+聚集索引: 
+
+```c#
+modelBilder.Entity<Book>().HasIndex(b => b.Title).IsClustered();
+```
+
+9、用EF Core太多高级特性的时候谨慎，尽量不要和业务逻辑混合在一起，以免“不能自拔”。比如Ignore、Shadow、Table Splitting等......
 
 Fluent API众多方法
 
-Fluent API中很多方法都有多个重载方法。比如HasIndex、Property0把Number属性定义为索引，下面两种方法都可以:builderHasIndex("Number");builder.HasIndex(b=>b.Number);
+Fluent API中很多方法都有多个重载方法。比如HasIndex、Property()。
+
+把Number属性定义为索引，下面两种方法都可以：
+
+```c#
+builder.HasIndex("Number");
+builder.HasIndex(b=>b.Number);
+```
 
 推荐使用HasIndex(b=>b.Number)、Property(b => bNumber)这样的写法因为这样利用的是C#的强类型检查机制
 
+### 所谓 Fluent
+
+标准写法：
+
+```c#
+builder.ToTable("T_Books");
+builder.HasIndex(b => b.Title);
+builder.Ignore(b => b.PubTime);
+```
+
+可以合并写（链式编程代码风格）：
+
+```c#
+builder.ToTable("T_Books").HasIndex(b => b.Title);
+builder.Ignore(b => b.PubTime);
+```
+
+因为 ToTable 的返回值是 EntityTableBuilder，而 HasIndex 就是 EntityTableBuilder 的方法。
+
+但是不能这样合并写：
+
+```c#
+builder.ToTable("T_Books").HasIndex(b => b.Title).Ignore(b => b.PubTime);
+```
+
+因为 HasIndex 返回值是 IndexBuilder，而 Ignore 是属于 EntityTableBuilder 的方法。
+
 ## 主键不是小事
 
-自增主键
+EF Core支持多种主键生成策略：自动增长；Guid；Hi/Lo算法等
 
-1、EF Core支持多种主键生成策略:自动增长;Guid;Hi/Lo算法等。
+### 自增主键
 
-2、自动增长。优点:简单;缺点: 数据库迁移以及分布式系统中比较麻烦;并发性能差。long、int等类型主键，默认是自增。因为是数据库生成的值，所以SaveChanges后会自动把主键的值更新到Id属性。试验一下。场景:插入帖子后，自动重定向帖子地址。
+自动增长。优点：简单；缺点：数据库迁移以及分布式系统中比较麻烦；并发性能差。long、int等类型主键，默认是自增。因为是数据库生成的值，所以SaveChanges后会自动把主键的值更新到Id属性。
 
-3、自增字段的代码中不能为Id赋值，必须保持默认值0否则运行的时候就会报错。
+自增字段的代码中不能为Id赋值，必须保持默认值0，否则运行的时候就会报错。（MySQL中可以）
 
-Guid主键
+### Guid主键
 
-Guid算法 (或UUID算法) 生成一个全局唯一的Id。适合于分布式系统，在进行多数据库数据合并的时候很简单。优点:简单，高并发全局唯一;缺点:磁盘空间占用大。
+Guid算法（或UUID算法）生成一个全局唯一的Id。适合于分布式系统，在进行多数据库数据合并的时候很简单。
 
-2、Guid值不连续。使用Guid类型做主键的时候，不能把主键设置为聚集索引。因为聚集索引是按照顺序保存主键的，因此用Guid做主键性能差。比如MIvSOL的InnoDB引擎中主键是强制使用聚集索引的。有的数据库支持部分的连续Guid，比如SOLServer中的NewSequentialId0，但也不能解决问题。在SOLServer等中，不要把Guid主键设置为聚集索引;在MySQL中，插入频繁的表不要用Guid做主键。
++ 优点：简单，高并发，全局唯一；
++ 缺点：磁盘空间占用大。
 
-3、演示Guid用法:既可以让EF Core给赋值，也可以手动赋值 (推荐)
+创建Guid值：
 
-其他方案
+```c#
+Guid guid = Guid.NewGuid();
+```
 
-1、混合自增和Guid《(非复合主键)用自增列做物理的主键，而用Guid列做逻辑上的主键。把白增对设置为表的主键，而在业务上查询数据时候把Guid当主键用。在和其他表关联以及和外部系统通讯的时候(比如前端显示数据的标识的时候) 都是使用Guid列。不仅保证了性能，而且利用了Guid的优点，而且减轻了主键自增性导致主键值可被预测带来的安全性问题。
+可以使用new的方法，但是结果不理想：
 
-2、Hi/Lo算法:EF Core支持Hi/Lo算法来优化自增列。主键值由两部分组成:高位 (Hi) 和低位 (Lo)，高位由数据库生成，两个高位之间间隔若干个值，由程序在本地生成低位，低位的值在本地自增生成。不同进程或者集群中不同服务器获取的Hi值不会重复，而本地进程计算的Lo则可以保证可以在本地高效率的生成主键值。但是HiLo算法不是EF Core的标准
+```c#
+Guid guid1 = new Guid();
+Console.WriteLine($"{guid1}");  // 00000000-0000-0000-0000-000000000000
+```
 
-深入研究Migrations
+Guid值不连续。使用Guid类型做主键的时候，不能把主键设置为聚集索引。因为聚集索引是按照顺序保存主键的，因此用Guid做主键性能差。
 
-1、使用迁移脚本，可以对当前连接的数据库执行编号更高的迁移，这个操作叫做“向上迁移” (Up)，也可以执行把数据库回退到旧的迁移，这个操作叫“向下迁移(Down
+比如MySQL的InnoDB引擎中主键是强制使用聚集索引的。有的数据库支持部分的连续Guid，比如SQLServer中的NewSequentialId()，但也不能解决问题。在SQLServer等中，不要把Guid主键设置为聚集索引；在MySQL中，插入频繁的表不要用Guid做主键。
+
+Guid即可以让EF Core赋值，也可以手动赋值（推荐）。
+
+EF Core赋值：
+
+```c#
+Cat c = new Cat();
+c.Name = "zsss";
+Console.WriteLine(c.Id);  // 00000000-0000-0000-0000-000000000000
+dc.Add(c);
+Console.WriteLine(c.Id);  // 08dbdd11-c13b-4574-8c32-2c7caa7dae9a
+await dc.SaveChangesAsync();
+Console.WriteLine(c.Id);  // 08dbdd11-c13b-4574-8c32-2c7caa7dae9a
+```
+
+可以看到还没有更新到数据库中就已经赋值了，是EF Core赋值的。
+
+手动赋值：
+
+```c#
+Cat c = new Cat();
+c.Name = "zsss";
+c.Id = Guid.NewGuid();
+Console.WriteLine(c.Id);  // f11435aa-6df9-4bca-8ed7-2e3d8a133aff
+dc.Add(c);
+Console.WriteLine(c.Id);  // f11435aa-6df9-4bca-8ed7-2e3d8a133aff
+await dc.SaveChangesAsync();
+Console.WriteLine(c.Id);  // f11435aa-6df9-4bca-8ed7-2e3d8a133aff
+```
+
+### 其他方案
+
+1、混合自增和Guid（非复合主键）。用自增列做物理的主键，而用Guid列做逻辑上的主键。把自增列设置为表的主键，而在业务上查询数据时候把Guid当主键用。在和其他表关联以及和外部系统通讯的时候（比如前端显示数据的标识的时候）都是使用Guid列。不仅保证了性能，而且利用了Guid的优点，而且减轻了主键自增性导致主键值可被预测带来的安全性问题。
+
+2、Hi/Lo算法：EF Core支持Hi/Lo算法来优化自增列。主键值由两部分组成：高位（Hi）和低位（Lo），高位由数据库生成，两个高位之间间隔若干个值，由程序在本地生成低位，低位的值在本地自增生成。不同进程或者集群中不同服务器获取的Hi值不会重复，而本地进程计算的Lo则可以保证可以在本地高效率的生成主键值。但是HiLo算法不是EF Core的标准。
+
+## 深入研究Migrations
+
+1、使用迁移脚本，可以对当前连接的数据库执行编号更高的迁移，这个操作叫做“向上迁移”（Up），也可以执行把数据库回退到旧的迁移，这个操作叫“向下迁移”（Down）。
 
 2、除非有特殊需要，否则不要删除Migrations文件夹下的代码。
 
-3、进一步分析Migrations下的代码。分析Up、Down等方法。查看Migration编号4、查看数据库的 EFMiqrationsHistorv表: 记录当前数据库曾经应用过的迁移脚本，按顺序排列。
+3、进一步分析Migrations下的代码。分析Up、Down等方法。查看Migration编号。
 
-Migrations其他命令
+4、查看数据库的__EFMigrationsHistory表：记录当前数据库曾经应用过的迁移脚本，按顺序排列。
 
-1、Update-Database Xxx把数据库回滚到Xx的状态，迁移脚本不动。
+### Migrations其他命令
 
-2、Remove-migration删除最后一次的迁移脚本3、Script-Migration生成迁移SQL代码。有了Update-Database 为什么还要生成SQL脚本。可以生成版本D到版本F的SOL脚本:Script-Migration D F生成版本D到最新版本的SQL脚本: Script-Migration D
+1、把数据库回滚到Xx的状态，更新的是数据库，迁移脚本不动。
 
-### 反向工程
+```
+Update-Database Xxx
+```
+
+2、删除最后一次的迁移脚本
+
+```
+Remove-migration
+```
+
+3、生成迁移SQL代码
+
+```
+Script-Migration
+```
+
+有了 Update-Database 为什么还要生成SQL脚本。
+
++ 因为 Update-Database 只适合开发环境
+
+可以生成版本D到版本F的SOL脚本:
+
+```c#
+Script-Migration D F
+```
+
+意思是，生成两个版本之间的差异的SQL脚本。
+
+生成版本D到最新版本的SQL脚本: 
+
+```c#
+Script-Migration D
+```
+
+## 反向工程
 
 根据数据库表来反向生成实体类。
 
 ```c#
-Scaffold-DbContext
-'Server=.;Database=demol;TrustedConnection=True;MultipleActiveResultSets=true'
-MicrosoftEntityFrameworkCore.SqlServer
+Scaffold-DbContext 'Server=.;Database=demol;TrustedConnection=True;MultipleActiveResultSets=true' MicrosoftEntityFrameworkCore.SqlServer
 ```
+
+`Scaffold-DbContext` 是一个在 Entity Framework Core 中用于根据数据库架构生成代码的命令。
+
+- `'Server=.;Database=demol;TrustedConnection=True;MultipleActiveResultSets=true'` 是连接字符串，用于描述如何连接到数据库。
+- `Microsoft.EntityFrameworkCore.SqlServer` 是你要用的提供程序。这是EF Core的SQL Server提供程序。
+- `-OutputDir Models` 参数指定生成的模型文件的输出目录。这将在项目目录下创建一个名为 "Models" 的目录，并在其中生成代码文件。
+- `-Context DemolContext` 参数用于指定生成的 DbContext 类的名称。在这里，生成的 DbContext 类将被命名为 "DemolContext"。
+
+在运行这个命令之前，确保你的项目已经安装了`Microsoft.EntityFrameworkCore.SqlServer`和`Microsoft.EntityFrameworkCore.Design`这两个NuGet包。`Microsoft.EntityFrameworkCore.Design`包包含了`Scaffold-DbContext`这个命令。
 
 1、生成的实体类可能不能满足项目的要求，可能需要手工修改或者增加配置。
 
@@ -2121,19 +2554,1382 @@ MicrosoftEntityFrameworkCore.SqlServer
 
 3、不建议把反向工具当成了日常开发工具使用，不建议DBFirst.
 
-### EF Core 底层如何操作数据库
+## EF Core 底层如何操作数据库
 
 ![image-20230626164107226](https://gitee.com/LowProfile666/image-bed/raw/master/img/image-20230626164107226.png)
 
 查看生成的SQL语句
 
-SOL Server Profiler查看SOLServer数据库当前执行的SOL语句
+SOL Server Profiler查看SOLServer数据库当前执行的SOL语句（收费版的SQL Server才有）。
 
 ### 有哪些做不到的事
 
-1、C#千变万化;SQL功能简单。存在合法的C#语句无法被翻译为SOL语句的情况
+C#千变万化；SQL功能简单。存在合法的C#语句无法被翻译为SQL语句的情况。比如：
+
+```c#
+var books = dc.Books.Where(b => IsOK(b.Title));
+foreach (var b in books)
+{
+    await Console.Out.WriteLineAsync(b.Title);
+}
+
+private static bool IsOK(string s)
+{
+    return s.Contains("张");
+}
+```
+
+以上程序就会报错：
+
+```
+Unhandled exception. System.InvalidOperationException: The LINQ expression 'DbSet<Book>()
+    .Where(b => Program.IsOK(b.Title))' could not be translated. 
+```
 
 ![image-20230626170937915](https://gitee.com/LowProfile666/image-bed/raw/master/img/image-20230626170937915.png)
 
 ### 通过代码查看 EF Core 生成的 SQL
 
+#### 标准日志
+
+```c#
+// MyDbContext.cs
+
+// 加个属性：
+public static readonly ILoggerFactory MyLoggerFactory
+					= LoggerFactory.Create(builder => { builder.AddConsole(); });
+
+optionsBuilder.UseLoggerFactory(MyLoggerFactory);
+```
+
+AddConsole 需要安装一个 logging.console 包。
+
+#### 简单日志
+
+可以自己写代码过滤一些不需要的消息。
+
+```c#
+optionsBuilder.LogTo(msg =>
+{
+    if (!msg.Contains("CommandExecuting")) return;
+    Console.WriteLine(msg);
+});
+```
+
+#### ToQueryString
+
+1、上面两种方式无法直接得到一个操作的SQL语句，而且在操作很多的情况下，容易混乱。
+
+2、EF Core的Where方法返回的是IQueryable类型，DbSet也实现了IQueryable接口。 IQueryable有扩展方法ToQueryString()可以获得SQL。
+
+```c#
+IQueryable<Book> books = dc.Books.Where(b => b.Title.Contains("C"));
+Console.WriteLine(books.ToQueryString());
+
+/*
+SELECT `t`.`Id`, `t`.`AuthorName`, `t`.`Price`, `t`.`PubTime`, `t`.`Title`
+FROM `T_Books` AS `t`
+WHERE `t`.`Title` LIKE '%C%'
+*/
+```
+
+3、不需要真的执行查询才获取SQL语句；==只能获取查询操作的==。
+
+## 同样的LINQ被翻译为不同的SQL语句
+
+不同数据库方言不同。
+
+比如，获取 t 表中前三条数据：
+
+```
+SQLServer:  select top(3) * from t
+MySQL: select * from t LIMIT 3
+Oracle: select * from t where ROWNUM<=3
+```
+
+同样的C#语句在不同数据库中被EF Core翻译成不同的SQL语句。
+
+EF Core迁移脚本和数据库相关。因此迁移脚本不能跨数据库。通过给Add-Migration命令添加“-OutputDir”参数的形式来在同一个项目中为不同的数据库生成不同的迁移脚本。
+
+## 一对多关系
+
+数据库表之间的关系：一对一、一对多、多对多。
+
+EF Core不仅支持单实体操作，更支持多实体的关系操作。
+
+三部曲：实体类中关系属性；FluentAPI关系配置；使用关系操作。
+
+### 配置
+
+**实体类：**文章实体类Article，评论实体类Comment，一篇文章对应多条评论。
+
+```c#
+// Article.cs
+public class Article
+{
+	public long Id { get; set; }
+	public string Title { get; set; }
+	public string Content { get; set; }
+    // 建议给一个空的List
+	public List<Comment> Comments { get; set; } = new List<Comment>();   // 这种写法在C#9以后有效
+    
+}
+
+// Comment.cs
+public class Comment
+{
+	public long Id { get; set; }
+	public Article Article { get; set; }
+	public string Message { get; set; }
+}
+```
+
+**关系配置：**EF Core中实体之间关系的配置的套路：
+
+```c#
+HasXXX(…).WithXXX(…);
+```
+
+有XXX、反之带有XXX。XXX可选值One、Many。
+
+```c#
+一对多：HasOne(…).WithMany(…);
+一对一：HasOne(…).WithOne (…);
+多对多：HasMany (…).WithMany(…);
+```
+
+```c#
+// ArticleConfig.cs
+public class ArticleConfig : IEntityTypeConfiguration<Article>
+{
+    public void Configure(EntityTypeBuilder<Article> builder)
+    {
+        builder.ToTable("T_Articles");
+        builder.Property(e => e.Title).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Message).IsRequired();
+    }
+}
+
+// CommentConfig.cs
+public class CommentConfig : IEntityTypeConfiguration<Comment>
+{
+    public void Configure(EntityTypeBuilder<Comment> builder)
+    {
+        builder.ToTable("T_Comments");
+        builder.Property(e => e.Message).IsRequired();
+        builder.HasOne<Article>(c => c.TheArticle).WithMany(a => a.Comments).IsRequired();
+    }
+}
+
+// MyDbContext.cs
+using (MyDbContext dc = new MyDbContext())
+{
+    Article a1 = new Article();
+    a1.Title = "震惊！";
+    a1.Message = "荆楚理工一男子……";
+
+    Comment c1 = new Comment { Message = "牛逼" };
+    Comment c2 = new Comment { Message = "假的" };
+    a1.Comments.Add(c1);
+    a1.Comments.Add(c2);
+
+    dc.Articles.Add(a1);
+    dc.SaveChanges();
+    
+    /*
+    也可以这样写，但是没有必要
+    Article a1 = new Article();
+    a1.Title = "震惊！";
+    a1.Message = "荆楚理工一男子……";
+
+    Comment c1 = new Comment { Message = "牛逼" , TheArticle = a1};
+    Comment c2 = new Comment { Message = "假的" , TheArticle = a1};
+    a1.Comments.Add(c1);
+    a1.Comments.Add(c2);
+
+    dc.Articles.Add(a1);
+    dc.Comments.Add(c1);
+    dc.Comments.Add(c2);
+    dc.SaveChanges();
+    */
+}
+```
+
+`builder.HasOne<Article>(c => c.TheArticle).WithMany(a => a.Comments);`：有一个文章对应着多个评论。
+
+不需要显式为Comment对象的Article属性赋值（当然赋值也不会出错），也不需要显式地把新创建的Comment类型的对象添加到DbContext中。只要添加了关系，EF Core会“顺竿爬”。
+
+### 数据获取
+
+假如按一般写法来获取一对多的数据：
+
+```c#
+Article a = dc.Articles.Single(a => a.Id == 1);
+Console.WriteLine(a.Title);
+Console.WriteLine(a.Message);
+foreach (var c in a.Comments)
+{
+    Console.WriteLine(c.Id + ", " + c.Message);
+}
+```
+
+输出的结果只会有 a 的数据，但是没有 a.Comments 的数据。
+
+以上代码执行的SQL语句：
+
+```mysql
+SELECT `t`.`Id`, `t`.`Message`, `t`.`Title`
+FROM `T_Articles` AS `t`
+WHERE `t`.`Id` = 1
+LIMIT 2
+```
+
+可以看出来，只涉及到了 Articles 表的查询，没有涉及到 Comments 表的查询。
+
+所以在获取关联表的数据时，需要在前面加一个 Include() ：
+
+```c#
+Article a = dc.Articles.Include(a=>a.Comments).Single(a=>a.Id==1);
+Console.WriteLine(a.Title);
+foreach(Comment c in a.Comments)
+{
+	Console.WriteLine(c.Id+":"+c.Message);
+}
+```
+
+Include定义在Microsoft.EntityFrameworkCore命名空间中。以上代码就可以将 a.Comments 查询出来。
+
+查看一下生成的SQL语句：
+
+```mysql
+SELECT `t0`.`Id`, `t0`.`Message`, `t0`.`Title`, `t1`.`Id`, `t1`.`Message`, `t1`.`TheArticleId`
+FROM (
+  SELECT `t`.`Id`, `t`.`Message`, `t`.`Title`
+  FROM `T_Articles` AS `t`
+  WHERE `t`.`Id` = 1
+  LIMIT 2
+) AS `t0`
+LEFT JOIN `T_Comments` AS `t1` ON `t0`.`Id` = `t1`.`TheArticleId`
+ORDER BY `t0`.`Id`
+```
+
+同样，如果不使用 Include，也不能通过 Comment 来查到 Article：
+
+```c#
+Comment c = dc.Comments.Single(c => c.Id == 2);
+Article a = c.TheArticle;
+Console.WriteLine(c.Id + ", " + c.Message);
+Console.WriteLine(a.Title + " , " + a.Message);
+
+/*
+2, 假的
+Unhandled exception. System.NullReferenceException: Object reference not set to an instance of an object.
+   at OneToMany.Program.Main(String[] args) in D:\MyCode\C#\一对多\Program.cs:line 42
+*/
+```
+
+使用 Include：
+
+```c#
+Comment c = dc.Comments.Include(c => c.TheArticle).Single(c => c.Id == 2);
+Article a = c.TheArticle;
+Console.WriteLine(c.Id + ", " + c.Message);
+Console.WriteLine(a.Title + " , " + a.Message);
+
+/*
+2, 假的
+震惊！ , 荆楚理工一男子……
+*/
+```
+
+如果不使用 Include 的话也可以，可以使用 Select 来操作：
+
+```C#
+var cm = dc.Comments.Select(c => new { Id = c.Id, AId = c.TheArticle.Id }).Single(c => c.Id == 2);
+```
+
+生成的SQL语句：
+
+```mysql
+SELECT `t`.`Id`, `t0`.`Id` AS `AId`
+FROM `T_Comments` AS `t`
+INNER JOIN `T_Articles` AS `t0` ON `t`.`TheArticleId` = `t0`.`Id`
+WHERE `t`.`Id` = 2
+LIMIT 2
+```
+
+### 额外的外键字段
+
+假如现在只要 Article 的 Title 和 Id 属性，通过上面的方法，可以看到生成的 SQL 语句都是将 Article 的 Id、Title、Message 全部查询了出来，这样效率较慢，我们可以通过 Select 投影设定只查询哪几列：
+
+```c#
+var a = dc.Articles.Select(a => new {a.Id, a.Title}).First();
+```
+
+这样生成的SQL语句是：
+
+```mysql
+SELECT `t`.`Id`, `t`.`Title`
+FROM `T_Articles` AS `t`
+LIMIT 1
+```
+
+可以看到，只查询了指定的列，并没有将所有的列都查询出来。
+
+那如果要通过 Comment 来查询到对应 Article 的 Id，就要用上面的两种方式，但是生成的 SQL 语句可以看到，使用了表的连接，所以效率也低。
+
+正确的解决方法是：给实体类中显式声明一个外键属性，对应 TheArticle 列。
+
+```c#
+public class Comment
+{
+    public long Id { get; set; }
+    public Article TheArticle { get; set; }
+    public long TheArticleId { get; set; }  // 外键属性，对应TheArticle 
+    public string Message { get; set; }
+}
+```
+
+设置外键：
+
+```c#
+// CommentConfig.cs
+builder.HasOne<Article>(c => c.TheArticle).WithMany(a => a.Comments)
+        .HasForeignKey(c => c.TheArticleId)
+        .IsRequired();
+```
+
+查询：
+
+```c#
+var cm = dc.Comments.Single(c => c.Id == 2);
+Console.WriteLine(cm.Id + ", " + cm.TheArticleId);
+```
+
+生成的SQL语句：
+
+```mysql
+SELECT `t`.`Id`, `t`.`Message`, `t`.`TheArticleId`
+FROM `T_Comments` AS `t`
+WHERE `t`.`Id` = 2
+LIMIT 2
+```
+
+这样就没有了表连接的操作，还可以使用 Select 来指定查询的列：
+
+```c#
+var cm = dc.Comments.Select(c => new { c.Id, c.TheArticleId }).Single(c => c.Id == 2);
+
+/*mysql：
+SELECT `t`.`Id`, `t`.`TheArticleId`
+FROM `T_Comments` AS `t`
+WHERE `t`.`Id` = 2
+LIMIT 2
+*/
+```
+
+除非有必要，否则不用声明，因为会引入重复。
+
+### 单向导航属性
+
+导航属性：由这个属性可以访问到另一个实体，这种属性叫导航属性。
+
+Article 中的 Comments 属性是一个导航属性，Comment 中的 TheArticle 是一个导航属性。
+
+**双向导航：**Article 中的 Comments 指向 Comment 类，Comment 类中的 TheArticle 指向 Article 类，这就是双向导航。
+
+**单向导航：**A 指向 B，B 不指向 A。
+
+创建两个实体类：
+
+```c#
+// User.cs
+public class User
+{
+    public long Id { get; set; }
+    public string Name { get; set; }
+}
+
+// Leave.cs
+// 请假条
+public class Leave
+{
+    public long Id { get; set; }
+    public User Requester { get; set; }  // 申请人
+    public User Approver { get; set; }  // 审批人
+    public string Remarks { get; set; }  // 备注
+}
+```
+
+配置方法：不设置反向的属性，然后配置的时候 WithMany() 不设置参数即可。
+
+```c#
+// UserConfig.cs
+internal class UserConfig : IEntityTypeConfiguration<User>
+{
+    public void Configure(EntityTypeBuilder<User> builder)
+    {
+        builder.ToTable("T_Users");
+    }
+}
+
+// LeaveConfig.cs
+internal class LeaveConfig : IEntityTypeConfiguration<Leave>
+{
+    public void Configure(EntityTypeBuilder<Leave> builder)
+    {
+        builder.ToTable("T_Leaves");
+        builder.HasOne<User>(l => l.Requester).WithMany().IsRequired();
+        builder.HasOne<User>(l => l.Approver).WithMany();
+    }
+}
+```
+
+查询一下，查看生成的SQL语句：
+
+```c#
+var l = dc.Leaves.FirstOrDefault();
+```
+
+```mysql
+SELECT `t`.`Id`, `t`.`ApproverId`, `t`.`Remarks`, `t`.`RequesterId`
+FROM `T_Leaves` AS `t`
+LIMIT 1
+```
+
+插入数据：
+
+```c#
+User u1 = new User { Name = "张总" };
+User u2 = new User { Name = "李四" };
+Leave l1 = new Leave { Requester = u2, Remarks = "回家" ,Approver = u1};
+dc.Leaves.Add(l1);
+dc.SaveChanges();
+```
+
+注意：这里插入的时候，Requester 和 Approver 都必须要赋值，如果不赋值的话，MySQL 会报错，因为外键约束。
+
+对于主从结构的“一对多”表关系，一般是声明双向导航属性。
+
+而对于其他的“一对多”表关系：如果表属于被很多表引用的基础表，则用单项导航属性，否则可以自由决定是否用双向导航属性。
+
+### 关系配置在任何一方都可以
+
+如果是双向导航属性，配置在哪一边都可以。
+
+```c#
+// CommentConfig：
+builder.HasOne<Article>(c=>c.Article).WithMany(a => a.Comments).IsRequired();
+					↓
+// ArticleConfig：
+builder.HasMany<Comment>(a => a.Comments).WithOne(c => c.Article).IsRequired();
+```
+
+### 自引用的组织结构树
+
+#### 方法一
+
+绑定父和子的关系，只用往数据库中添加根节点即可。
+
+```c#
+// Program.cs:
+using Microsoft.EntityFrameworkCore;
+
+namespace OneToManyTree
+{
+	internal class Program
+	{
+		static void Main(string[] args)
+		{
+			OrgUnit ouRoot = new OrgUnit { Name = "张三集团全球总部 " };
+			
+			OrgUnit ouAsia = new OrgUnit { Name = "张三集团亚太区总部" };
+			ouAsia.Parent = ouRoot;
+			ouRoot.Children.Add(ouAsia);
+
+			OrgUnit ouAmerica = new OrgUnit { Name = "张三集团美州总部" };
+			ouAmerica.Parent = ouRoot;
+			ouRoot.Children.Add(ouAmerica);
+
+			OrgUnit ouUSA = new OrgUnit { Name = "张三集团（美国）" };
+			ouUSA.Parent = ouAmerica;
+			ouAmerica.Children.Add(ouUSA);
+
+
+			OrgUnit ouCan = new OrgUnit { Name = "张三集团（加拿大）" };
+			ouCan.Parent = ouAmerica;
+			ouAmerica.Children.Add(ouCan);
+
+
+			OrgUnit ouChina = new OrgUnit { Name = "张三集团（中国）" };
+			ouChina.Parent = ouAsia;
+			ouAsia.Children.Add(ouChina);
+
+			OrgUnit ouSg = new OrgUnit { Name = "张三集团（新加坡）" };
+			ouSg.Parent = ouAsia;
+			ouAsia.Children.Add(ouSg);
+
+			using (MyDbContext dc = new MyDbContext())
+			{
+				dc.OrgUnits.Add(ouRoot);
+				dc.SaveChanges();
+			}
+		}
+	}
+}
+
+// MyContext.cs
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OneToManyTree
+{
+	internal class MyDbContext : DbContext
+	{
+		public DbSet<OrgUnit> OrgUnits { get; set; }
+
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+		{
+			base.OnConfiguring(optionsBuilder);
+			optionsBuilder.UseMySql("Server=localhost;Port=3306;Database=efcoretest2;Uid=root;Pwd=123;",
+				new MySqlServerVersion(new Version("8.0.30")));
+
+			optionsBuilder.LogTo(msg =>
+			{
+				if (!msg.Contains("CommandExecuting")) return;
+				Console.WriteLine(msg);
+			});
+		}
+
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
+		{
+			base.OnModelCreating(modelBuilder);
+			// 从指定的程序集里面加载所有的IEntityTypeConfiguration
+			modelBuilder.ApplyConfigurationsFromAssembly(this.GetType().Assembly);
+		}
+	}
+}
+
+// OrgUnit.cs
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OneToManyTree
+{
+	internal class OrgUnitConfig : IEntityTypeConfiguration<OrgUnit>
+	{
+		public void Configure(EntityTypeBuilder<OrgUnit> builder)
+		{
+			builder.ToTable("T_OrgUnits");
+			builder.Property(o => o.Name).IsRequired().IsUnicode().HasMaxLength(100);
+			builder.HasOne<OrgUnit>(u => u.Parent).WithMany(p => p.Children);  // 根节点没有parent，所以这个不能修饰为非空的。
+
+		}
+	}
+}
+
+// OrgUnit.cs
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OneToManyTree
+{
+	public class OrgUnit
+	{
+		public long Id { get; set; }
+		public string Name { get; set; }
+		public OrgUnit Parent { get; set; }
+		public List<OrgUnit> Children { get; set; } = new List<OrgUnit>();
+	}
+
+}
+```
+
+以上代码会报错，因为 MySQL 的外键约束，这种写法默认的外键是 ParentId，但是根节点可以没有parentId，而MySQL不允许。所以要解决这个问题，就需要现在数据库中添加一条数据，然后用这条数据的ID来作为根节点的ID即可。
+
+先手动添加一个外键：
+
+```c#
+// OrgUnit.cs
+public class OrgUnit
+{
+    public long Id { get; set; }
+    public string Name { get; set; }
+    public long ParentId { get; set; }
+    public OrgUnit Parent { get; set; }
+    public List<OrgUnit> Children { get; set; } = new List<OrgUnit>();
+}
+
+// OrgUnitConfig.cs
+public void Configure(EntityTypeBuilder<OrgUnit> builder)
+{
+    builder.ToTable("T_OrgUnits");
+    builder.Property(o => o.Name).IsRequired().IsUnicode().HasMaxLength(100);
+    builder.HasOne<OrgUnit>(u => u.Parent).WithMany(p => p.Children)
+        .HasForeignKey(o => o.ParentId);   // 使用ParentId作为外键  
+}
+```
+
+然后在数据库中添加一条数据，将这条数据的 Id 值给根节点的 ParentId 即可：
+
+```c#
+static void Main(string[] args)
+{
+    // 将数据库中已有的数据的id给根节点的ParentId
+    OrgUnit ouRoot = new OrgUnit { Name = "张三集团全球总部 ", ParentId = 1 };
+
+    OrgUnit ouAsia = new OrgUnit { Name = "张三集团亚太区总部" };
+    ouAsia.Parent = ouRoot;
+    ouRoot.Children.Add(ouAsia);
+
+    OrgUnit ouAmerica = new OrgUnit { Name = "张三集团美州总部" };
+    ouAmerica.Parent = ouRoot;
+    ouRoot.Children.Add(ouAmerica);
+
+    OrgUnit ouUSA = new OrgUnit { Name = "张三集团（美国）" };
+    ouUSA.Parent = ouAmerica;
+    ouAmerica.Children.Add(ouUSA);
+
+
+    OrgUnit ouCan = new OrgUnit { Name = "张三集团（加拿大）" };
+    ouCan.Parent = ouAmerica;
+    ouAmerica.Children.Add(ouCan);
+
+
+    OrgUnit ouChina = new OrgUnit { Name = "张三集团（中国）" };
+    ouChina.Parent = ouAsia;
+    ouAsia.Children.Add(ouChina);
+
+    OrgUnit ouSg = new OrgUnit { Name = "张三集团（新加坡）" };
+    ouSg.Parent = ouAsia;
+    ouAsia.Children.Add(ouSg);
+
+    using (MyDbContext dc = new MyDbContext())
+    {
+        dc.OrgUnits.Add(ouRoot);  // 只需要添加根节点
+        dc.SaveChanges();
+    }
+}
+```
+
+#### 方法二
+
+只绑定每个节点的父亲关系，然后将所有节点都加入数据库中。
+
+```c#
+static void Main(string[] args)
+{
+    OrgUnit ouRoot = new OrgUnit { Name = "张三集团全球总部 ", ParentId = 1 };
+
+    OrgUnit ouAsia = new OrgUnit { Name = "张三集团亚太区总部" };
+    ouAsia.Parent = ouRoot;
+
+    OrgUnit ouAmerica = new OrgUnit { Name = "张三集团美州总部" };
+    ouAmerica.Parent = ouRoot;
+
+    OrgUnit ouUSA = new OrgUnit { Name = "张三集团（美国）" };
+    ouUSA.Parent = ouAmerica;
+
+    OrgUnit ouCan = new OrgUnit { Name = "张三集团（加拿大）" };
+    ouCan.Parent = ouAmerica;
+
+    OrgUnit ouChina = new OrgUnit { Name = "张三集团（中国）" };
+    ouChina.Parent = ouAsia;
+
+    OrgUnit ouSg = new OrgUnit { Name = "张三集团（新加坡）" };
+    ouSg.Parent = ouAsia;
+
+    using (MyDbContext dc = new MyDbContext())
+    {
+        dc.OrgUnits.Add(ouRoot);
+        dc.OrgUnits.Add(ouAsia);
+        dc.OrgUnits.Add(ouAmerica);
+        dc.OrgUnits.Add(ouCan);
+        dc.OrgUnits.Add(ouChina);
+        dc.OrgUnits.Add(ouSg);
+        dc.SaveChanges();
+    }
+}
+```
+
+#### 递归缩进打印
+
+输出以下图形：
+
+![image-20231105155942714](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311051559813.png)
+
+```c#
+using(MyDbContext dc = new MyDbContext())
+
+    // 数据库中的 Id 为 1 的数据不是根节点，根节点是以 1 为 ParentId 的节点
+    var root = dc.OrgUnits.Single(o => o.ParentId == 1 && o.Id != 1);
+    Console.WriteLine(root.Name);
+    PrintChildren(1, dc, root);
+}
+
+static void PrintChildren(int level, MyDbContext dc, OrgUnit root)
+{
+    var chilren = dc.OrgUnits.Where(o => o.ParentId == root.Id);
+    foreach (var cur in chilren)
+    {
+        Console.WriteLine(new string('\t', level) + cur.Name);
+        PrintChildren(level + 1,new MyDbContext(), cur);
+        // 下面这样写的话会抛异常：
+        // Unhandled exception.System.InvalidOperationException: This MySqlConnection is already in use.
+        // PrintChildren(level + 1,dc, cur);
+    }
+}
+```
+
+`new  string(字符, 个数)`：这种构造方法产生的字符串是：指定次数的字符。比如
+
++ `new string('a', 3)`：aaa
+
+## 一对一关系
+
+必须显式的在其中一个实体类中声明一个外键属性。
+
+**实体类：**一个订单 Order 对应着一个快递单 Delivery。
+
+```c#
+// Order.cs
+class Order
+{
+    public long Id { get; set; }
+    public string Name { get; set; }
+    public Delivery Delivery { get; set; }
+}
+// Delivery.cs
+class Delivery
+{
+    public long Id { get; set; }
+    public string CompanyName { get; set; }
+    public String Number { get; set; }  // 订单号
+    public Order Order { get; set; }
+    public long OrderId { get; set; }  // 外键
+}
+```
+
+**配置类：**
+
+```c#
+//DeliveryConfig
+internal class DeliveryConfig : IEntityTypeConfiguration<Delivery>
+{
+    public void Configure(EntityTypeBuilder<Delivery> builder)
+    {
+        builder.ToTable("T_Delivery");
+    }
+}
+// OrderConfig
+internal class OrderConfig : IEntityTypeConfiguration<Order>
+{
+    public void Configure(EntityTypeBuilder<Order> builder)
+    {
+        builder.ToTable("T_Order");
+        // 配置一对一关系，设置外键
+        builder.HasOne<Delivery>(o => o.Delivery).WithOne(d => d.Order)
+            .HasForeignKey<Delivery>(d => d.OrderId);
+    }
+}
+```
+
+插入数据：
+
+```c#
+static async Task Main(string[] args)
+{
+    using(MyDbContext dc = new MyDbContext())
+    {
+        Order o1 = new Order();
+        o1.Name = "书";
+        Delivery d1 = new Delivery();
+        d1.CompanyName = "时髦快递";
+        d1.Number = "sm1001";
+        d1.Order = o1;
+        // 不需要给外键OrderId赋值
+
+        // 插入 d1 会自动插入 o1
+        // 但插入 o1 不会自动插入 d1
+        // 可能是因为 Deliveries 上有 Orders 的外键
+        dc.Deliveries.Add(d1);
+        await dc.SaveChangesAsync();
+    }
+}
+```
+
+## 多对多关系
+
+EF Core 5.0 开始，才正式支持多对多关系。
+
+需要中间表。
+
+**实体类：**每个学生 Student 可以对应多个老师 Teacher，每个老师也可以对应多个学生。
+
+```c#
+// Student.cs
+class Student
+{
+	public long Id { get; set; }
+	public string Name { get; set; }
+	public List<Teacher> Teachers { get; set; } = new List<Teacher>();
+}
+
+// Teacher.cs
+class Teacher
+{
+	public long Id { get; set; }
+	public string Name { get; set; }
+	public List<Student> Students { get; set; } = new List<Student>();
+}	
+```
+
+**配置类：**
+
+```c#
+// StudentConfig
+internal class StudentConfig : IEntityTypeConfiguration<Student>
+{
+    public void Configure(EntityTypeBuilder<Student> builder)
+    {
+        builder.ToTable("T_Students");
+        builder.HasMany<Teacher>(s => s.Teachers).WithMany(t => t.Students)
+            .UsingEntity(j => j.ToTable("T_StudentsTeachers"));  // 多对多关系配置
+    }
+}
+// TeacherConfig
+internal class TeacherConfig : IEntityTypeConfiguration<Teacher>
+{
+    public void Configure(EntityTypeBuilder<Teacher> builder)
+    {
+        builder.ToTable("T_Teachers");
+    }
+}
+```
+
+插入数据：
+
+```c#
+static void Main(string[] args)
+{
+    using(MyDbContext dc = new MyDbContext())
+    {
+        Student s1 = new Student { Name = "张三" };
+        Student s2 = new Student { Name = "李四" };
+        Student s3 = new Student { Name = "王五" };
+
+        Teacher t1 = new Teacher { Name = "Tom" };
+        Teacher t2 = new Teacher { Name = "Jack" };
+        Teacher t3 = new Teacher { Name = "Mike" };
+
+        s1.Teachers.Add(t1);
+        s1.Teachers.Add(t2);
+
+        s2.Teachers.Add(t2);
+        s2.Teachers.Add(t3);
+
+        s3.Teachers.Add(t1);
+        s3.Teachers.Add(t2);
+        s3.Teachers.Add(t3);
+
+        dc.Students.Add(s1);
+        dc.Students.Add(s2);
+        dc.Students.Add(s3);
+
+        dc.Teachers.Add(t1);
+        dc.Teachers.Add(t2);
+        dc.Teachers.Add(t3);
+
+        dc.SaveChanges();
+    }
+}
+```
+
+查询数据：
+
+```c#
+var ts = dc.Teachers.Include(t => t.Students);
+foreach (var t in ts)
+{
+    Console.WriteLine(t.Name);
+    foreach (var s in t.Students)
+    {
+        Console.WriteLine("\t" + s.Name);
+    }
+}
+```
+
+## 基于关系的复杂查询
+
+查询评论中含有“微软”的所有的文章：
+
+```C#
+var articles = dc.Articles.Where(a => a.Comments.Any(c => c.Message.Contains("微软"))).Distinct();
+```
+
+`.Distinct()` 是去重的，防止一个文章的评论区有多个包含 “微软” 的评论。
+
+生成的SQL语句：
+
+```mysql
+SELECT DISTINCT `t`.`Id`, `t`.`Message`, `t`.`Title`
+FROM `T_Articles` AS `t`
+WHERE EXISTS (
+  SELECT 1
+  FROM `T_Comments` AS `t0`
+  WHERE (`t`.`Id` = `t0`.`TheArticleId`) AND (`t0`.`Message` LIKE '%微软%'))
+```
+
+换一种写法：
+
+```c#
+var articles = dc.Comments.Where(c => c.Message.Contains("微软")).Select(c => c.TheArticle).Distinct();
+```
+
+生成的SQL语句：
+
+```mysql
+SELECT DISTINCT `t0`.`Id`, `t0`.`Message`, `t0`.`Title`
+FROM `T_Comments` AS `t`
+INNER JOIN `T_Articles` AS `t0` ON `t`.`TheArticleId` = `t0`.`Id`
+WHERE `t`.`Message` LIKE '%微软%'
+```
+
+查询“所有由蜗牛快递负责的订单信息”
+
+```c#
+dc.Orders.Where(o=>o.Delivery.CompanyName== "蜗牛快递");
+```
+
+## 有了IEnumerable还要IQueryable干什么
+
+对普通集合和DbSet调用的Where方法，虽然用起来一样，但是“转到定义”后看到的是不同的方法。
+
++ 普通集合：是 Enumerable 的方法，返回的也是个 IEnumerable
++ DbSet：是 Queryable 的方法，返回的也是个 IQueryable
+
+**差别**：普通集合的版本(IEnumerable)是在内存中过滤（客户端评估），而IQueryable版本则是把查询操作翻译成SQL语句（服务器端评估）。
+
+**比较：**
+
+IQueryable：
+
+```c#
+IQueryable<Comment> cm = dc.Comments.Where(c => c.Message.Contains("微软"));
+
+/*
+生成的SQL代码：
+SELECT `t`.`Id`, `t`.`Message`, `t`.`TheArticleId`
+FROM `T_Comments` AS `t`
+WHERE `t`.`Message` LIKE '%微软%'
+*/
+```
+
+IEnumerable：
+
+在所有数据的取出来了，然后在内存中进行一条条比较
+
+```c#
+IEnumerable<Comment> comments = dc.Comments;
+IEnumerable<Comment> cm = comments.Where(c => c.Message.Contains("微软"));
+
+/*
+SELECT `t`.`Id`, `t`.`Message`, `t`.`TheArticleId`
+FROM `T_Comments` AS `t`
+*/
+```
+
+## 客户端评估有时候也很可爱
+
+需求：取出评论的前两个字。
+
+服务器端评估：
+
+```c#
+var r = dc.Comments.Select(c => c.Message.Substring(0, 2) + "...");
+/*
+SQL:
+SELECT CONCAT(COALESCE(SUBSTRING(`t`.`Message`, 0 + 1, 2), ''), '...')
+FROM `T_Comments` AS `t`
+```
+
+客户端评估：
+
+```c#
+var r = ((IEnumerable<Comment>)(dc.Comments)).Select(c => c.Message.Substring(0, 2) + "...");
+/*
+SELECT `t`.`Id`, `t`.`Message`, `t`.`TheArticleId`
+FROM `T_Comments` AS `t`
+```
+
+## IQueryable的延迟执行
+
+正常情况下，我们执行以下代码可以在控制台看到生成的 SQL 语句：
+
+```c#
+IQueryable<Article> ats = dc.Articles.Where(a => a.Title.Contains("微软"));
+foreach (var item in ats)
+{
+    Console.WriteLine(item.Title);
+}
+
+/*
+SELECT `t`.`Id`, `t`.`Message`, `t`.`Title`
+FROM `T_Articles` AS `t`
+WHERE `t`.`Title` LIKE '%微软%'
+```
+
+但是如果不要下面这个 foreach 循环，就看不到生成的 SQL 语句：
+
+```C#
+IQueryable<Article> ats = dc.Articles.Where(a => a.Title.Contains("微软"));
+//foreach (var item in ats)
+//{
+//    Console.WriteLine(item.Title);
+//}
+```
+
+使用输出语句，查看执行顺序：
+
+```c#
+Console.WriteLine("准备 Where");
+IQueryable<Article> ats = dc.Articles.Where(a => a.Title.Contains("微软"));
+Console.WriteLine("准备 foreach");
+foreach (var item in ats)
+{
+    Console.WriteLine(item.Title);
+}
+Console.WriteLine("结束 foreach");
+```
+
+输出结果是：
+
+```
+准备 Where
+准备 foreach
+dbug: 2023/11/5 19:03:59.457 RelationalEventId.CommandExecuting[20100] (Microsoft.EntityFrameworkCore.Database.Command)
+      Executing DbCommand [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`Id`, `t`.`Message`, `t`.`Title`
+      FROM `T_Articles` AS `t`
+      WHERE `t`.`Title` LIKE '%微软%'
+微软发布一首歌曲
+微软倒闭了
+结束 foreach
+```
+
+这说明只有遍历 IQueryable 的时候才会执行 Select 操作。
+
+IQueryable 只是代表一个“可以放到数据库服务器去执行的查询”，它没有立即执行，只是“可以被执行”而已。
+
+对于 IQueryable 接口调用非终结方法的时候不会执行查询，而调用终结方法的时候则会立即执行查询。
+
++ 终结方法：遍历、ToArray()、ToList()、Min()、Max()、Count()等；
++ 非终结方法：GroupBy()、OrderBy()、Include()、Skip()、Take()等。
+
+一个方法的返回值类型如果是 IQueryable 类型，那么这个方法一般就是非终结方法，否则就是终结方法。
+
+**为什么延迟执行**：可以在实际执行之前，分步构建IQueryable。
+
+比如，查看以下语句生成的SQL：
+
+```c#
+IQueryable<Article> articles = dc.Articles.Where(a => a.Id > 1);
+IQueryable<Article> articles1 = articles.Skip(2);
+IQueryable<Article> articles2 = articles1.Take(3);
+IQueryable<Article> articles3 = articles2.Where(a => a.Title.Contains("微软"));
+articles3.ToArray();
+
+/*
+SELECT `t0`.`Id`, `t0`.`Message`, `t0`.`Title`
+FROM (
+  SELECT `t`.`Id`, `t`.`Message`, `t`.`Title`
+  FROM `T_Articles` AS `t`
+  WHERE `t`.`Id` > 1
+  LIMIT @__p_1 OFFSET @__p_0
+) AS `t0`
+WHERE `t0`.`Title` LIKE '%微软%'
+```
+
+这样可以在实际执行（ToArray()）之前，分布构建SQL语句。
+
+比如：定义一个方法根据给定的关键字 searchWords 来查询匹配的书；如果 searchAll 参数是 true，则书名或者作者名中含有给定的 searchWords 都匹配，否则只匹配书名；如果 orderByPrice 参数为 true，则按照价格排序，否则就自然排序；upperPrice 参数代表价格上限。
+
+```c#
+void QueryBooks(string searchWords, bool searchAll, bool orderByPrice,double upperPrice)
+```
+
+**结论：**
+
+1、IQueryable代表一个对数据库中数据进行查询的一个逻辑，这个查询是一个延迟查询。我们可以调用非终结方法向IQueryable中添加查询逻辑，当执行终结方法的时候才真正生成SQL语句来执行查询。
+
+2、可以实现以前要靠SQL拼接实现的动态查询逻辑。
+
+## IQueryable的复用
+
+IQueryable是一个待查询的逻辑，因此它是可以被重复使用的。
+
+## 分页查询
+
+**实现：**
+
++ 使用 Skip() 和 Take() 。最好显式的指定排序规则。
+
++ 需要知道满足条件的数据的总条数：用 IQueryable 的复用，LongCount()
+
+  Count返回的是一个 int 型值，LongCount 返回的是一个 long 型值，都是数据条数
+
++ 页数计算：`long pageCount = (long)Math.Ceiling(count * 1.0 / pageSize);`
+
+比如：
+
+```c#
+/// <summary>
+/// 打印某一页的数据及总页数
+/// </summary>
+/// <param name="pageIndex">页码，从1开始</param>
+/// <param name="pageSize">每一页的数据条数</param>
+static void PrintPage(int pageIndex, int pageSize)
+{
+    using(MyDbContext dc = new MyDbContext())
+    {
+        IQueryable<Article> arts = dc.Articles.Where(a => a.Id >= 1);
+        var items = arts.Skip((pageIndex - 1) * pageSize).Take(pageSize);
+        foreach (var item in items)
+        {
+            Console.WriteLine(item.Title);
+        }
+        long count = arts.LongCount();
+        long pageCount = (long)Math.Ceiling(count * 1.0 / pageSize);
+        Console.WriteLine("总页数：" + pageCount);
+    }
+}
+```
+
+这里的 IQueryable 复用体现在：先 Where，再 Skip、Take，然后 LongCount。
+
+## IQueryable底层是如何读取数据的
+
+**对比：**（ADO.NET 中的两种方式）
+
++ DataReader：分批从数据库服务器读取数据。内存占用小、 DB连接占用时间长；
+  + 优点：节省客户端内存。
+  + 缺点：如果处理的慢，会长时间占用连接。
++ DataTable：把所有数据都一次性从数据库服务器都加载到客户端内存中。内存占用大，节省DB连接。
+
+IQueryable内部就是在调用DataTable。
+
+**验证IQueryable用什么方式：**
+
+用insert into select多插入一些数据：
+
+```mysql
+INSERT into t_articles (Title, Message)
+SELECT Title, Message from t_articles
+```
+
+这可以每次都插入一遍 t_articles 中所有的数据。
+
+然后加上Delay/Sleep的遍历IQueryable：
+
+```C#
+foreach(var a in dc.Articles)
+{
+    Console.WriteLine(a.Title);
+    Thread.Sleep(10);
+}
+```
+
+在遍历执行的过程中，停止MySQL服务器。
+
+但是程序还在运行，说明是像DataTable一样将数据一次性从数据库加载到客户端内存中。
+
+何时需要一次性加载？
+
++ 遍历IQueryable并且进行数据处理的过程很耗时。
++ 如果方法需要返回查询结果，并且在方法里销毁DbContext的话，是不能返回IQueryable的。必须一次性加载返回。
++ 多个IQueryable的遍历嵌套。很多数据库的ADO.NET Core Provider是不支持多个DataReader同时执行的。把连接字符串（SQLServer）中的MultipleActiveResultSets=true删掉，其他数据库不支持这个。
+
+## 异步方法
+
+异步方法大部分是定义在 `Microsoft.EntityFrameworkCore` 这个命名空间下 `EntityFrameworkQueryableExtensions` 等类中的扩展方法，记得 `using`。
+
+SaveChangesAsync()、AddAsync()、AddRangeAsync()、AllAsync()、AnyAsync、AverageAsync、ContainsAsync、CountAsync、FirstAsync、FirstOrDefaultAsync、ForEachAsync、LongCountAsync、MaxAsync、MinAsync、SingleAsync、SingleOrDefaultAsync、SumAsync等。
+
+调用异步方法需要使用 `await` 调用，那么使用了 `await` 就要在方法声明上添加 `async` ，并将返回值类型变为 `Task`。
+
+**有的方法没有异步方法：**
+
+IQueryable的这些异步的扩展方法都是“立即执行”方法，而GroupBy、OrderBy、Join、Where等“非立即执行”方法则没有对应的异步方法。
+
+为什么？因为异步方法常用于那些耗 IO 的操作，而“非立即执行”方法并没有实际执行SQL语句，并不是消耗IO的操作。
+
+**如何异步遍历IQueryable：**
+
++ `ToListAsync()`、`ToArrayAsync()`。结果集不要太大。
++ `wait foreach (var a in dc.Articles.AsAsyncEnumerable())`
+
+## EF Core执行非查询原生SQL语句
+
+尽管EF Core已经非常强大，但是仍然存在着无法被写成标准EF Core调用方法的SQL语句，少数情况下仍然需要写原生SQL。且有时候可能无法跨数据库。
+
+三种情况：非查询语句、实体查询、任意SQL查询。
+
+### 执行非查询SQL语句
+
+使用：`dc.Database.ExecuteSqlInterpolated("");`
+
+```c#
+int min = 1;
+dc.Database.ExecuteSqlInterpolated(@$"
+    INSERT into t_articles (Title, Message)
+    SELECT Title, Message 
+    From t_articles
+    Where id >= {min}
+");
+```
+
++ 在字符串前使用 `@` 可以换行表示一个字符串，使用 `$` 可以使用插值语法。
+
+直接执行 SQL 语句都不需要进行 SaveChanges 操作。
+
+**使用插值语法是否有SQL注入漏洞风险？**
+
+以上代码生成的SQL语句是：
+
+```mysql
+INSERT into t_articles (Title, Message)
+SELECT Title, Message
+From t_articles
+Where id >= @p0
+```
+
+说明使用插值语法的部分会被占位符替代，而不是简单的字符串拼接，所以不会有SQL注入风险。
+
+字符串内插如果赋值给 string 变量，就是字符串拼接；字符串内插如果赋值给 FormattableString 变量，编译器就会构造 FormattableString 对象。
+
+ExecuteSqlInterpolatedAsync() 的参数是 FormattableString 类型。因此 ExecuteSqlInterpolatedAsync 会进行参数化SQL的处理。
+
+```c#
+FormattableString sql = @$"
+    INSERT into t_articles (Title, Message)
+    SELECT Title, Message 
+    From t_articles
+    Where id >= {min}
+";
+
+Console.WriteLine("Format: " + sql.Format);
+Console.WriteLine("参数：" + string.Join(",", sql.GetArguments()));
+// sql.GetArguments() 返回的是数组，使用 Join 连接起来好看点
+```
+
+输出结果：
+
+```shell
+Format:
+    INSERT into t_articles (Title, Message)
+    SELECT Title, Message
+    From t_articles
+    Where id >= {0}
+
+参数：1
+```
+
+这个 `{0}` 就是占位符。
+
+**ExecuteSqlRaw**
+
+除了 ExecuteSqlInterpolated ()、ExecuteSqlInterpolatedAsync() ，还有 ExecuteSqlRaw()、ExecuteSqlRawAsync() 也可以执行原生SQL语句，但需要开发人员自己处理查询参数等了，因此不推荐使用。
+
+### 执行实体相关查询原生SQL语句
+
+如果要执行的原生SQL是一个查询语句，并且查询的结果也能对应一个实体，就可以调用对应实体的 DbSet 的 `FromSqlInterpolated() `方法来执行一个查询SQL语句，同样使用字符串内插来传递参数。
+
+```c#
+string titlePattern = "%微软%";
+var arts = dc.Articles.FromSqlInterpolated(@$"
+    select * from T_Articles 
+    where Title like {titlePattern}
+    order by id");
+foreach (var item in arts)
+{
+    Console.WriteLine(item.Title);
+}
+```
+
+`FromSqlInterpolated()` 方法的返回值是 IQueryable 类型的，因此我们可以在实际执行 IQueryable 之前，对 IQueryable 进行进一步的处理。
+
+```c#
+string titlePattern = "%微软%";
+var arts = dc.Articles.FromSqlInterpolated(@$"
+    select * from T_Articles 
+    where Title like {titlePattern}
+    order by id");
+foreach (var item in arts.Skip(2).Take(2))
+{
+    Console.WriteLine(item.Title);
+}
+```
+
+以上代码会在SQLServer中报错，因为SQLServer中不允许子查询中有排序语句，但是在MySQL中不会报错，生成的SQL代码是这样的：
+
+```mysql
+SELECT `o`.`Id`, `o`.`Message`, `o`.`Title`
+FROM (
+        select * from T_Articles
+        where Title like @p0
+        order by id
+) AS `o`
+LIMIT @__p_1 OFFSET @__p_1
+```
+
+**局限性：**
+
++ SQL 查询必须返回实体类型对应数据库表的所有列；
++ 结果集中的列名必须与属性映射到的列名称匹配。
++ 只能单表查询，不能使用Join语句进行关联查询。但是可以在查询后面使用Include()来进行关联数据的获取。
+
+### 执行任意原生SQL查询语句
+
+`FromSqlInterpolated()` 只能单表查询，但是在实现报表查询等的时候，SQL语句通常是非常复杂的，不仅要多表Join，而且返回的查询结果一般也都不会和一个实体类完整对应。因此需要一种执行任意SQL查询语句的机制。
+
+EF Core中允许把视图或存储过程映射为实体，因此可以把复杂的查询语句写成视图或存储过程，然后再声明对应的实体类，并且在DbContext中配置对应的DbSet。
+
+不推荐写存储过程；项目复杂查询很多，导致：视图太多；非实体的DbSet；DbSet膨胀。
+
+**执行任意SQL:**
+
+`dc.Database.GetDbConnection()` 获得ADO.NET Core的数据库连接对象。
+
+```c#
+DbConnection conn = dc.Database.GetDbConnection();
+if (conn.State != System.Data.ConnectionState.Open)  // 判断当前连接是否打开了
+    await conn.OpenAsync();
+// conn 对象不需要手动释放
+using (var cmd = conn.CreateCommand())
+{
+    cmd.CommandText = "select Price,Count(*) from T_Articles group by Price";
+    using(var reader = await cmd.ExecuteReaderAsync())
+    {
+        while (await reader.ReadAsync())
+        {
+            double price = reader.GetDouble(0);
+            int count = reader.GetInt32(1);
+            await Console.Out.WriteLineAsync($"{price}元的有{count}个");
+        }
+    }
+}
+```
+
+这种方式跳过了 EF Core ，所以控制台不会输出EF Core生成的SQL语句。
