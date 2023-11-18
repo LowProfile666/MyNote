@@ -130,7 +130,7 @@ MySQL的端口号是 3306，web服务器的通用端口号是 80，文件下载的端口是 21，Oracle 端
 	第六步：初始化数据
 		mysql> source D:\course\05-MySQL\resources\bjpowernode.sql
 	
-	注意：数据初始化完成之后，有三张表：
+	注意：数据初始化完成之后，有三张表： 
 	+-----------------------+
 	| Tables_in_bjpowernode |
 	+-----------------------+
