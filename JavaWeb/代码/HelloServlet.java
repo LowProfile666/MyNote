@@ -1,4 +1,4 @@
-package com.bjpowernode.servlet;
+package com.zsm.servlet;
 
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletException;
@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 
 public class HelloServlet implements Servlet{
 
-	// 5¸ö·½·¨
+	// 5ä¸ªæ–¹æ³•
 	public void init(ServletConfig config) throws ServletException{
 	
 	}
@@ -19,28 +19,29 @@ public class HelloServlet implements Servlet{
 	public void service(ServletRequest request,ServletResponse response)
 		throws ServletException , IOException{
 
-		// Ïò¿ØÖÆÌ¨´òÓ¡Êä³ö
+		// å‘æ§åˆ¶å°æ‰“å°è¾“å‡º
 		System.out.println("My First Servlet, Hello Servlet");
 
-		// ÉèÖÃÏìÓ¦µÄÄÚÈİÀàĞÍÊÇÆÕÍ¨ÎÄ±¾»òhtml´úÂë
-		// ĞèÒªÔÚ»ñÈ¡Á÷¶ÔÏóÖ®Ç°ÉèÖÃ£¬ÓĞĞ§¡£
+		// è®¾ç½®å“åº”çš„å†…å®¹ç±»å‹æ˜¯æ™®é€šæ–‡æœ¬æˆ–htmlä»£ç 
+		// éœ€è¦åœ¨è·å–æµå¯¹è±¡ä¹‹å‰è®¾ç½®ï¼Œæœ‰æ•ˆã€‚
+		// å¦‚æœä¸­æ–‡ä¹±ç ï¼Œå¯ä»¥åœ¨åé¢åŠ ä¸Šä¸€å¥ï¼š"text/html;charset=UTF-8"
 		response.setContentType("text/html");
 
-		// ÔõÃ´½«Ò»¸öĞÅÏ¢Ö±½ÓÊä³öµ½ä¯ÀÀÆ÷ÉÏ£¿
-		// ĞèÒªÊ¹ÓÃServletResponse½Ó¿Ú£ºresponse
-		// response±íÊ¾ÏìÓ¦£º´Ó·şÎñÆ÷Ïòä¯ÀÀÆ÷·¢ËÍÊı¾İ½Ğ×öÏìÓ¦¡£
+		// æ€ä¹ˆå°†ä¸€ä¸ªä¿¡æ¯ç›´æ¥è¾“å‡ºåˆ°æµè§ˆå™¨ä¸Šï¼Ÿ
+		// éœ€è¦ä½¿ç”¨ServletResponseæ¥å£ï¼šresponse
+		// responseè¡¨ç¤ºå“åº”ï¼šä»æœåŠ¡å™¨å‘æµè§ˆå™¨å‘é€æ•°æ®å«åšå“åº”ã€‚
 		PrintWriter out = response.getWriter();
 		
-		// ÉèÖÃÏìÓ¦µÄÄÚÈİÀàĞÍÊ±²»ÒªÔÚ»ñÈ¡Á÷Ö®ºóÉèÖÃ¡£
+		// è®¾ç½®å“åº”çš„å†…å®¹ç±»å‹æ—¶ä¸è¦åœ¨è·å–æµä¹‹åè®¾ç½®ã€‚
 		//response.setContentType("text/html");
 
 		out.print("Hello Servlet, You are my first servlet!");
 
-		// ä¯ÀÀÆ÷ÊÇÄÜ¹»Ê¶±ğhtml´úÂëµÄ£¬ÄÇÎÒÃÇÊÇ²»ÊÇÓ¦¸ÃÊä³öÒ»¶ÎHTML´úÂëÄØ£¿
-		out.print("<h1>hello servlet£¬ÄãºÃServlet</h1>");
+		// æµè§ˆå™¨æ˜¯èƒ½å¤Ÿè¯†åˆ«htmlä»£ç çš„ï¼Œé‚£æˆ‘ä»¬æ˜¯ä¸æ˜¯åº”è¯¥è¾“å‡ºä¸€æ®µHTMLä»£ç å‘¢ï¼Ÿ
+		out.print("<h1>hello servletï¼Œä½ å¥½Servlet</h1>");
 
-		// ÕâÊÇÒ»¸öÊä³öÁ÷£¬¸ºÔğÊä³ö×Ö·û´®µ½ä¯ÀÀÆ÷
-		// Õâ¸öÊä³öÁ÷²»ĞèÒªÎÒÃÇË¢ĞÂ£¬Ò²²»ĞèÒªÎÒÃÇ¹Ø±Õ£¬ÕâĞ©¶¼ÓÉTomcatÀ´Î¬»¤¡£
+		// è¿™æ˜¯ä¸€ä¸ªè¾“å‡ºæµï¼Œè´Ÿè´£è¾“å‡ºå­—ç¬¦ä¸²åˆ°æµè§ˆå™¨
+		// è¿™ä¸ªè¾“å‡ºæµä¸éœ€è¦æˆ‘ä»¬åˆ·æ–°ï¼Œä¹Ÿä¸éœ€è¦æˆ‘ä»¬å…³é—­ï¼Œè¿™äº›éƒ½ç”±Tomcatæ¥ç»´æŠ¤ã€‚
 		/*
 		out.flush();
 		out.close();

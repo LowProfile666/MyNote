@@ -295,9 +295,16 @@
   
   - 第七步：编译我们编写的HelloServlet
   
+    - 编译不会通过，因为 jdk 中没有 Jakarta 包
+      ```
+      错误: 程序包jakarta.servlet不存在
+      ```
+  
     - 重点：你怎么能让你的HelloServlet编译通过呢？配置环境变量CLASSPATH
   
-      CLASSPATH=.;C:\dev\apache-tomcat-10.0.12\lib\servlet-api.jar
+      ```
+      CLASSPATH=.;D:\Tomcat\apache-tomcat-11.0.0-M13\lib\servlet-api.jar
+      ```
   
     - 思考问题：以上配置的CLASSPATH和Tomcat服务器运行有没有关系？
   
@@ -324,7 +331,7 @@
       	<servlet>
       		<servlet-name>fdsafdsagfdsafdsa</servlet-name>
       		<!--这个位置必须是带有包名的全限定类名-->
-      		<servlet-class>com.bjpowernode.servlet.HelloServlet</servlet-class>
+      		<servlet-class>com.zsm.servlet.HelloServlet</servlet-class>
       	</servlet>
       
       	<!--servlet映射信息-->
@@ -341,14 +348,12 @@
       
       ```
   
-      
-  
   - 第十步：启动Tomcat服务器
   
   - 第十一步：打开浏览器，在浏览器地址栏上输入一个url，这个URL必须是：
   
-    - http://127.0.0.1:8080/crm/fdsa/fd/saf/d/sa/fd/sa/fd   
-    - 非常重要的一件事：浏览器上的请求路径不能随便写，这个请求路径必须和web.xml文件中的url-pattern一致。
+    - http://127.0.0.1:8080/oa/fdsa/fd/saf/d/sa/fd/sa/fd   
+    - 非常重要的一件事：浏览器上的请求路径不能随便写，这个**请求路径必须和web.xml文件中的url-pattern一致**。
     - 注意：浏览器上的请求路径和web.xml文件中的url-pattern的唯一区别就是：浏览器上的请求路径带项目名：/crm
   
   - 浏览器上编写的路径太复杂，可以使用超链接。（**非常重要：html页面只能放到WEB-INF目录外面。**）
@@ -372,12 +377,12 @@
   
   - 浏览器发送请求，到最终服务器调用Servlet中的方法，是怎样的一个过程？（以下这个过程描述的很粗糙。其中还有很多步骤我省略了。）
   
-    - 用户输入URL，或者直接点击超链接：http://127.0.0.1:8080/crm/fdsa/fd/saf/d/sa/fd/sa/fd  
-    - 然后Tomcat服务器接收到请求，截取路径：/crm/fdsa/fd/saf/d/sa/fd/sa/fd  
-    - Tomcat服务器找到crm项目
-    - Tomcat服务器在web.xml文件中查找/fdsa/fd/saf/d/sa/fd/sa/fd  对应的Servlet是：com.bjpowernode.servlet.HelloServlet
-    - Tomcat服务器通过反射机制，创建com.bjpowernode.servlet.HelloServlet的对象。
-    - Tomcat服务器调用com.bjpowernode.servlet.HelloServlet对象的service方法。
+    - 用户输入URL，或者直接点击超链接：http://127.0.0.1:8080/oa/fdsa/fd/saf/d/sa/fd/sa/fd  
+    - 然后Tomcat服务器接收到请求，截取路径：/oa/fdsa/fd/saf/d/sa/fd/sa/fd  
+    - Tomcat服务器找到oa项目
+    - Tomcat服务器在web.xml文件中查找/fdsa/fd/saf/d/sa/fd/sa/fd  对应的Servlet是：com.zsm.servlet.HelloServlet
+    - Tomcat服务器通过反射机制，创建com.zsm.servlet.HelloServlet的对象。
+    - Tomcat服务器调用com.zsm.servlet.HelloServlet对象的service方法。
 
 ## 关于JavaEE的版本
 
@@ -394,9 +399,13 @@
 
 ## 解决Tomcat服务器在DOS命令窗口中的乱码问题（控制台乱码）
 
-将CATALINA_HOME/conf/logging.properties文件中的内容修改如下：
+将`CATALINA_HOME/conf/logging.properties`文件中的内容修改如下：
 
+```
 java.util.logging.ConsoleHandler.encoding = GBK
+```
+
+因为windows的dos窗口是GBK编码。
 
 ## 向浏览器响应一段HTML代码
 
