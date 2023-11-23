@@ -1257,3 +1257,692 @@ BactchVM 需要指定是哪一个 model，还需要指定一个批量更新的�
 
 ## 十一、数据库
 
+# 审批工作流（Layui）
+
+> WTMPlus目前没有工作流。（2023/11/21）
+>
+> WTM从6.4开始支持工作流，使用Elsa开源工作流作为底层。
+>
+> Elsa工作流是一种自动化工作流程的技术，旨在简化和优化业务流程的执行。以下是关于Elsa工作流的一些详细介绍：
+>
+> - Elsa工作流是一个用户界面，用于设计、创建和管理工作流程。它提供了可视化的方式来定义工作流程，使得定义工作流程变得更加直观和易于理解。
+> - 通过Elsa工作流，您可以规定工作流程的执行顺序、条件和动作，以实现特定的业务逻辑。这意味着您可以根据实际需求来设定工作流的各个环节，以满足您的业务需求。
+> - 工作流程定义（Workflow Definitions）是指在Elsa Workflow面板中创建的工作流程的定义。这包括工作流程的结构、步骤和逻辑等信息，为实际的工作流程提供基础。
+> - 工作流实例（Workflow Instances）则是根据工作流定义创建的具体工作流程实例。每个实例都代表一个独立的执行过程，包含工作流程的当前状态、已完成的步骤、待处理的任务等信息。
+> - Elsa工作流还包含一个工作流注册表（Workflow Registry），用于存储和管理工作流程的定义。它作为工作流定义的中央存储库，方便您查看和管理已注册的工作流程定义。
+>
+> 在实际运行中，工作流引擎会从工作流注册表中获取相应的工作流定义，并创建对应的工作流实例。这使得工作流程的执行更加自动化和高效。同时，持久化存储机制确保了工作流状态的保存，使得在失败或暂停后能够恢复工作流的执行。
+
+在创建项目时，选择 .netcore 版本为 6.0 以上的就会自带工作流了。
+
+下载代码后可以直接运行，就能看到有一个流程管理，里面有两个页面，一个流程定义，一个流程实例，这其实就是 Elsa 的页面了。
+
++ 流程实例：定义流程后，每个启动的流程
+
+## 注册审批
+
+> 用户提交注册，管理员审批是否通过注册。
+
+在“流程定义”点击“创建工作流程”，在右上角的齿轮中可以配置一些基本的信息。
+
+`workflow context`：指定后台的哪个表单、哪个模型的类在使用这个工作流。这个名称的规则是：带命名空间的模型全称+逗号+所在项目的名称：
+
+![image-20231121201356944](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311212013048.png)
+
+![image-20231121201431613](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311212014692.png)
+
+然后可以点击 start，里面会有很多的 activity 节点，先选择“工作流”类然后点一个“审批”，然后再“审批人”里添加 admin，点击保存，他就会出现以下界面：
+
+![image-20231121201757788](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311212017873.png)
+
+这个审批节点会出现同意和拒绝的两个分支，如果我们同意的话需要把表单里面的值改为 true，这时候就可以使用脚本，点击同意分支下的加号，选择脚本，点击运行 JavaScript，在这里面可以直接使用刚刚设置的 WorkflowContext ，可以直接点出来这个 frameworkUser 的各种属性，在这里只需要将 isValid 值改为 true 即可，然后点击保存。
+
+![image-20231121202907710](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311212029797.png)
+
+现在的工作流就是这样：
+
+![image-20231121202945320](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311212029392.png)
+
+最后加上一个工作流里的“结束”的节点，什么都用就是单纯的结束。最后将上面的拒绝的分支也连到结束节点上：按住 shift，点击拒绝的加号，再点击结束的节点即可：
+
+![image-20231121203235141](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311212032211.png)
+
+然后点击右下角的 publish 就发布了，就可以在流程定义里看到这一条流程。
+
+## 代码触发流程
+
+这个审批流程应该是在用户点击注册的时候被触发，在 Controllers 下的 LoginController 中，有个 Reg 方法，当用户点击注册的时候，会执行 doReg 方法，在这个 doReg 方法中，isVaild 属性模型是 true，将它改为 false，然后在方法的返回语句前添加触发流程的代码：
+
+```c#
+/**
+FrameworkUser user = new FrameworkUser
+{
+    ITCode = ITCode,
+    Name = Name,
+    Password = Utils.GetMD5String(Password),
+    IsValid = false,
+    CellPhone = CellPhone,
+    Email = Email
+};
+
+DC.Set<FrameworkUser>().Add(user);
+DC.SaveChanges();
+*/
+
+var vm = Wtm.CreateVM<FrameworkUserVM>(user.ID);
+var r = vm.StartWorkflowAsync().Result;
+```
+
+使用刚刚新建的用户ID创建一个 FrameworkUserVM，这个 vm 中会有一个 StartWorkflowAsync 方法，用来启动工作流的，他有一个参数，可以指定工作流的名称（如果一个表单只有一个流程，不填也可以）。
+
+还要让指定的类支持工作流，需要继承 IWorkFlow 接口 ：
+
+```c#
+public class FrameworkUser : FrameworkUserBase, IWorkflow
+```
+
+这个接口不需要实现任何方法，只是告诉框架这个表单是需要流程的。这是启动项目，注册一个用户，就可以在流程实例中看到一条数据：
+
+![image-20231121210836666](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311212108778.png)
+
+可以点击ID处，进入流程查看状态。画绿的地方就是现在流程停到哪个地方了，可以点击右边的箭头展开详情，这个 Journal 就是每一步流程：
+
+![image-20231121211358764](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311212113865.png)
+
+现在是正在等待审批的状态，所以还需要加一个审批的操作：在用户列表上添加一个审批按钮。
+
+```c#
+this.MakeStandardAction("FrameworkUser",GridActionStandardTypesEnum.Approve,"","_Admin",dialogWidth:800).SetBindVisiableColName("CanApprove"),
+```
+
+`Approve`：是固定的审批按钮，会去调用Controller里的叫 approve 的方法，
+
+`SetBindVisiableColName`：控制每一行的按钮到底显不显示，它绑定一个叫 CanApprove 的列。
+
+现在这个列中加一个布尔值，也叫 CanApprove：
+
+```c#
+public class FrameworkUser_View : FrameworkUser
+{
+    [Display(Name = "_Admin.Role")]
+    public string RoleName_view { get; set; }
+
+    [Display(Name = "_Admin.Group")]
+    public string GroupName_view { get; set; }
+
+    public bool CanApprove { get; set; }
+}
+```
+
+然后可以重载一个函数 `AfterDoSearch` ，这个函数是在查询完了后，EntityList 里有值了后，执行的操作，这里是决定哪些数据可以被审批：
+
+```c#
+public override void AfterDoSearcher()
+{
+    var ids = DC.Set<FrameworkWorkflow>().Where(x => x.WorkflowName == "注册审批" && x.UserCode == Wtm.LoginUserInfo.ITCode).Select(x => x.ModelID).ToList();
+    foreach (var item in EntityList)
+    {
+        if (ids.Contains(item.GetID().ToString()))
+            item.CanApprove = true;
+    }
+}
+```
+
+去 `FrameworkWorkflow` 这个表中取到 “注册审批” 流程的审批人是当前登录人的所有可以审批的模型 ID ，然后找这些 查出来的 ID 有没有在 EntityList 中，在的话就将他们的状态改为 true。`FrameworkWorkflow` 这个表是框架自己加的，里面存的每一个流程的当前的步骤。
+
+还要在输出列的地方加一个列，因为审批按钮绑定了一个列：
+
+```c#
+this.MakeGridHeader(x => "CanApprove").SetHide().SetFormat((a,b) =>
+                                                           {
+                                                               if (a.CanApprove)   return "true";
+                                                               return "false";
+                                                           }),
+```
+
+最后在 FrameworkUserController 中添加一个 Approve 方法以及页面，
+
+```c#
+[ActionDescription("Sys.Approve")]
+public ActionResult Approve(string id)
+{
+    var vm = Wtm.CreateVM<FrameworkUserVM>(id);
+    vm.Entity.Password = null;
+    return PartialView(vm);
+}
+
+[ActionDescription("Sys.Approve")]
+[HttpPost]
+[ValidateFormItemOnly]
+public async Task<ActionResult> Approve(FrameworkUserVM vm)
+{
+    if (ModelState.Any(x => x.Key != "Entity.Password" && x.Value.ValidationState == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid))
+    {
+        return PartialView(vm);
+    }
+    else
+    {
+        ModelState.Clear();
+        await vm.DoEditAsync();
+        await vm.ContinueWorkflowAsync(vm.ActionName, vm.Remark);
+        if (!ModelState.IsValid)
+        {
+            vm.DoReInit();
+            return PartialView(vm);
+        }
+        else
+        {
+            return FFResult().CloseDialog().RefreshGridRow(vm.Entity.ID);
+        }
+    }
+}
+```
+
+两个 Approve 方法，一个是 get 的返回页面，一个是点完了之后提交的。post 的 Approve 方法和自带的 Edit 方法差不多，因为这也是一种修改操作，只不过是不是修改的表单。
+
+`ContinueWorkflowAsync(vm.ActionName, vm.Remark)`：第一个参数代表你点的是同意还是拒绝，第二个参数是你加的备注。
+
+然后将 Edit.cshtml 文件复制一份，改名为 Approve ，其他部分都可以和 Edit 页面一样，只不过需要将提交和关闭按钮改成同意和拒绝：
+
+```c#
+<wt:hidden field="ActionName"/> 
+    
+<wt:row>
+	<wt:textarea field="Remark"></wt:textarea>
+</wt:row>
+    
+<wt:row align="AlignEnum.Right">
+    <wt:submitbutton text="同意" click="$('#FrameworkUserVM_ActionName').val('同意')"/>
+    <wt:submitbutton text="拒绝" click="$('#FrameworkUserVM_ActionName').val('拒绝')" />
+    <wt:closebutton />
+  </wt:row>
+```
+
+还在表单中加了一个隐藏的字段 ActionName，这个字段是在 BaseVM 里的一个字段，方便处理工作流的。
+
+这样过后，就可以在用户管理中看到 需要审批的用户，点击同意后，该用户账号就可以使用：
+
+![image-20231122143034697](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221430784.png)
+
+然后再看流程实例，现在已经是 Filished 状态了：
+
+![image-20231122143128877](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221431934.png)
+
+## 详情页里看审批进度
+
+```c#
+<wt:tab>
+      <wt:wt:tabheaders>
+            <wt:tabheader title="用户信息" />
+            <wt:tabheader title="审批记录" />
+      </wt:wt:tabheaders>
+      <wt:wt:tabcontents>
+          <wt:tabcontent>
+                <wt:row items-per-row=" ItemsPerRowEnum.Two">
+                    <wt:image field="Entity.PhotoId" width="128" />
+                    <wt:display field="Entity.ITCode" />
+                    <wt:display field="Entity.Name" />
+                    <wt:display field="Entity.Gender" />
+                    <wt:display field="Entity.Email" />
+                    <wt:display field="Entity.CellPhone" />
+                    <wt:display field="Entity.HomePhone" />
+                    <wt:display field="Entity.Address" />
+                    <wt:display field="Entity.ZipCode" />
+                </wt:row>
+          </wt:tabcontent>
+          <wt:wt:tabcontent>
+              <wt:wt:flowinfo vm="@Model" />
+          </wt:wt:tabcontent>
+      </wt:wt:tabcontents>
+  </wt:tab>
+```
+
+显示审批记录的时候，框架提供了一个控件，只需要绑定当前这个模型就可以，它可以显示当前这个模型的历史审批和当前状态：
+
+![image-20231122144451664](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221444728.png)
+
+如果是前后端分离的项目，可以直接使用这些关于工作流的操作，只是没有流程控制这个页面，但是也可以通过地址访问：_workflow/inner。
+
+# 审批工作流（VUE3）
+
+> 模拟大学生报道流程。
+>
+> WTMPlus 生成的项目里面已经有了工作流（2023.11.22）
+
+用 WTMPlus 维护一个 Student 模型，创建一些字段，然后直接下载 VUE3 的代码。
+
+整个项目是后台，前台的代码放在了主项目的 ClientApp 下面，这个目录可以单独打开，也可以单独运行起来：
+
+![image-20231122150328543](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221503606.png)
+
+启动项目后，不会把前后台同时启动，因为实践当中，前后台分开启动比较好：
+
+![image-20231122150536016](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221505082.png)
+
+可以使用命令行的方式启动前台页面，在 ClientApp 目录下使用命令行：
+
+```bash
+npm install
+npm run dev
+```
+
+第一次启动需要先使用 `npm install` 安装一下依赖的 JavaScript 包，之后就不用安装了；安装好了之后，就使用 `npm run dev` 可以启动前台了。启动成功的页面：
+
+![image-20231122151233795](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221512852.png)
+
+可以按住 ctrl 单击这些链接即可访问前台页面。
+
+如果默认没有生成流程管理的页面，需要在 Startup.cs 文件中添加：
+
+```c#
+services.AddWtmWorkflow(ConfigRoot);
+```
+
+然后那个流程的可视化界面依赖于一个 Elsa 的 nugut 包，需要将这个包装一下：
+
+![image-20231122151720748](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221517808.png)
+
+最后在前台加一个流程管理的页面，实际上只需要一个 frame 去指向框架已经打包在 dll 中的一个页面：
+
+![image-20231122151912189](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221519287.png)
+
+## 入学报道流程
+
+接下来新建一个入学流程：
+
+![image-20231122152426365](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221524432.png)
+
+将一个流程分叉，使用控制流里的分叉：
+
+![image-20231122152739745](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221527813.png)
+
+然后在每个分叉下都加一个审批，由 user1 审批基础信息，user2 审批背景调查，可以修改审批流程的标签，这个标签的主要目的是，当你的两个审批的表单是有细微差别的，需要填的不一样，那就可以指定不一样的标签，前台就会获取到这个信息来判断审批到底是啥样的。
+
+在基础信息审批通过后，使用控制流的合并，因为这两个分支会合成一个，模式选择等候全部，因为需要都通过了才能走下一步：
+
+![image-20231122191522140](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221915213.png)
+
+然后将背景调查审批的同意节点连接到这个合并节点上来（按住shift点击）。现在的流程是这样的：
+
+![image-20231122191805764](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221918828.png)
+
+## 添加条件
+
+在两个审核都通过后，可以加一个控制流中的 if 条件，condition 可以选成 JavaScript，用来判断学生的性别男女：
+
+![image-20231122192050408](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221920475.png)
+
+这样的话会创建三个分支出来，一个是 true、一个是 false、一个是没有指明的情况，如图：
+
+![image-20231122192214948](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221922002.png)
+
+那对于这里的需求来说，只需要两个分支就够了，因为只需要判断是男是女。
+
+可以使用 switch，switch 可以判断多种分支：
+
+![image-20231122192424521](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221924593.png)
+
+![image-20231122192512540](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221925593.png)
+
+然后在男的分支上建一个审批，且标签填一个分配宿舍，因为需要填写一个宿舍：
+
+![image-20231122192704046](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221927112.png)
+
+女生的分支也是一样，只不过审批人是 user4，这样给男女生分宿舍的界面是一样的，但是审批的人不一样。
+
+等宿舍也审批通过了后，就认为审批结束了，就在分支上加一个运行 JavaScript 脚本，并且将男女两分支都连过来：
+
+```javascript
+workflowContext.IsValid = true
+```
+
+最后添加一个结束的节点。
+
+## 添加收费
+
+当用微信付款时，其实是向微信发起一个收款的信息，然后付完款后微信会回调你的系统的一个 API，告诉你这笔钱已经付了。所以我们可以在调用 API 的时候触发工作流上的一个信号，让工作流走。这和审批流没有关系。
+
+修改第一个分支，添加一个分支：收费。在这个分支上连一个工作流里的接受信号，起个名字：
+
+![image-20231122193732366](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221937431.png)
+
+最后将这个分支也合并到合并的节点上：
+
+![image-20231122193843890](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311221938957.png)
+
+意思是，当基础信息、背景调查这个两个都审批过了，且交了费，才能继续向下走，根据男女分配宿舍。最后点击 publish。
+
+## 实现代码
+
+首先要给 Student 这个模型实现 IWorkflow 接口，给 isValid 字段设个默认值 false，当流程走完后这个字段就会是 true。
+
+在 \_StudentController 里面，在 Create 方法中，添加一句：
+
+```c#
+[ActionDescription("Sys.Create")]
+[HttpPost("[action]")]
+public async Task<IActionResult> Create(StudentVM vm)
+{
+    if (!ModelState.IsValid)
+    {
+        return BadRequest(ModelState.GetErrorJson());
+    }
+    else
+    {
+        await vm.DoAddAsync();
+        await vm.StartWorkflowAsync();  // 启动流程
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState.GetErrorJson());
+        }
+        else
+        {
+            return Ok(vm.Entity);
+        }
+    }
+
+}
+```
+
+意思是，当我们在后台添加一个学生的时候，就启动这个流程。
+
+这时运行项目，添加一个学生，然后就可以在流程管理里面看到流程实例。下一步就是需要审批了。
+
+现在学生列表 StudentListVM 里面重写一个 AfterDoSearcher 方法，用来找搜索条件返回的数据中有没有我能审批的数据，如果有就给 ApproveName 赋上值，ApproveName 是在 StudentListVM 中的 Student_View 类中新建的一个字段，这样前台可以根据这个字段来判断需不需要显示审批按钮。
+
+```c#
+public override void AfterDoSearcher()
+{
+    var approveInfo = DC.Set<FrameworkWorkflow>().Where(x => x.ModelType == typeof(Student).FullName && x.UserCode == Wtm.LoginUserInfo.ITCode)
+        .Select(x => new { id = x.ModelID, tag = x.Tag }).ToList();
+    foreach (var item in EntityList)
+    {
+        var approve = approveInfo.Find(x => x.id == item.GetID().ToString());
+        if (approve != null)
+        {
+            item.ApproveName = approve.tag ?? "审批";
+        }
+    }
+}
+```
+
+approve.tag 为空值，就是没有设置标签的审批，直接显示 “审批” 即可；否则就是分配宿舍审批，显示“分配宿舍”。
+
+然后看前台，前台页面在 ClientApp 下的 src 中的 views 下的 data 下的 student 中的 index.vue。
+
+在 WtmTable 中添加了一个按钮：
+
+```c#
+<WtmButton v-if="scope.row.ApproveName" :is-text="true" type='warning' :button-text="scope.row.ApproveName" @click="OnApproveClick(scope.row)"/>
+```
+
+`scope.row` 表示当前一行的数据，`scope.row.ApproveName` 就是刚才后台 AfterDoSearcher 返回的字段，v-if 就是说，如果这个字段有值，就显示这个按钮，按钮的文字就是这个 ApproveName。当点击这个按钮的时候，执行 `OnApproveClick(scope.row)` 这个方法。`OnApproveClick` 这个方法就是在下面写的一个方法：
+
+```vue
+const OnApproveClick = (row:any) => {
+// 打开一个对话框去显示审批表单
+	other.openDialog(row.ApproveName, ApproveDialog, row, getTableDataStudent)
+}
+```
+
+这个 `ApproveDialog` 是上面定义的一个常量：
+
+```vue
+const ApproveDialog = defineAsyncComponent(() => import('./approve.vue'));
+```
+
+这个审批表单也是从 Edit 页面改过来的。需要注意这块：
+
+```vue
+<el-row v-if="ci.attrs['wtmdata'].ApproveName=='分配宿舍'">
+    <el-col :xs="24" :lg="12" class="mb20">
+        <el-form-item ref="Entity_Dormitory_FormItem" prop="Entity.Dormitory" :label="$t('message.autotrans._Model_Student_Dormitory')">
+            <el-input v-model="stateStudent.vmModel.Entity.Dormitory" clearable></el-input>
+        </el-form-item>
+    </el-col>
+</el-row>
+```
+
+`ci.attrs['wtmdata']` ：指弹出表单的时候，传给这个表单的列表的行数据。以上代码的意思是，如果是 分配宿舍 的流程，就显示这些，否则不显示。这就是根据流程的 TagName 来控制前台页面的不同变化。
+
+同意按钮的事件：
+
+```vue
+const onAgree = () => {
+	const loadingInstance = ElLoading.service({
+		lock: true,
+		text: '正在审批中',
+		background: 'rgba(0, 0, 0, 0.7)',
+	});
+	stateStudent.vmModel.ActionName = '同意';
+	studentApi()
+		.approve(stateStudent.vmModel,ci.attrs['wtmdata'].ApproveName)
+		.then(() => {
+			ElMessage.success('审批成功');
+			emit('refresh');
+			closeDialog();
+		})
+		.catch((error) => {
+			other.setFormError(ci, error);
+		})
+		.finally(() => {
+			loadingInstance.close();
+		});
+};
+```
+
+会调用 \_StudentController 中的 Approve 方法：
+
+```c#
+[ActionDescription("审批")]
+[AllRights]
+[HttpPost("[action]")]
+public async Task<IActionResult> Approve(StudentVM vm, [FromQuery] string tag)
+{
+    if (!ModelState.IsValid)
+    {
+        return BadRequest(ModelState.GetErrorJson());
+    }
+    else
+    {
+        await vm.ContinueWorkflowAsync(vm.ActionName,vm.Remark,tag:tag=="审批"?null:tag);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState.GetErrorJson());
+        }
+        else
+        {
+            if (vm.ActionName == "同意")
+            {
+                await vm.DoEditAsync(false);
+            }
+            return Ok(vm.Entity);
+        }
+    }
+}
+```
+
+拒绝按钮的事件：
+
+```vue
+const onRefuse = () => {
+	const loadingInstance = ElLoading.service({
+		lock: true,
+		text: '正在审批中',
+		background: 'rgba(0, 0, 0, 0.7)',
+	});
+	stateStudent.vmModel.ActionName = '拒绝';
+	studentApi()
+		.approve(stateStudent.vmModel,ci.attrs['wtmdata'].ApproveName)
+		.then(() => {
+			ElMessage.success('审批成功');
+			emit('refresh');
+			closeDialog();
+		})
+		.catch((error) => {
+			other.setFormError(ci, error);
+		})
+		.finally(() => {
+			loadingInstance.close();
+		});
+};
+```
+
+也会调用 studentApi 这个接口，这个接口定义在 ClientApp/src/data/student 下的 index.ts 中：
+
+```ts
+approve: (data: object, tag: string) => {
+    return request({
+        url: '/api/Data/Student/approve?tag=' + tag,
+        method: 'post',
+        data
+    });
+},
+```
+
+还需要在 StudentListVM 中添加行：
+
+```c#
+this.MakeGridHeader(x => x.ApproveName),
+```
+
+然后运行项目，要添加几个用户，就是审批流程中指定的那几个：user1、user2、user3、user4、user5，然后使用 admin 添加一个学生，登录 user1 的账户就可以看到这个学生的信息上会有一个审批按钮。
+
+## 收费代码
+
+正常情况是，微信付完款后，微信会调用你自己系统的一个接口，然后这个接口就会处理一些自己的业务。
+
+在 \_StudentController 里模拟了这样一个接口：
+
+```c#
+[Public]
+[HttpPost("[action]")]
+public async Task<IActionResult> WxPay([FromServices] ISignaler _singler,string studentid)
+{
+    //进行验证，更新订单
+    var wid = DC.Set<Elsa_WorkflowInstance>().Where(x => x.ContextType == typeof(Student).FullName && x.ContextId == studentid && x.WorkflowStatus == 3).Select(x => x.ID).FirstOrDefault();
+    await _singler.TriggerSignalAsync("WechatPay", workflowInstanceId:wid);
+    return Ok();
+}
+```
+
+然后通过 Swagger 文档，传一个 StudentID 调用这个接口，再看流程管理，发现流程已经走到了分配宿舍的位置，现在登录 user3 查看，会看到在学生数据的行内会有一个叫 分配宿舍 的按钮。当点击这个按钮的时候，就会看到表单内有一个宿舍文本框：
+
+![image-20231123085741691](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311230857846.png)
+
+当点击同意之后，这个流程就走完了，这个学生的 isValid 属性就会被赋值为 true。
+
+## 详情中显示审批流程
+
+VUE 不想 Layui 默认带了一个控件，但是可以自己添加，在 components 里添加了一个 workflowTimeLine 目录，在下面新建一个 index.vue ：
+
+```vue
+<template>
+
+                        <el-timeline>
+                            <el-timeline-item v-for="(activity, index) in localdata.approveRecords"
+                                              :key="index" placement="top"
+                                              :color="getColor(activity)"
+                                              :timestamp="activity.Time">
+                                {{ activity.Message }}
+                                <p v-if="activity.Remark">审批意见：{{activity.Remark}}</p>
+                            </el-timeline-item>
+                        </el-timeline>
+</template>
+
+
+<script setup lang="ts">
+import { watch, reactive, ref, getCurrentInstance, onMounted, nextTick } from 'vue';
+import other from '/@/utils/other';
+import workflowApi from '/@/api/workflow';
+const ci = getCurrentInstance() as any;
+
+    const props = defineProps({
+        flowname: String,
+        entitytype: String,
+        entityid: null,
+    });
+// 定义变量内容
+const localdata = reactive({
+    approveRecords: [] as any[]
+});
+  
+
+    watch(()=>props.entityid, () => {
+        if (props.entityid) {
+            workflowApi().getTimeLine(props.flowname ?? "", props.entitytype ?? "", props.entityid ?? "")
+                .then((data: any) => {
+                    localdata.approveRecords = data;
+                })
+        }
+    })
+
+    const getColor = (data : any)=>{
+        if (data.Action == '同意') {
+            return "#0bbd87";
+        }
+        if (data.Action == '拒绝') {
+            return "#ff0000";
+        }
+        return "";
+    }
+// 暴露变量
+defineExpose({
+
+});
+</script>
+
+<style scoped lang="scss">
+
+</style>
+```
+
+还要在 ClientApp 下的 Api 下新建一个 workflow 目录，在里面新建一个 index.ts：
+
+```ts
+import request from '/@/utils/request';
+
+/**
+ * （不建议写成 request.post(xxx)，因为这样 post 时，无法 params 与 data 同时传参）
+ *
+ * 登录api接口集合
+ * @method signIn 用户登录
+ * @method signOut 用户退出登录
+ */
+export default function WorkflowApi() {
+	return {		
+		getTimeLine: (flowname: string, entitytype: string, entityid:string) => {
+			return request({
+				url: '/_workflowapi/gettimeline',
+				method: 'get',
+				params: { flowname, entitytype, entityid }
+			});
+		}
+	};
+}
+```
+
+还需要在 components 目录下的 index.ts 中引用：
+
+```ts
+import WtmWorkflowTimeLine from '/@/components/workflowTimeLine/index.vue'
+
+app.component('WtmWorkflowTimeLine', WtmWorkflowTimeLine);
+```
+
+然后在详情页面里，加了一个 tab 页，用来显示流程步骤：
+
+```cs
+<el-tabs type="border-card">
+    <el-tab-pane label="基础信息"></el-tab-pane>
+
+    <el-tab-pane label="审批记录">
+    <WtmWorkflowTimeLine entitytype="WorkFlow2.Model.Data.Student" :entityid="stateStudent.vmModel.Entity.ID" />
+    </el-tab-pane>
+</el-tabs>
+```
+
+![image-20231123092018207](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311230920312.png)
+
+# 自定义工作流节点
+
