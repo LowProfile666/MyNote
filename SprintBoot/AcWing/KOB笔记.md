@@ -412,6 +412,12 @@ nav 区基本上每个页面都不变的，所以可把这一部分提出来，�
 </nav>
 ```
 
+也可以让他变成黑色主题：
+
+```vue
+<nav class="navbar navbar-expand-lg bg-body-tertiary " data-bs-theme="dark">
+```
+
 将以上代码粘贴到 NavBar.vue 里的 `<template>` 中，然后将这个组件先导入一下：
 
 ```vue
@@ -746,4 +752,518 @@ export default {
 ```vue
 <router-link :class="route_name == 'pk_index' ? 'nav-link active' : 'nav-link'"  aria-current="page" :to="{ name: 'pk_index' }">对战</router-link>
 ```
+
+或者可以使用下面这种方法：
+
+使用 `class="nav-link" ` 和 `active-class="active"` 就可以：
+
+```vue
+<router-link class="nav-link" active-class="active" aria-current="page" :to="{ name: 'pk_index' }">
+    对战
+</router-link>
+```
+
+### 2.6 游戏对象的基类
+
+所有的游戏对象都会有动的效果，我们可以把这个动的效果抽离出来，形成一个基类，让所有的游戏对象都继承自这个基类。
+
+在 assets 目录下新建两个文件夹：images 和 scripts，用来存放图片和脚本，顺便将背景图片移动到 images 下，注意要修改一下 App.vue 里的背景图片的路径。
+
+在 scripts 下，建一个 AcGameObject.js 文件，为了每一秒中都能让所有游戏对象刷新一遍，我们需要先把所有游戏对象都存下来。
+
+```js
+const AC_GAME_OBJECTS = [];
+
+export class AcGameObject {
+    constructor() {
+        AC_GAME_OBJECTS.push(this);
+    }
+}
+```
+
+实现每秒钟刷新游戏多次：浏览器有一个函数：`requestAntimationFrame(函数)`，一般浏览器默认是每秒钟刷新 60 次，`requestAntimationFrame` 会在下一次浏览器渲染之前执行一遍，使用递归就可以让他一直调用刷新：
+
+```js
+const step = () => {
+    requestAnimationFrame(step);
+}
+
+requestAnimationFrame(step);
+```
+
+然后每个游戏对象需要具备以下几个函数：
+
+```js
+start() {  // 只执行一次
+
+}
+
+update() {  // 每一帧执行一次，除了第一帧
+
+}
+
+on_destory() {  // 删除之前执行
+
+}
+
+distory() {  // 将当前对象从对象数组中删除   
+    this.on_destory();
+
+    for (let i in AC_GAME_OBJECTS) {
+        const obj = AC_GAME_OBJECTS[i];
+        if (obj === this) {
+            AC_GAME_OBJECTS.splice(i);
+            break;
+        }
+    }
+}
+```
+
+在 js 的 for 里面，用 in 是遍历下标，用 of 是遍历值。
+
+需要开一个变量来记录这个对象有没有执行过；一般在计算物体移动的时候，会用到一个速度的概念，一秒钟移动几个像素或者几个距离。速度就是一段时间间隔，帧与帧之间执行的时间不一定是一样的，所以我们在算距离的时候，要让速度乘上时间间隔，所以还需要实现一个 API：
+
+```js
+constructor() {
+    AC_GAME_OBJECTS.push(this);
+    this.timedelta = 0;  // 这一帧的执行时刻与上一帧的执行时刻的时间间隔
+    this.has_called_start = false;  // 记录有没有被执行过
+}
+
+let last_timestamp;  // 上一次执行的时刻
+const step = timestamp => {  // 传入的时当前的执行时刻
+    for (let obj of AC_GAME_OBJECTS) {
+        if (!obj.has_called_start) {  // 没有被执行过
+            obj.has_called_start = true;
+            obj.start();
+        }
+        else {  // 执行过了
+            obj.timedelta = timestamp - last_timestamp;
+            obj.update();
+        }
+    }
+    last_timestamp = timestamp;
+
+    requestAnimationFrame(step);
+}
+```
+
+这样所有的游戏对象都会第一帧执行一次 start 函数，之后的每一帧都会执行 update 函数。
+
+### 2.7 实现pk页面
+
+将地图画到当前的页面来，可以将背景框删除掉，也就是将 `<ContectFiled>` 删掉即可。
+
+先将游戏区域引入 pk 页面：
+
+```vue
+<template>
+    <PlayGround>
+    </PlayGround>
+</template>
+
+<script>
+import PlayGround from "../../components/PlayGround.vue"
+
+export default {
+    components: {
+        PlayGround
+    }
+}
+</script>
+```
+
+
+
+### 2.8 实现地图
+
+实现一个 13 × 13 的地图。
+
++ 周围是一圈墙，中间地图区域会随机生成障碍物
++ 左下角和右上角各一条蛇
++ 地图以左上到右下的对角线对称
++ 生成的障碍物必须合法，保证蛇能从左下角走到右上角
++ 每次刷新都会得到一个新的地图
+
+在 assets 下的 scripts 下新建一个 GameMap.js ：
+
+```js
+// 先引入基类
+// 有时候需要用到 {}，有时候不需要，区别：
+//  如果是 export class 的话，就需要用 {}
+//  如果是 export default 的话，就不需要用 {}
+import { AcGameObject } from "./AcGameObject";
+
+export class GameMap extends AcGameObject {
+    constructor(ctx, parent) {  // ctx 是画布，parent 是画布的父元素，用来动态修改画布
+        super();
+
+        this.ctx = ctx;
+        this.parent = parent;
+
+        // 游戏的地图会动态的变化，比如缩小或放大游戏屏幕时，
+        // 如果动态变化的话，游戏里面的对象应该成比例变化
+        // 那么游戏里面的绝对距离就不重要
+        // 所以我们在写的时候使用相对距离，
+        // 先存一下地图每个格子的绝对距离，后面使用坐标就用相对距离
+        this.L = 0;  // 地图一个格子的长度
+        
+        this.rows = 13;  // 行数
+        this.cols = 13;  // 列数
+    }
+
+    start() {
+
+    }
+
+    update() {
+        this.render();  // 每一帧渲染一次
+    }
+
+    // 渲染函数
+    render() {
+
+    }
+}
+```
+
+### 2.9 创建游戏区域
+
+新建一个游戏区域，在 components 下新建一个 PlayGround.vue 文件：
+
+```vue
+<template>
+<div class="palyground"></div>
+</template>
+
+<script>
+</script>
+
+<style scoped>
+div.palyground {
+    /* 百分之60的浏览器宽度，百分之70的高度*/
+    width: 60vw;
+    height: 70vh;
+    background-color: lightblue;
+    /* 设置居中，且离上方有40px距离*/
+    margin: 40px auto;
+}
+</style>
+```
+
+设置宽高和背景色暂时为了方便调试。
+
+![image-20231124094759255](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311240947528.png)
+
+这时的区域就可以随着浏览器窗口的大小自动变化。
+
+然后新建一些组件，用于放在游戏区域内的，比如计分板等。
+
+在 components 下新建一个 GameMap.vue 文件：
+
+```vue
+<template>
+    <div class="gamemap">
+        <!-- 游戏是画在 <canvas> 里的 -->
+        <canvas></canvas>
+    </div>
+</template>
+
+<script>
+</script>
+
+<style scoped>
+div.gamemap {
+    /* 宽高和父元素等长 */
+    width: 100%;
+    height: 100%;
+    /* 设置居中 */
+    display: flex;
+    /* 水平居中 */
+    justify-content: center;
+    /* 垂直居中 */
+    align-items: center;
+}
+</style>
+```
+
+然后将他引入到游戏区域：
+
+```vue
+<template>
+    <div class="palyground">
+        <GameMap />
+    </div>
+</template>
+
+<script>
+import GameMap from "./GameMap.vue"
+
+export default {
+    components: {
+        GameMap
+    }
+}
+</script>
+```
+
+地图是正方形区域，要使正方形区域的边长最大，所以地图的边长要动态的求：
+
+```js
+update_size() {  // 计算地图的大小
+    this.L = Math.min(this.parent.clientWidth / this.cols, this.parent.clientHeight / this.rows);
+    this.ctx.canvas.width = this.L * this.cols;
+    this.ctx.canvas.height = this.L * this.rows;
+}
+
+update() {
+    this.update_size();
+    this.render();  // 每一帧渲染一次
+}
+```
+
+渲染一下看看效果：
+
+```js
+render() {
+    this.ctx.fillStyle = "green";
+    // 前两个值为起始坐标，后两个为宽高
+    this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+}
+```
+
+关于 canvas 的用法可以参考 MDN 里的教程。
+
+当前效果：
+
+![image-20231124102816609](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311241028873.png)
+
+### 2.10 画地图
+
+地图样式：
+
+![image-20231124102944531](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311241029604.png)
+
+是深浅格子交替出现形成的，可以根据横纵标之和的奇偶来决定格子颜色，奇数就画一个深色的格子，偶数画一个浅色的格子：
+
+```js
+render() {
+    // even表偶数，odd表奇数
+    const color_even = "#aad752", color_odd = "#a2d048";
+    // 画格子
+    for (let r = 0; r < this.rows; r++) {
+        for (let c = 0; c < this.cols; c++) {
+            if ((r + c) % 2 == 0)
+                this.ctx.fillStyle = color_even;
+            else
+                this.ctx.fillStyle = color_odd;
+            this.ctx.fillRect(c * this.L, r * this.L, this.L, this.L);
+        }
+    }
+}
+```
+
+效果：
+
+![image-20231124104117251](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311241041517.png)
+
+### 2.11 放置障碍物
+
+新建一个对象 Wall.js，表示墙：
+
+```js
+import { AcGameObject } from "./AcGameObject";
+
+export class Wall extends AcGameObject {
+    // 第r行，第c列
+    constructor(r, c, gamemap) {
+        super();
+
+        this.r = r;
+        this.c = c;
+        this.gamemap = gamemap;
+        this.color = "#b47226";  // 墙的颜色
+    }
+
+    update() {
+        this.render();  // 每一次都要渲染
+    }
+
+    render() {
+        const L = this.gamemap.L;
+        const ctx = this.gamemap.ctx;
+
+        ctx.fillStyle = this.color;
+        // 横坐标、纵坐标、边长
+        ctx.fillRect(this.c * L, this.r * L, L, L);
+    }
+}
+```
+
+画墙：墙可以画在 GameMap.js 里：
+
+```js
+// 引入 Wall
+import { Wall } from "./Wall";
+
+// 定义墙
+constructor(ctx, parent) {  
+    // ...
+    this.walls = [];  // 墙
+}
+
+// 创建画墙的函数
+create_walls() {
+    new Wall(0, 0, this);
+}
+
+start() {
+    this.create_walls();
+}
+```
+
+此时的效果就是：
+
+![image-20231124105248180](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311241052464.png)
+
+修改 create_wall 函数就可以：
+
+```js
+create_walls() {
+    // 使用一个bool数组
+    const g = [];
+    for (let r = 0; r < this.rows; r++) {
+        g[r] = [];
+        for (let c = 0; c < this.cols; c++) {
+            g[r][c] = false;
+        }
+    }
+
+    // 给四周加上障碍物
+    for (let r = 0; r < this.rows; r++) {
+        g[r][0] = g[r][this.cols - 1] = true;
+    }
+
+    for (let c = 0; c < this.cols; c++) {
+        g[0][c] = g[this.rows - 1][c] = true;
+    }
+
+    // 画出障碍物
+    for (let r = 0; r < this.rows; r++) {
+        for (let c = 0; c < this.cols; c++) {
+            if (g[r][c])
+                this.walls.push(new Wall(r, c, this));
+        }
+    }
+}
+```
+
+这时的效果：
+
+![image-20231124105947573](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311241059842.png)
+
+为什么墙的颜色会覆盖掉地图的颜色：
+
++ 在 AcGameOject 中，每次创建一个就 push 一个
++ 先创建了地图，后创建了墙
++ 所以墙会把地图覆盖掉
+
+这时发现墙之间有一些白色的细线，是因为渲染时出了问题，是因为在 update_size 中计算地图大小时，得到的是一个浮点数，而画的时候使用的是整数，所以会有误差，改成这样即可：
+
+```js
+this.L = parseInt(Math.min(this.parent.clientWidth / this.cols, this.parent.clientHeight / this.rows)); 
+```
+
+接下来就是随机放置一些障碍物：
+
+```js
+this.inner_walls_count = 20;  // 内置障碍物的个数
+
+// 创建随机障碍物
+// 因为关于主对角线对称，所以只需要随机一半即可
+for (let i = 0; i < this.inner_walls_count / 2; i++) {
+    for (let j = 0; ; j++) {
+        let r = parseInt(Math.random() * this.rows);  // 取到 【0，this.rows）的数
+        let c = parseInt(Math.random() * this.cols);
+        
+        if (g[r][c] || g[c][r]) continue;  // 已有障碍物
+        // 防止墙放在了左下角和右上角的位置
+        if (r == this.rows - 2 && c == 1 || r == 1 && c == this.cols - 2) continue; 
+        
+        g[r][c] = g[c][r] = true;
+        break;
+    }
+}
+```
+
+效果如图：
+
+![image-20231124112310617](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311241123880.png)
+
+保证左下角和右上角的点是连通的，如果不连通的话就重新生成：
+
+将 create_walls 函数返回一个布尔值，写一个检查是否连通的函数 check_connectivity ，如果不连通，则直接返回 false，连通则画出墙并返回 true。那么在 create_walls 的调用处使用循环来调用，确保一定可以生成满足要求的障碍物：
+
+```js
+check_connectivity() {
+  // ...
+}
+
+create_walls() {
+    // ...
+    // 如果墙让两个点不连通
+    if (!this.check_connectivity()) return false;
+    // ...
+    return true;
+}
+
+start() {
+    for (let i = 0; i < 1000; i++)  // 尽量不写死循环
+        if (this.create_walls())
+            break;
+}
+```
+
+使用 Flod-fill 算法来实现 check_connectivity 函数：
+
+```js
+// 当前地图、起点坐标、终点坐标
+check_connectivity(g, sx, sy, tx, ty) {
+    if (sx == tx && sy == ty) return true;
+    g[sx][sy] = true;
+
+    // 上右下左四个方向
+    let dx = [-1, 0, 1, 0], dy = [0, 1, 0, -1];
+    for (let i = 0; i < 4; i++) {
+        let x = sx + dx[i];
+        let y = sy + dy[i];
+
+        // 如果没有撞墙，且能连接到终点就返回 true
+        if (!g[x][y] && this.check_connectivity(g, x, y, tx, ty))
+            return true;
+    }
+    return false;
+}
+
+create_walls() {
+    // ...
+    const copy_g = JSON.parse(JSON.stringify(g));
+    // 如果墙让两个点不连通
+    if (!this.check_connectivity(copy_g, this.rows - 2, 1, 1, this.cols - 2)) return false;
+    // ...
+    return true;
+}
+```
+
+### 2.12 更改网站图标
+
+将图片保存到 public 下，名字为 favicon.ico 即可。
+
+PK界面最终效果：
+
+![image-20231124164124011](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311241641371.png)
+
+
+
+
 
