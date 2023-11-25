@@ -1263,7 +1263,519 @@ PK界面最终效果：
 
 ![image-20231124164124011](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311241641371.png)
 
+### 2.13 防止两蛇碰头
+
+因为目前棋盘大小是 13 × 13 的，左下角的蛇的起始位置和右上角的蛇的起始位置的奇偶性相同，就意味着有可能下一步两蛇头会走到同一个格子里面，所以可以将棋盘的边长变成 13 × 14，这样右上角的蛇头的起始位置的奇偶性和左下角的蛇头相反，就不会走到同一个格子里去。
+
+但是这样设计过后地图就不能轴对称了，因为它是一个长方形了现在，但是可以做中心对称：
+
+![image-20231124202017812](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311242020906.png)
+
+需要在 GameMap.js 中的创建障碍物的函数 create_walls 中将代码改成中心对称的代码：
+
+```js
+if (g[r][c] || g[this.rows - 1 - r][this.cols - 1 - c]) continue;  // 已有障碍物
+
+// 防止墙放在了左下角和右上角的位置
+if (r == this.rows - 2 && c == 1 || r == 1 && c == this.cols - 2) continue;
+
+g[r][c] = g[this.rows - 1 - r][this.cols - 1 - c] = true;  // 中心对称
+```
+
+### 2.14 添加蛇
+
+添加两条蛇，一条在左下角，一条在右上角。初始的时候，两条蛇都是一个点，在同一的时间两条蛇都会变长，比如：在前 10 步内，每一步边长一格，10 步后，每三步变长一格。
+
+蛇是以一堆格子构成，也就是格子的序列，所以先定义一个格子类：
+
+```js
+export class Cell {
+    constructor(r, c) {
+        this.r = r;
+        this.c = c;
+        this.x = c + 0.5;  // 坐标转换
+        this.y = r + 0.5;
+    }
+}
+```
+
+格子是方的，但是蛇是圆的，所以蛇身体的坐标应该就行一下转换
+
+![image-20231124203250347](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311242032424.png)
+
+为了方便，把蛇也定义为一个对象 Sanke.js：
+
+```js
+import { AcGameObject } from "./AcGameObject";
+import { Cell } from "./Cell";
+
+export class Snake extends AcGameObject {
+    constructor(info, gamemap) {
+        super();
+
+        this.id = info.id;
+        this.color = info.color;
+        this.gamemap = gamemap;
+        this.cells = [new Cell(info.r, info.c)];  // 存放蛇，cell[0] 是蛇头
+    }
+
+    start() {
+
+    }
+
+    update() {
+        this.render();
+    }
+
+    render() {
+
+    }
+}
+```
+
+然后在 GameMap.js 中创建蛇：
+
+```js
+this.snakes = [
+    new Snake({ id: 0, color: "#4876EC", r: this.rows - 2, c: 1 }, this),
+    new Snake({ id: 1, color: "#F94848", r: 1, c: this.cols - 2 }, this),
+];
+```
+
+此时可以将蛇画出来看一下，方便调试：
+
+```js
+ render() {
+     const L = this.gamemap.L;
+     const ctx = this.gamemap.ctx;
+
+     ctx.fillStyle = this.color;
+     for (const cell of this.cells) {
+         ctx.beginPath();  // 画圆
+         ctx.arc(cell.x * L, cell.y * L, L / 2, 0, Math.PI * 2);  // 画圆弧，参数：圆弧的终点的坐标、圆的半径、起始角度、终止角度
+         ctx.fill();
+     }
+ }
+```
+
+此时效果：
+
+![image-20231125101847220](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251018543.png)
+
+### 2.15 蛇动起来
+
+算一下每一帧蛇的位置即可。
+
+```js
+this.speed = 5;  // 蛇的速度，一秒移动五个格子
+
+update_move() {
+    this.cells[0].x += this.speed * this.timedelta / 1000;  // 向右移动
+}
+
+update() {
+    this.update_move();  // 每秒刷新位置
+    this.render();
+}
+```
+
+这样就可以实现蛇的移动。
+
+当蛇有很多结时，采用每次移动创建一个新的头且只将尾向前移动的方法，这样每次只会移动两个节点，且画面保持连续感。
+
+何时移动？当两条蛇都有下一步的指令时，就向指令移动。
+
+需要先定义下蛇的指令和状态：
+
+```js
+this.direction = -1;  // -1表示没有指令，0、1、2、3 表示上右下左
+this.status = "idle";  // idle 表示静止，move 表示移动中，die 表示死亡
+```
+
+然后需要判断一个”裁判“来判断蛇的状态，将”裁判“放在一个公共的位置来判断两条蛇下一步能不能走（需要满足：两条蛇都处于静止，且都有下一步操作，才能走），写在 GameMap.js 中：
+
+```js
+check_ready() {  // 检查两条蛇是否都准备好了下一回合
+    for (const snake of this.snakes) {
+        if (snake.status !== "idle") return false;
+        if (snake.direction === -1) return false;
+    }
+    return true;
+}
+```
+
+准备好下一步后，每条蛇需要更新一下状态：
+
+首先需要知道下一步的方向，先在 Snake.js 中定义下一步的目标位置以及方向的偏移量，还有回合数：
+
+```js
+this.next_cell = null;  // 下一步的目标位置
+this.dr = [-1, 0, 1, 0];  // 四个方向的偏移量
+this.dc = [0, 1, 0, -1];
+this.step = 0;  // 回合数
+```
+
+然后更新状态的函数：
+
+```js
+next_step() {  // 将蛇的状态改为下一步
+    const d = this.direction;  // 取出当前的位置
+    this.next_cell = new Cell(this.cells[0].r + this.dr[d], this.cells[0].c + this.dc[d]);  // 求出下一个位置
+    this.direction = -1;  // 清空方向
+    this.status = "move";  // 状态变化
+    this.step++;  // 回合数加一
+}
+```
+
+再在 GameMap.js 中定义让两条蛇进入下一回合的函数：
+
+```js
+next_step() {  // 让两条蛇进入下一步
+    for (const snake of this.snakes) {
+        snake.next_step();
+    }
+}
+
+update() {
+    this.update_size();
+    if (this.check_ready()) {
+        this.next_step();
+    }
+    this.render();  // 每一帧渲染一次
+}
+```
+
+### 2.16 获取用户的操作
+
+用键盘的 wasd 来控制第一条蛇，上下左右方向键来控制第二条蛇。
+
+为了让我们的 canvas 获取用户的操作，需要给 canvas 加一个属性 `tabindex="0"`，在 GameMap.vue 中：
+
+```vue
+<canvas ref="canvas" tabindex="0"></canvas>
+```
+
+为了方便以后可以从后端获取到输入的数据，在 Snake.js 中写一个统一的接口来设置方向：
+
+```js
+set_direction(d) {
+    this.direction = d;
+}
+```
+
+然后在 GameMap.js 中给 canvas 绑定一个获取用户输入的事件即可：
+
+```js
+add_listening_events() {
+    // 首先要聚焦
+    this.ctx.canvas.focus();
+    
+    const [s0, s1] = this.snakes;
+    this.ctx.canvas.addEventListener("keydown", e => {
+        switch (e.key) {
+            case 'w': s0.set_direction(0); break;
+            case 'd': s0.set_direction(1); break;
+            case 's': s0.set_direction(2); break;
+            case 'a': s0.set_direction(3); break;
+            case 'ArrowUp': s1.set_direction(0); break;
+            case 'ArrowRight': s1.set_direction(1); break;
+            case 'ArrowDown': s1.set_direction(2); break;
+            case 'ArrowLeft': s1.set_direction(3); break;
+        }
+    });
+}
+
+start() {
+    for (let i = 0; i < 1000; i++)
+        if (this.create_walls())
+            break;
+    this.add_listening_events();
+}
+```
+
+### 2.17 根据操作控制蛇移动
+
+蛇的移动是在头部加一个新的球，在 Snake.js 中的 next_step 函数里添加以下代码，将每个球都复制一个：
+
+```js
+const k = this.cells.length;
+for (let i = k; i > 0; i--) {
+    this.cells[i] = JSON.parse(JSON.stringify(this.cells[i - 1]));
+}
+```
+
+然后先在 Snake.js 中实现 update_move 函数：
+
+```js
+update_move() {
+    // this.cells[0].x += this.speed * this.timedelta / 1000;
+
+    const dx = this.next_cell.x - this.cells[0].x;
+    const dy = this.next_cell.y - this.cells[0].y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < this.eps) {
+        this.cells[0] = this.next_cell;  // 添加一个新蛇头
+        this.next_cell = null;
+        this.status = "idle";  // 走完了，停下来
+    } else {
+        const move_distance = this.speed * this.timedelta / 1000;  // 两帧之间走的距离
+        this.cells[0].x += move_distance * dx / distance;
+        this.cells[0].y += move_distance * dy / distance;
+    }
+}
+
+update() {  // 每一帧执行一次
+    if (this.status === "move")
+        this.update_move();  // 每秒刷新位置
+    this.render();
+}
+```
+
+然后先在的效果就是：
+
+![image-20231125125354669](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251253024.png)
+
+但这只是蛇头在移动。还需要控制蛇尾动。
+
+先判断一下当前要不要动蛇尾：
+
+```js
+check_tail_increasing() {  // 检测当前回合，蛇的长度是否增加
+    if (this.step <= 10) return true;  // 前十步每一步增加一格
+    if (this.step % 3 === 1) return true;  // 十步后每三步增加一格
+    return false;
+}
+```
+
+如果蛇尾要变长的话，蛇尾不动就可以了；如果蛇尾不变长的话，蛇尾跟着蛇头动就可以了。
+
+```js
+update_move() {
+    // this.cells[0].x += this.speed * this.timedelta / 1000;
+
+    const dx = this.next_cell.x - this.cells[0].x;
+    const dy = this.next_cell.y - this.cells[0].y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < this.eps) {  // 走到目标点
+        this.cells[0] = this.next_cell;  // 添加一个新蛇头
+        this.next_cell = null;
+        this.status = "idle";  // 走完了，停下来
+
+        if (!this.check_tail_increasing()) {  // 蛇不变长
+            this.cells.pop();  // 去掉蛇尾
+        }
+    } else {
+        const move_distance = this.speed * this.timedelta / 1000;  // 两帧之间走的距离
+        this.cells[0].x += move_distance * dx / distance;
+        this.cells[0].y += move_distance * dy / distance;
+
+        if (!this.check_tail_increasing()) {
+            const k = this.cells.length;
+            const tail = this.cells[k - 1], tail_target = this.cells[k - 2];
+            const tail_dx = tail_target.x - tail.x;
+            const tail_dy = tail_target.y - tail.y;
+            tail.x += move_distance * tail_dx / distance;
+            tail.y += move_distance * tail_dy / distance;
+        }
+    }
+}
+```
+
+此时效果：
+
+![image-20231125130813573](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251308879.png)
+
+### 2.18 美化蛇
+
+将相邻的两个节点之间填充一个矩形，将中间的缝隙盖住：
+
+![image-20231125130903989](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251309035.png)
+
+修改 render 函数：
+
+```js
+render() {
+    const L = this.gamemap.L;
+    const ctx = this.gamemap.ctx;
+
+    ctx.fillStyle = this.color;
+    for (const cell of this.cells) {
+        ctx.beginPath();  // 画圆
+        ctx.arc(cell.x * L, cell.y * L, L / 2, 0, Math.PI * 2);  // 画圆弧，参数：圆弧的终点的坐标、圆的半径、起始角度、终止角度
+        ctx.fill();
+    }
+
+
+    // 填充蛇身体间的空隙
+    for (let i = 1; i < this.cells.length; i++) {
+        const a = this.cells[i - 1], b = this.cells[i];
+        // 如果两点重合就不用了
+        if (Math.abs(a.x - b.x) < this.eps && Math.abs(a.y - b.y) < this.eps)
+            continue;
+        if (Math.abs(a.x - b.x) < this.eps) {  // 竖方向
+            ctx.fillRect((a.x - 0.5) * L, Math.min(a.y, b.y) * L, L, Math.abs(a.y - b.y) * L);
+        } else {  // 横方向
+            ctx.fillRect(Math.min(a.x, b.x) * L, (a.y - 0.5) * L, Math.abs(a.x - b.x) * L, L);
+        }
+    }
+}
+```
+
+关于坐标的计算参考：
 
 
 
+![image-20231125131732532](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251317602.png)
+
+现在效果：
+
+![image-20231125131929404](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251319712.png)
+
+但是这个蛇身体太粗了，调整一下：蛇的宽度是 L，将它变为百分之80 L。同时，填充的矩形的坐标也要缩：
+
+```js
+render() {
+    const L = this.gamemap.L;
+    const ctx = this.gamemap.ctx;
+
+    ctx.fillStyle = this.color;
+    for (const cell of this.cells) {
+        ctx.beginPath();  // 画圆
+        ctx.arc(cell.x * L, cell.y * L, L / 2 * 0.8, 0, Math.PI * 2);  // 画圆弧，参数：圆弧的终点的坐标、圆的半径、起始角度、终止角度
+        ctx.fill();
+    }
+
+
+    // 填充蛇身体间的空隙
+    for (let i = 1; i < this.cells.length; i++) {
+        const a = this.cells[i - 1], b = this.cells[i];
+        // 如果两点重合就不用了
+        if (Math.abs(a.x - b.x) < this.eps && Math.abs(a.y - b.y) < this.eps)
+            continue;
+        if (Math.abs(a.x - b.x) < this.eps) {  // 竖方向
+            ctx.fillRect((a.x - 0.4) * L, Math.min(a.y, b.y) * L, L * 0.8, Math.abs(a.y - b.y) * L);
+        } else {  // 横方向
+            ctx.fillRect(Math.min(a.x, b.x) * L, (a.y - 0.4) * L, Math.abs(a.x - b.x) * L, L * 0.8);
+        }
+    }
+}
+```
+
+这样就可以了：
+
+![image-20231125144359931](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251444244.png)
+
+### 2.19 检测撞墙功能
+
+检测蛇有没有撞墙等，就是判断下一个位置是否合法。
+
+在 GameMap.js 里实现检测逻辑：
+
+```js
+check_valid(cell) {  // 检测目标位置是否合法：没有撞到两条蛇的身体和障碍物
+    // 判断有没有撞到墙
+    for (const wall of this.walls)
+        if (wall.r === cell.r && wall.c === cell.c)
+            return false;
+    // 判断有没有撞到身体
+    // 特判：头追尾时，蛇尾有可能会缩，如果缩的话，合法；不缩，不合法
+    for (const snake of this.snakes) {
+        const k = snake.cells.length;
+        if (!snake.check_tail_increasing())  // 蛇尾会前进时，不判断
+            k--;
+        for (let i = 0; i < k; i++)
+            if (snake.cells[i].r === cell.r && snake.cells[i].c === cell.c)
+                return false;
+    }
+    return true;
+}
+```
+
+这个函数需要在蛇走下一步的时候调用，且会改变蛇的状态：
+
+```js
+next_step() {  // 将蛇的状态改为下一步
+    const d = this.direction;  // 取出当前的位置
+    this.next_cell = new Cell(this.cells[0].r + this.dr[d], this.cells[0].c + this.dc[d]);  // 求出下一个位置
+    this.direction = -1;  // 清空方向
+    this.status = "move";  // 状态变化
+    this.step++;  // 回合数加一
+
+    const k = this.cells.length;
+    for (let i = k; i > 0; i--) {
+        this.cells[i] = JSON.parse(JSON.stringify(this.cells[i - 1]));
+    }
+
+    if (!this.gamemap.check_valid(this.next_cell))  // 下一步操作撞了，蛇当场去世
+        this.status = "die";
+}
+```
+
+然后为了方便看到蛇去世，在 render 函数中可以判断是否是死亡状态，是则将颜色改为白色：
+
+```js
+if (this.status === "die")  // 死亡时的颜色
+    ctx.fillStyle = "white";
+```
+
+现在效果：
+
+![image-20231125150036459](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251500774.png)
+
+### 2.20 给蛇加眼睛
+
+加两个眼睛其实就是画两个小圆。
+
+需要存一下蛇头的方向，因为眼睛始终是在蛇头朝向的方向那一端，所以在 Snake.js 中定义下：
+
+```js
+// 左下角的蛇初始朝上，右上角的蛇初始朝下
+this.eye_direction = 0;  // 蛇头方向，也就是蛇眼方向
+if (this.id === 1) this.eye_direction = 2;  
+```
+
+每次在走下一步的时候，就要在 next_step 函数里更改一下蛇头的方向：
+
+```js
+this.eye_direction = d;  // 更改蛇头方向
+```
+
+然后看不同方向上，两个眼睛的偏移量：
+
+![image-20231125151036099](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251510163.png)
+
+```js
+this.eye_dx = [  // 蛇眼的不同方向的 x 的偏移量
+    [-1, 1],
+    [1, 1],
+    [1, -1],
+    [-1, -1]
+];
+this.eye_dy = [  // 蛇眼的不同方向的 y 的偏移量
+    [-1, -1],
+    [-1, 1],
+    [1, 1],
+    [-1, 1]
+];
+```
+
+然后在 render 中用黑色渲染出眼睛：
+
+```js
+ctx.fillStyle = "black";
+for (let i = 0; i < 2; i++) {
+
+    const eye_x = (this.cells[0].x + this.eye_dx[this.eye_direction][i] * 0.15) * L;
+    const eye_y = (this.cells[0].y + this.eye_dy[this.eye_direction][i] * 0.15) * L;
+    ctx.beginPath();
+    ctx.arc(eye_x, eye_y, L * 0.05, 0, Math.PI * 2);
+    ctx.fill();
+}
+```
+
+最终效果：
+
+![image-20231125152716862](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251527207.png)
 
