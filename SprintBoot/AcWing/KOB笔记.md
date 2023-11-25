@@ -69,6 +69,18 @@ public class IndexController {
 }
 ```
 
+这里的两个 @RequestMapping() 其实没有区别，写成两个的话就会自动拼接起来，和以下代码效果一样：
+
+```java
+@Controller
+public class IndexController {
+    @RequestMapping("/pk/index/")
+    public String index(){
+        return "pk/index.html";  // 这里要写的是在 templates 里面，pk目录下的 index 页面路径
+    }
+}
+```
+
 然后通过  http://127.0.0.1:8080/pk/index/ 这个链接就能访问到 index 页面了。
 
 观察上面的链接：
@@ -1778,4 +1790,465 @@ for (let i = 0; i < 2; i++) {
 最终效果：
 
 ![image-20231125152716862](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251527207.png)
+
+## 3、配置MySQL
+
+到目前为止，整个项目的模型：
+
+![image-20231125154056835](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251540919.png)
+
+### 3.1 MySQL 常用操作
+
+mysql 服务的关闭与启动（默认开机自动启动，如果想手动操作，可以参考如下命令）
+
++ 关闭：`net stop mysql80`
++ 启动：`net start mysql80`
+
+mysql 的常用操作
+
++ 连接用户名为root，密码为123456的数据库服务：`mysql -uroot -p123456`
++ `show databases;`：列出所有数据库
++ `create database kob;`：创建数据库
++ `drop database kob;`：删除数据库
++ `use kob;`：使用数据库kob
++ `show tables;`：列出当前数据库的所有表
++ `create table user(id int, username varchar(100))`：创建名称为user的表，表中包含id和username两个属性。
++ `drop table user;`：删除表
++ `insert into user values(1, 'zsm');`：在表中插入数据
++ `select * from user;`：查询表中所有数据
++ `delete from user where id = 2;`：删除某行数据
+
+### 3.2 IDEA 操作 MySQL
+
+使用 IDEA 可以图形化操作 MySQL 数据库：
+
+![image-20231125155654286](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251556423.png)
+
+然后配置要连接的数据库，在架构里选择默认架构，如果提示需要下载缺少的驱动文件则点击下载：
+
+![image-20231125155857157](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251558233.png)
+
+点击确定后就可以看到数据库，以及其中的东西：
+
+![image-20231125160055622](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251600761.png)
+
+### 3.3 加入依赖
+
+在 SpringBoot 中想要操作数据库需要加入一些依赖：
+
+打开 [Maven仓库地址](https://mvnrepository.com/)，在这里面搜索一下依赖，复制它们的 Maven 信息，并在 pom.xml 文件中添加：
+
++ Spring Boot Starter JDBC（2.7.1）
++ Project Lombok：帮忙简化代码（1.18.24）
++ MySQL Connector/J（8.0.29）
++ mybatis-plus-boot-starter：帮我们默认写好了很多 SQL 语句（3.5.2）
++ mybatis-plus-generator：帮忙自动生成函数（3.5.3）
+
+以下的先不装：
+
++ spring-boot-starter-security
++ jjwt-api
++ jjwt-impl
++ jjwt-jackson
+
+比如：搜索 Spring Boot Starter JDBC，然后点击最新的版本，进入到这个页面，复制这里的 Maven 代码，然后添加到 pom.xml 的 dependencies 中：
+
+![image-20231125160801387](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251608502.png)
+
+![image-20231125160922173](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251609275.png)
+
+依赖都装好了后，点击右边侧边栏的 Maven，点击刷新按钮，让他重新加载，加载好了后，可以在依赖项中看到所安装的依赖。
+
+如果安装依赖的时候报错，可以尝试清除缓存并重启：文件-->清除缓存-->清除并重启
+
+### 3.4 SpringBoot 配置
+
+依赖安装好后，需要配置一下。SpringBoot 也要用用户名和密码才能访问数据库。
+
+在 application.properties 中添加数据库配置：
+
+![image-20231125162453994](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251624074.png)
+
+```
+spring.datasource.username=root  # 连接数据库的用户名
+spring.datasource.password=123  # 连接数据库的密码
+spring.datasource.url=jdbc:mysql://localhost:3306/kob?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8  # 数据库连接字，serverTimezone 表示服务的时区
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+```
+
+然后启动项目，报错：
+
+```
+[main] ERROR org.springframework.boot.SpringApplication - Application run failed
+java.lang.NoClassDefFoundError: com/baomidou/mybatisplus/core/toolkit/StringUtils
+```
+
+由于这些依赖我都是装的最新版，于是我将所有依赖都换成视频中的版本，除了 MySQL Connector/J 用的最新的版本，因为它已经没有 8.0.29 版了。然后重新运行，成功：
+
+![image-20231125165924276](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251659360.png)
+
+但是页面错误。因为这个路径没有内容，所以会报错，输入有内容的路径时，就不会报错了：
+
+![image-20231125165959804](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251659883.png)
+
+为了方便可以直接把登录页面配置到这个页面来，在 controller/pk 包下，IndexController 中：
+
+```java
+@Controller
+public class IndexController {
+    @RequestMapping("/")
+    public String index(){
+        return "pk/index.html";  // 这里要写的是在 templates 里面，index 目录的路径
+    }
+}
+```
+
+## 4、 实现注册登录模块
+
+在 controller 下新建几个软件包 ，分别对应几个页面：
+
+![image-20231125170957067](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251709127.png)
+
+在 user 下建一个 UserController。
+
+### 4.1 SpringBoot 层的概念
+
+SpringBoot 中的常用模块
+
++ pojo层：将数据库中的表对应成 Java 中的 Class
++ mapper层（也叫Dao层）：将 pojo 层的 class 中的操作，映射成 sql 语句
++ service层：写具体的业务逻辑，组合使用 mapper 中的操作
++ controller层：负责请求转发，接受页面过来的参数，传给 Service 处理，接到返回值，再传给页面
+
+### 4.2 实现 pojo 层
+
+在 backend 下新建一个包 pojo，在包下新建一个 User.java，用来将数据库中的 user 表翻译成类：
+
+```java
+@Data
+@NoArgsConstructor
+@AllArgsContructor
+public class User {
+    private Integer id;
+    private String username;
+    private String password;
+}
+```
+
+上面的三个注解，就是使用的 lombox 依赖中的，会自动帮我们生成无参和有参构造函数以及一些常用基本函数。点击运行后，可以在 target 中看到生成的代码，找到 pojo 中的 User，可以看到帮我们生成了哪些代码：
+
+![image-20231125173953045](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251739184.png)
+
+### 4.3 实现 mapper 层
+
+在 backend 下创建一个包 mapper，包里创建一个 UserMapper 文件：
+
+```java
+@Mapper
+public interface UserMapper extends BaseMapper<User> {
+}
+```
+
+安装的依赖 mybaits-plus 帮我们实现了很多东西，要想使用，就需要继承过来。
+
+### 4.4 测试如何操作数据库
+
+#### 查询操作
+
+在 controller/user 下的 UserController 里，要加一个注解 `@RestController` ，在这里实现一些数据库的操作：
+
+```java
+@RestController
+public class UserController {
+
+    @Autowired  // 如果用到数据库的mapper，一定要加这个注解
+    UserMapper userMapper;
+
+
+    @GetMapping("/user/all/")
+    // 返回所有的用户
+    public List<User> getAll() {
+        return userMapper.selectList(null);
+    }
+}
+```
+
+mapper 里的接口都是在 mybaits-plus 里定义好的，可以查询官网的文档：[Mybatis-Plus官网](https://baomidou.com/)。
+
+这时就可以访问：
+
+![image-20231125175531040](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251755089.png)
+
+根据 id 来查询用户：
+
+```java
+// 根据 ID 返回用户
+@GetMapping("/user/{userId}/")  // {} 中间的是参数
+public User getUser(@PathVariable int userId) { // 这个注解用于将URL中的路径参数绑定到方法的参数上
+    return userMapper.selectById(userId);
+}
+```
+
+![image-20231125175913631](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251759681.png)
+
+实现复杂的查询：
+
+实现复杂的查询需要封装一个条件构造器 QueryWrappr，里面有很多的 API 可以用。比如以上的代码可以改为：
+
+```java
+@GetMapping("/user/{userId}/")  // {} 中间的是参数
+public User getUser(@PathVariable int userId) { // 这个注解用于将URL中的路径参数绑定到方法的参数上
+    QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+    queryWrapper.eq("id", userId);
+    return userMapper.selectOne(queryWrapper);
+}
+```
+
+效果是一样的。
+
+如果想查询一个区间内的用户，查询用户id大于等于 1 且小于等于 3 的用户：
+
+```java
+@GetMapping("/user/{userId}/")  // {} 中间的是参数
+public List<User> getUser(@PathVariable int userId) { // 这个注解用于将URL中的路径参数绑定到方法的参数上
+    QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+    queryWrapper.ge("id", 1).le("id", 3);
+    // ge：大于等于，gt：大于，le：小于等于，lt：小于
+    // g是greater，l是lesser
+    return userMapper.selectList(queryWrapper);
+}
+```
+
++ ge：大于等于，gt：大于
++ le：小于等于，lt：小于
++ g是greater，l是lesser
+
+效果：
+
+![image-20231125181038940](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251810998.png)
+
+#### 插入操作
+
+插入操作一般使用 Post（安全，长度不受限制），这里演示使用 Get。
+
+```java
+@GetMapping("/user/add/{userId}/{username}/{password}/")  // {userId}其实就是将当前位置的值当作userId
+public String addUser(@PathVariable int userId,
+                      @PathVariable String username,
+                      @PathVariable String password) {
+    User user = new User(userId, username, password);
+    userMapper.insert(user);
+    return "Add User Successfully";
+}
+```
+
+测试：
+
+![image-20231125181837138](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251818194.png)
+
+此时数据库中就会多出一条数据。
+
+#### 删除操作
+
+```java
+@GetMapping("/user/delete/{userId}/")
+public String deleteUser(@PathVariable int userId) {
+    userMapper.deleteById(userId);
+    return "Delete User Successfully";
+}
+```
+
+结果：
+
+![image-20231125182223628](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251822684.png)
+
+### 4.5 权限判断模块
+
+先安装 spring-boot-starter-security 依赖，选择了视频中的版本：2.7.1，然后点击 Maven，点击重新加载。然后重启一下服务，发现会弹出一个登录的页面，此时访问其他所有页面都访问不了了：
+
+![image-20231125183037805](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251830896.png)
+
+这个页面是 spring-boot-starter-security 自己写的，不止这一个页面，还有 logout 等其他页面。
+
+它默认有一个用户 user，密码每次会随机生成，在控制台中寻找：
+
+![image-20231125183312026](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251833102.png)
+
+使用这个密码就可以登录，就可以访问所有页面了。
+
+#### 修改 Spring Security
+
+让 Spring Security 对接数据库。
+
++ 实现 `service.impl.UserDetailsServiceImpl` 类，继承自 `UserDetailsService` 接口，用来接入数据库信息
+
++ 实现 `config.SecurityConfig` 类，用来实现用户密码的加密存储
+
+在 backend 下创建一个包 service，包下创建一个包 impl，impl 包下创建一个类 UserDetailsServiceImpl，这个类实现了 UserDetailsService 接口：
+
+```java
+@Service
+public class UserDetailsServiceImpl implements UserDetailsService {
+    // 需要使用数据库的操作
+    @Autowired
+    private UserMapper userMapper;
+
+    // 根据 username 返回对应 user 的详情信息
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+        User user = userMapper.selectOne(queryWrapper);
+        if (user == null)
+            throw new RuntimeException("用户不存在");
+
+        return new UserDetailsImpl(user);
+    }
+}
+```
+
+当用户存在的话，会返回一个 UserDetailsImpl ，这是自己需要实现的一个接口，在 impl 包下创建一个 utils 包，在 utils 包下写一个 UserDetailsImpl 类，实现了 UserDetails 接口：
+
+```java
+package com.kob.backend.service.impl.utils;
+
+import com.kob.backend.pojo.User;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import java.util.Collection;
+
+/**
+ * Author : ZSM
+ * Time :  2023/11/25
+ */
+public class UserDetailsImpl implements UserDetails {
+    private User user;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
+
+    @Override
+    public String getPassword() {
+        return user.getPassword();
+    }
+
+    @Override
+    public String getUsername() {
+        return user.getUsername();
+    }
+
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    // 账户是否被锁定
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    // 授权是否过期
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    // 用户是否被启用
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}
+```
+
+现在启动项目，使用数据库的用户信息来进行登录测试，会发现控制台报错：
+
+```java
+java.lang.IllegalArgumentException: There is no PasswordEncoder mapped for the id "null"
+```
+
+这个错误的意思是我们需要提供一个 PasswordEncoder。如果我们就想使用明文的方式存储密码的话，在数据库中的密码的值前面加一个 `{noop}` 就可以了，像这样：
+
+![image-20231125190437897](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251904951.png)
+
+这时候数据库读到这个数据时，就知道这个密码没有使用加密，就可以直接进行判断，而不需要 PasswordEncoder 了。这样再去使用这个账户登录就可以了。
+
+#### 密码加密
+
+实现一个 config 类就可以了。
+
+在 backend/config 包下，创建一个 SecurityConfig 类，用来实现用户密码的加密存储：
+
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+```
+
+这个 BCryptPasswordEncoder 类有几个 API：
+
++ `encode()`：将明文转成密文
++ `matches()`：判断一个明文和一个密文是否匹配
+
+可以在 test 中试一下：
+
+```java
+@SpringBootTest
+class BackendApplicationTests {
+	@Test
+	void contextLoads() {
+		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+		System.out.println(passwordEncoder.encode("123"));
+		System.out.println(passwordEncoder.matches("123", "$2a$10$PIOupAaMEWIo4C6PmV6U8e.E/cBMWYlTu2ZvqzXlx0xOb5j7JW462"));
+	}
+}
+```
+
+可以将所有密码的密文输出出来，然后复制，修改到数据库中，再在前台使用明文密码登录，也可以登录成功的：
+
+![image-20231125192244037](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251922097.png)
+
+登录时使用 123 为密码可以登录成功，因为数据库中的密文可以和 123 匹配。
+
+#### 使用密文存储
+
+在添加用户时，可以直接存储密文。在 UserController 中：
+
+```java
+@GetMapping("/user/add/{userId}/{username}/{password}/")  // {userId}其实就是将当前位置的值当作userId
+public String addUser(@PathVariable int userId,
+                      @PathVariable String username,
+                      @PathVariable String password) {
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();  
+    String encodedPassword = passwordEncoder.encode(password);  // 得到密文
+    User user = new User(userId, username, encodedPassword);
+    userMapper.insert(user);
+    return "Add User Successfully";
+}
+```
+
+登录前台后，访问以下页面：
+
+![image-20231125192724188](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251927244.png)
+
+再查看数据库中的数据：
+
+![image-20231125192757133](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251927189.png)
+
+
+
+
 
