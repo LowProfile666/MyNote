@@ -2248,7 +2248,974 @@ public String addUser(@PathVariable int userId,
 
 ![image-20231125192757133](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251927189.png)
 
+### 4.6  JWT 验证
 
+上面的登录验证使用的是传统的 session 验证模式：
 
+![image-20231125194857951](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251948031.png)
 
+JWT 模式：
 
+![image-20231125195643738](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311251956836.png)
+
+用户会在自己的 token 存在浏览器里，每次想服务器发送请求的时候都会带上这个 token；服务器收到一个请求，会先验证这个 token 是否合法，合法就会根据 token 里的信息（包括 userId）从数据库中查找用户，并把用户信息提取到上下文当中，然后再访问授权的方法。
+
+实现步骤
+
++ 实现`utils.JwtUtil`类，为jwt工具类，用来创建、解析jwt token
++ 实现`config.filter.JwtAuthenticationTokenFilter`类，用来验证jwt token，如果验证成功，则将User信息注入上下文中
++ 配置`config.SecurityConfig`类，放行登录、注册等接口
+
+先添加三个依赖：
+
++ jjwt-api（0.11.5）
++ jjwt-impl（0.11.5）
++ jjwt-jackson（0.11.5）
+
+然后点击 maven，点击重新加载。
+
+#### JwtUtil 类
+
+在 backend 下新建一个包 utils，在 utils 下实现 JwtUtil 类，为 jwt 工具类，用来创建、解析 jwt token，作用：
+
++ 将一个字符串，加上密钥，加上有效期，变成一个加密后的字符串。
++ 解析一个令牌，取出当中的 userID
+
+```java
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+import java.util.Date;
+import java.util.UUID;
+
+@Component
+public class JwtUtil {
+    public static final long JWT_TTL = 60 * 60 * 1000L * 24 * 14;  // 有效期14天
+    public static final String JWT_KEY = "SDFGjhdsfalshdfHFdsjkdsfds121232131afasdfac";
+
+    public static String getUUID() {
+        return UUID.randomUUID().toString().replaceAll("-", "");
+    }
+
+    public static String createJWT(String subject) {
+        JwtBuilder builder = getJwtBuilder(subject, null, getUUID());
+        return builder.compact();
+    }
+
+    private static JwtBuilder getJwtBuilder(String subject, Long ttlMillis, String uuid) {
+        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+        SecretKey secretKey = generalKey();
+        long nowMillis = System.currentTimeMillis();
+        Date now = new Date(nowMillis);
+        if (ttlMillis == null) {
+            ttlMillis = JwtUtil.JWT_TTL;
+        }
+
+        long expMillis = nowMillis + ttlMillis;
+        Date expDate = new Date(expMillis);
+        return Jwts.builder()
+                .setId(uuid)
+                .setSubject(subject)
+                .setIssuer("sg")
+                .setIssuedAt(now)
+                .signWith(signatureAlgorithm, secretKey)
+                .setExpiration(expDate);
+    }
+
+    public static SecretKey generalKey() {
+        byte[] encodeKey = Base64.getDecoder().decode(JwtUtil.JWT_KEY);
+        return new SecretKeySpec(encodeKey, 0, encodeKey.length, "HmacSHA256");
+    }
+
+    public static Claims parseJWT(String jwt) throws Exception {
+        SecretKey secretKey = generalKey();
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(jwt)
+                .getBody();
+    }
+}
+```
+
+#### JwtAuthenticationTokenFilter 类
+
+在 config 包下新建一个 filter 包，在 filter 包内实现 JwtAuthenticationTokenFilter 类，用来验证 jwt token，如果验证成功，则将 User 信息注入上下文中：
+
+`````java
+import com.kob.backend.mapper.UserMapper;
+import com.kob.backend.pojo.User;
+import com.kob.backend.service.impl.utils.UserDetailsImpl;
+import com.kob.backend.utils.JwtUtil;
+import io.jsonwebtoken.Claims;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+@Component
+public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
+    @Autowired
+    private UserMapper userMapper;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
+        String token = request.getHeader("Authorization");
+
+        if (!StringUtils.hasText(token) || !token.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        token = token.substring(7);
+
+        String userid;
+        try {
+            Claims claims = JwtUtil.parseJWT(token);
+            userid = claims.getSubject();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        User user = userMapper.selectById(Integer.parseInt(userid));
+
+        if (user == null) {
+            throw new RuntimeException("用户名未登录");
+        }
+
+        UserDetailsImpl loginUser = new UserDetailsImpl(user);
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(loginUser, null, null);
+
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+        filterChain.doFilter(request, response);
+    }
+}
+`````
+
+#### SecurityConfig 配置
+
+修改 config 包下的 SecurityConfig 文件：
+
+```java
+import com.kob.backend.config.filter.JwtAuthenticationTokenFilter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    @Autowired
+    private JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter;
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authorizeRequests()
+                .antMatchers("/user/account/token/", "/user/account/register/").permitAll()  // 这两个链接是公开的
+                .antMatchers(HttpMethod.OPTIONS).permitAll()
+                .anyRequest().authenticated();
+
+        http.addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
+    }
+}
+```
+
+### 4.7 创建后端API
+
+先修改一下数据库中的 user 表
+
++ 将用户 id 改为自增的，主键
++ 创建一个新的列用来存储用户头像（数据库中存头像一般是链接）
+
+然后数据库发生了变化，需要将 pojo 层的内容也改一下：
+
+```java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+    @TableId(type = IdType.AUTO)  // 设置 id 自增
+    private Integer id;
+    private String username;
+    private String password;
+    private String photo;
+}
+```
+
+写 API 只需要改三个地方：
+
++ controller：用来调 service 里的接口
++ service：在service里面写一个接口
++ impl：在 service/impl 下写一个接口的实现
+
+在 service 下创建一个包 user，用来存放和 user 有关的，在 user 下再创建一个包 account，用来放和 account 有关的 API，在 account 包里创建三个接口：LoginService、InfoService、RegisterService。习惯让所有的 API 都返回一个 Map。
+
+InfoService：
+
+```java
+public interface InfoService {
+    Map<String, String> getInfo();
+}
+```
+
+LoginService：
+
+```java
+public interface LoginService {
+    Map<String, String> getToken(String username, String password);
+}
+```
+
+RegisterService：
+
+```java
+public interface RegisterService {
+    /**
+     *
+     * @param username 用户名
+     * @param password 密码
+     * @param confirmedPassword 确认密码
+     * @return json信息
+     */
+    Map<String, String> register(String username, String password, String confirmedPassword);
+}
+```
+
+接下来实现接口。在 service/impl 下建一个包 user，在 user 下建一个包 account，在 account 下写实现类，实现一个 service 要加一个注解 `@Service`：
+
+#### 获取token
+
+根据用户的用户名和密码，来获取一个 jwt-token，
+
+LoginServiceImpl：
+
+```java
+@Service
+public class LoginServiceImpl implements LoginService {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;  // 用到验证用户登录
+    @Override
+    public Map<String, String> getToken(String username, String password) {
+        // 将用户名和密码封装一下，因为在数据库中已密文的形式存密码
+        // 这个类里面存的就不会是明文了，而是加密后的密码
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(username, password);
+
+        // 验证是不是可以登录
+        // 登录失败的话，会自动处理
+        Authentication authenticate = authenticationManager.authenticate(authenticationToken);
+
+        // 取出用户
+        UserDetailsImpl loginUser = (UserDetailsImpl) authenticate.getPrincipal();
+        User user = loginUser.getUser();
+
+        // 将用户的userId封装成一个jwt-token
+        String jwt = JwtUtil.createJWT(user.getId().toString());
+
+        // 定义结果
+        // 这里的 key 最好与前端对应
+        Map<String, String> map = new HashMap<>();
+        map.put("message", "success");
+        map.put("token", jwt);
+
+        return map;
+    }
+}
+```
+
+实现类定义成功后，需要实现对应的 controller 。在 controller/user 包下新建一个包 account，在 account 下定义一个类 LoginController：
+
+```java
+@RestController
+public class LoginController {
+    @Autowired  // 注入刚刚创建的接口
+    private LoginService loginService;
+
+    // 这里的路径记得在SecurityConfig里的configure方法里将它公开化：所有人都可以访问
+    // 需要从post请求中将参数拿出来，可以将这次参数放在一个Map里，需要使用注解 @RequestParam
+    @PostMapping("/user/account/token")  // 登录一般使用post，安全一些
+    public Map<String, String> getToken(@RequestParam Map<String, String> map) {
+        String username = map.get("username");
+        String password = map.get("password");
+        return loginService.getToken(username, password);
+    }
+}
+```
+
+此时调试一下，访问 http://localhost:3000/user/account/token/ 会发现一个 405 错误，因为默认是 get 请求，而上面代码定义的 post 请求，
+
++ @PostMapping：只能用 post 请求
++ @GetMapping：只能用 get 请求
++ @RequestMapping：都可以用
+
+所以可以使用 postman 工具来调试，也可以在前台直接调试。
+
+在前端调试，使用 Ajax 调试，在 App.vue 中：
+
+```js
+import $ from "jquery"
+
+export default {
+  // 这里是注册
+  components: {
+    NavBar
+  },
+  setup() {
+    $.ajax({
+      url: "http://localhost:3000/user/account/token/",
+      type: "post",
+      data: {
+        username: "zsm",
+        password: "123"
+      },
+      success(resp) {
+        console.log(resp);
+      },
+      error(resp) {
+        console.log(resp);
+      }
+    })
+  }
+}
+```
+
+这样一刷新前端首页就会向后端发送请求，然后可以在控制台中看到结果：
+
+![image-20231126082633952](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311260826078.png)
+
+这个返回的信息就是在后端 LoginServiceImpl 中写的：
+
+![image-20231126082744232](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311260827288.png)
+
+#### 获取信息
+
+如果获取 token 成功，则会向服务器发送一个请求，获取当前用户的信息。
+
+在 service/impl/user/account 下新建一个类 InfoServiceImpl：
+
+```java
+@Service  // 不写这个注解 controller 就无法注入服务
+public class InfoServiceImpl implements InfoService {
+
+    @Override
+    public Map<String, String> getInfo() {
+        // 如果授权成功，需要从上下文当中将用户信息提取出来
+        // 如何转换：
+        UsernamePasswordAuthenticationToken authentication =
+                (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+
+        UserDetailsImpl loginUser = (UserDetailsImpl) authentication.getPrincipal();
+
+        User user = loginUser.getUser();
+
+        Map<String, String> map = new HashMap<>();
+
+        map.put("message", "success");
+        map.put("id", user.getId().toString());
+        map.put("username", user.getUsername());
+        map.put("photo", user.getPhoto());
+
+        return map;
+    }
+}
+```
+
+然后实现 controller/user/account 下新建一个类 InfoController：
+
+```java
+@RestController
+public class InfoController {
+    @Autowired
+    private InfoService infoService;
+
+    @GetMapping("/user/account/info/")  // 获取信息一般使用 get，修改、添加、删除一般使用 post
+    public Map<String, String> getInfo() {
+        return infoService.getInfo();  // 因为 InfoServiceImpl 上使用了注解 @Service，所以它会找到 InfoServiceImpl
+    }
+}
+```
+
+然后在前端测试：
+
+```js
+$.ajax({
+    url: "http://localhost:3000/user/account/info/",
+    type: "get",
+    headers: {
+        // 授权，这个会传在后端的 filter 里面去，格式也是 filter 定义的，以 "Bearer " 开头，后面的跟 token
+        Authorization: "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2ODUzNTgzNmMyNzY0M2UxODVlNjBkYWUwY2I3YWFiYiIsInN1YiI6IjEiLCJpc3MiOiJzZyIsImlhdCI6MTcwMDk1OTk0MywiZXhwIjoxNzAyMTY5NTQzfQ.0CeVtQ64eqXtU7sPmkKOfxFfoAmKORWSoXVawzcdHPo"
+
+        // Authntication: ""  // 认证
+    },
+    success(resp) {
+        console.log(resp);
+    },
+    error(resp) {
+        console.log(resp);
+    }
+});
+```
+
+成功：
+
+![image-20231126085607664](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311260856757.png)
+
+#### 注册账号
+
+先在 Service/impl/user/account 下创建一个实现类 RegisterServiceImpl：
+
+```java
+@Service
+public class RegisterServiceImpl implements RegisterService {
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Override
+    public Map<String, String> register(String username, String password, String confirmedPassword) {
+        Map<String, String> map = new HashMap<>();
+
+        // 判断用户名和密码是否合法
+        // 去除用户名的前后空白字符后，判断是否为空
+        if (username == null || username.trim().isEmpty()) {
+            map.put("message", "用户名不能为空");
+            return map;
+        }
+        if (password == null || confirmedPassword == null) {
+            map.put("message", "密码不能为空");
+            return map;
+        }
+
+        // 判断长度大小，长度根据数据库中的数据类型长度定
+        if (username.length() > 100) {
+            map.put("message", "用户名长度不能大于100");
+            return map;
+        }
+        if (password.length() > 100) {
+            map.put("message", "密码长度不能大于100");
+            return map;
+        }
+
+        // 两次密码要一样
+        if (!password.equals(confirmedPassword)) {
+            map.put("message", "两次密码不一致");
+            return map;
+        }
+
+        // 判断用户名是否重复，需要使用数据库查询
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.eq("username", username);
+        List<User> list = userMapper.selectList(queryWrapper);
+        if (!list.isEmpty()) {
+            map.put("message", "用户名已存在");
+            return map;
+        }
+
+        // 将用户名和密码存入数据库
+        // 需要将密码加密
+        String encodedPassword = passwordEncoder.encode(password);
+
+        // 默认头像
+        String photo = "https://cdn.acwing.com/media/user/profile/photo/307620_md_6513a93905.jpeg";
+
+        User user = new User(null, username, encodedPassword, photo);  // id是默认自增的不用穿
+
+        userMapper.insert(user);
+
+        map.put("message", "注册成功");
+        return map;
+    }
+}
+```
+
+然后定义 controller，在 controller/user/account 下新建一个类 RegisterController：
+
+```java
+@RestController
+public class RegisterController {
+
+    @Autowired
+    private RegisterService registerService;
+
+    @PostMapping("/user/account/register/")  // 公开访问的页面一定记得要在 SecurityConfig 中放行
+    public Map<String, String> register(@RequestParam Map<String, String> map) {
+        String username = map.get("username");
+        String password = map.get("password");
+        String confirmedPassword = map.get("confirmedPassword");
+        return registerService.register(username, password, confirmedPassword);
+    }
+}
+```
+
+记得重启一下，然后前端调试：
+
+```js
+$.ajax({
+    url: "http://localhost:3000/user/account/register/",
+    type: "post",
+    data: {
+        username: "lisi",
+        password: "lisi",
+        confirmedPassword: "lisi"
+    },
+    success(resp) {
+        console.log(resp);
+    },
+    error(resp) {
+        console.log(resp);
+    }
+});
+```
+
+### 4.8 前端登录注册页面
+
+在 src/views/user 下创建一个目录 account，在 account 下创建两个文件：UserAccountLoginView.vue、UserAccountRegisterView.vue，文件名根据路径来取的。
+
+然后将这两个页面加入 router 中，在 router/index.js 中添加：
+
+```js
+import UserAccountLoginView from "../views/user/account/UserAccountLoginView"
+import UserAccountRegisterView from "../views/user/account/UserAccountRegisterView"
+
+const routes = [
+    //...
+    {
+       path: "/user/account/login/",
+       name: "user_account_login",  // 路径名字
+       component: UserAccountLoginView
+    },
+    {
+       path: "/user/account/register/",
+       name: "user_account_register",  // 路径名字
+       component: UserAccountRegisterView
+    },
+    //...
+]
+```
+
+#### 登录页面
+
+在 bootstrap 上抄一个，搜索 grid system 和 form 和 buttons。
+
++ grid system 用来布局的。grid 将整个平面分为 12 格，我们用中间 3 格区域。
++ form 用来展示登录表单。
++ buttons 用来设置按钮样式 
+
+使 grid 内容居中使用：`justify-content-md-center`
+
+UserAccountLoginView.vue：
+
+```vue
+<template>
+    <ContentField>
+        <div class="row justify-content-md-center">
+            <div class="col-3">
+                <form>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="username" placeholder="请输入用户名">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">密码</label>
+                        <input type="password" class="form-control" id="password" placeholder="请输入密码">
+                    </div>
+                    <button type="submit" class="btn btn-primary">登录</button>
+                </form>
+            </div>
+        </div>
+    </ContentField>
+</template>
+
+<script>
+import ContentField from "../../../components/ContentField.vue"
+
+export default {
+    components: {
+        ContentField
+    }
+}
+</script>
+<style scoped >
+button {
+    width: 100%;
+}
+</style>
+```
+
+#### 全局信息
+
+比如在每个页面都需要存当前登录的用户是谁，所以我们需要把用户的信息存到全局，就需要用到 vue 的 vuex。
+
+将用户信息存在 src 下的 store 下，在 store 下新建一个文件 user.js ：
+
+```js
+import $ from "jquery"
+
+export default {
+    state: {
+        id: "",
+        username: "",
+        photo: "",
+        token: "",
+        is_login: false,
+    },
+    getters: {
+    },
+    mutations: {  // 一般用来修改数据
+        updateStae(state, user) {
+            state.id = user.id;
+            state.username = user.username;
+            state.photo = user.photo;
+            state.is_login = user.is_login;
+        },
+        updateToken(state, token) {
+            state.token = token;
+        }
+    },
+    actions: {
+        login(context, data) {
+            $.ajax({
+                url: "http://localhost:3000/user/account/token/",
+                type: "post",
+                data: {
+                    username: data.username,
+                    password: data.password
+                },
+                success(resp) {
+                    if (resp.message === "success") {
+                        context.commit("updateToken", resp.token);  // 调用mutations中的函数使用commit
+                        data.success(resp);  // 这里的函数是 UserAccountLoginView 里调用该login方法是传过来的对象中的函数
+                    } else {
+                        data.error(resp);  // 这里的函数是 UserAccountLoginView 里调用该login方法是传过来的对象中的函数
+                    }
+                    
+                },
+                error(resp) {
+                    data.error(resp);
+                }
+            });
+        }
+    },
+    modules: {
+    }
+}
+```
+
+然后将这个 user.js 加入到全局的 module 里面，在 store/index.js 中：
+
+```js
+import { createStore } from 'vuex'
+import ModuleUser from "./user"
+
+export default createStore({
+  state: {
+  },
+  getters: {
+  },
+  mutations: {
+  },
+  actions: {
+  },
+  modules: {
+    user: ModuleUser,
+  }
+})
+```
+
+然后在前端页面中实现一下，在 UserAccountLoginView 中修改，且将页面的数据来源绑定成动态的：
+
+```js
+<template>
+    <ContentField>
+        <div class="row justify-content-md-center">
+            <div class="col-3">
+                <form @submit.prevent="login">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">用户名</label>
+                        <input v-model="username" type="text" class="form-control" id="username" placeholder="请输入用户名">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">密码</label>
+                        <input v-model="password" type="password" class="form-control" id="password" placeholder="请输入密码">
+                    </div>
+                    <div class="error_message">{{message}}</div>
+                    <button type="submit" class="btn btn-primary">登录</button>
+                </form>
+            </div>
+        </div>
+    </ContentField>
+</template>
+
+<script>
+import ContentField from "../../../components/ContentField.vue"
+import { useStore } from "vuex";
+import { ref } from "vue";
+
+export default {
+    components: {
+        ContentField
+    },
+    setup() {
+        const store = useStore();
+        const username = ref('');
+        const password = ref('');
+        const message = ref('');
+
+        const login = () => {
+            message.value = '';
+            store.dispatch("login", {  // 调用 action 中的函数使用 dispatch
+                username: username.value,
+                password: password.value,
+                success(resp) {
+                    console.log(resp);
+                },
+                error() {
+                    message.value = "用户名或密码错误"
+                }
+            })
+        };
+
+        return {
+            username,
+            password,
+            message,
+            login
+        }
+    }
+}
+</script>
+<style scoped >
+button {
+    width: 100%;
+}
+
+div.error_message {
+    color: red;
+}
+</style>
+```
+
+此时登录页面就可以根据用户名和密码拿到 token 了。
+
+#### 登录跳转
+
+如果用户名和密码正确的话，就让页面跳转到主页面。
+
+先引入 router，然后使用 router 的 push 方法，在 UserAccountLoginView 中：
+
+```js
+import router from "../../../router/index"
+
+setup() {
+    // ...
+    const login = () => {
+        // ...
+        store.dispatch("login", {
+            // ...
+            success(resp) {
+                router.push({ name: "home" });  // 跳转到 home 页面，这个名字是在 router/index.js 中定义的
+            },
+            // ...
+        })
+    }
+};
+```
+
+此时就可以实现登陆成功直接跳转到主页。
+
+#### 获取信息
+
+登录成功后，希望动态的显示用户的信息。所以登陆成功后，还需要向后端发送一个请求，来获取当前登录用户的信息，所以在 store/user.js 中再写一个辅助函数：
+
+```js
+getInfo(context, data) {
+    $.ajax({
+        url: "http://localhost:3000/user/account/info/",
+        type: "get",
+        headers: {
+            Authorization: "Bearer " + context.state.token,
+        },
+        success(resp) {  // 成功就更新用户
+            if (resp.message === "success") {
+                context.commit("updateStae", {
+                    ...resp,  // 将resp的内容解析出来,放在当前对象里
+                    is_login: true,
+                });
+                data.success(resp);
+            } else {
+                data.error(resp);
+            }
+        },
+        error(resp) {
+            data.error(resp);
+        }
+
+    });
+},
+```
+
+然后在 UserAccountLoginView 中，调用上面的函数：
+
+```js
+setup() {
+    // ...
+    const login = () => {
+        // ...
+        store.dispatch("login", {
+            // ...
+            success() {
+                store.dispatch("getInfo", {
+                    success() {
+                        router.push({ name: "home" });  // 跳转到 home 页面，这个名字是在 router/index.js 中定义的
+                        console.log(store.state.user);
+                    }
+                })
+            },
+            // ...
+        })
+    }
+};
+```
+
+此时就可以拿到登录用户的信息，保存在 store.state.user 中。
+
+#### 显示信息
+
+将获取到的信息显示到右上角的位置，
+
++ 如果没有登录，则显示注册和登录两个按钮，
++ 已登录则显示用户名
+
+在导航栏组件 NavBar.vue 中，使用 v-if 和 router-link 将右上角的下拉菜单部分改为：
+
+```vue
+<ul class="navbar-nav" v-if="$store.state.user.is_login">
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+           aria-expanded="false">
+            {{ $store.state.user.username }}
+        </a>
+        <ul class="dropdown-menu">
+            <li>
+                <!-- <a class="dropdown-item" href="/user/bots/">我的Bots</a> -->
+                <router-link class="dropdown-item" :to="{ name: 'user_bots_index' }">
+                    我的Bots
+                </router-link>
+            </li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="#">退出</a></li>
+        </ul>
+    </li>
+</ul>
+<ul class="navbar-nav" v-else>
+    <li class="nav-item">
+        <router-link class="nav-link" :to="{ name: 'user_account_login' }" role="button">
+            登录
+        </router-link>
+    </li>
+    <li class="nav-item">
+        <router-link class="nav-link" :to="{ name: 'user_account_register' }" role="button">
+            注册
+        </router-link>
+    </li>
+</ul>
+```
+
+此时右上角的信息就会根据登录状态来显示，且如果没有登录会显示登录和注册的按钮，点击可跳转。
+
+### 4.9 登出
+
+目前这整个认证机制，token 是完全存在本地的，用户将 token 删除，就表示退出登录了。不需要向后端发送请求，直接在前端就可以删除。
+
+在 store/user.js 中的 mutations 中写一个辅助函数：
+
+```js
+logout(state) {
+    state.id = "";
+    state.username = "";
+    state.photo = "";
+    state.token = "";
+    state.is_login = false;
+}
+```
+
+然后在 actions 中调用 logout：
+
+```js
+logout(context) {
+    context.commit("logout");
+},
+```
+
+然后在 NavBar 组件里面加一个事件：
+
+```js
+import { useStore } from 'vuex';
+
+setup() {
+    // ...
+    const store = useStore();
+    const logout = () => store.dispatch("logout");
+
+    return {
+        route_name,
+        logout
+    }
+}
+```
+
+并且修改退出链接的代码：
+
+```vue
+ <li><a class="dropdown-item" href="#" @click="logout">退出</a></li>
+```
+
+这样的话，当我们点击“退出”的时候，会调用 NavBar.vue 中 setup 里面定义的 logout 函数，这个函数里面会调用 user.js 里面 actions 里定义的 logout 函数，这个函数又会调用 mutations 里面定义的 logout 函数。
+
+这样就实现了退出的功能。
+
+此时的系统的 token 保存在本地，一刷新页面就没有了，登录状态就没有了。
