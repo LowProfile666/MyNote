@@ -3524,3 +3524,484 @@ setup() {
 ```
 
 这样就可以了。
+
+## 5、个人中心页面
+
+### 5.1 创建数据表
+
+先创建数据库表 bot，表中包含的列：
+
++ id: int：非空、自动增加、唯一、主键
++ user_id: int：非空
+  注意：在pojo中需要定义成userId，在queryWrapper中的名称仍然为user_id
++ title: varchar(100)
++ description: varchar(300)
++ content：varchar(10000)：bot 的代码
++ rating: int：默认值为1500
++ createtime: datetime
+  pojo中定义日期格式的注解：@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
++ modifytime: datetime
+  pojo中定义日期格式的注解：@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+
+```mysql
+CREATE TABLE `kob`.`bot`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `title` varchar(100) NULL,
+  `description` varchar(300) NULL,
+  `content` varchar(10000) NULL,
+  `rating` int NULL DEFAULT 1500,
+  `createtime` datetime NULL,
+  `modifytime` datetime NULL,
+  PRIMARY KEY (`id`)
+);
+```
+
+创建了数据表就要创建一个 pojo 来对应。
+
+在 pojo 目录下新建一个类 Bot：
+
+```java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Bot {
+    @TableId(type = IdType.AUTO)
+    private Integer id;
+    private Integer userId;  // 在数据库中以下划线分隔命名的，在这里中用驼峰
+    private String title;
+    private String description;
+    private String content;
+    private Integer rating;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date createtime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date modifytime;
+}
+```
+
+然后创建 Mapper：
+
+在 mapper 目录下新建一个接口 BotMapper：
+
+```java
+@Mapper
+public interface BotMapper extends BaseMapper<Bot> {
+}
+```
+
+### 5.2 实现 API
+
+实现 bot 的增删改查的API。
+
+在 service/user 包下新建一个包 bot，在 bot 包下新建四个接口：AddService、RemoveService、UpdateService、GetListService：
+
+AddService：
+
+```java
+public interface AddService {
+    Map<String, String> add(Map<String, String> data);
+}
+```
+
+RemoveService：
+
+```java
+public interface RemoveService {
+    Map<String, String> remove(Map<String, String> data);
+}
+```
+
+UpdateService：
+
+```java
+public interface UpdateService {
+    Map<String, String> update(Map<String, String> data);
+}
+```
+
+GetListService：
+
+```java
+public interface GetListService {
+    List<Bot> getList();  // 返回自己的bot信息，自己的userid存在pojo中，不需要传递参数
+}
+```
+
+接口创建好后，需要实现。在 service/impl/user 包下创建一个包 bot，在 bot 包下创建四个对应的实现类；在 controller/user 包下创建一个包 bot，在这个 bot 包下创建对应的 controller。
+
+#### 添加
+
+AddServiceImpl：
+
+```java
+@Service
+public class AddServiceImpl implements AddService {
+
+    @Autowired
+    private BotMapper botMapper;
+
+    @Override
+    public Map<String, String> add(Map<String, String> data) {
+        // 需要知道当前插入人是谁，需要取出当前 user：
+        UsernamePasswordAuthenticationToken authenticationToken =
+                (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl loginUser = (UserDetailsImpl) authenticationToken.getPrincipal();
+        User user = loginUser.getUser();
+
+        // 将要插入的信息取出来
+        String title = data.get("title");
+        String description = data.get("description");
+        String content = data.get("content");
+
+        // 判断数据合法性
+        Map<String, String> map = new HashMap<>();
+
+        if (title == null || title.isEmpty()) {
+            map.put("message", "标题不能为空");
+            return map;
+        }
+
+        if (title.length() > 100) {
+            map.put("message", "标题长度不能大于100");
+            return map;
+        }
+
+        if (description == null || description.isEmpty()) {
+            description = "这个用户很懒，什么也没留下~";
+        }
+
+        if (description.length() > 300) {
+            map.put("message", "Bot描述的长度不能大于300");
+            return map;
+        }
+
+        if (content == null || content.isEmpty()) {
+            map.put("message", "代码不能为空");
+            return map;
+        }
+
+        if (content.length() > 10000) {
+            map.put("message", "代码长度不能超过10000");
+            return map;
+        }
+
+        Date now = new Date();
+        Bot bot = new Bot(null, user.getId(), title, description, content, 1500, now, now);
+
+        botMapper.insert(bot);
+        map.put("message", "success");
+
+        return map;
+    }
+}
+```
+
+AddController：
+
+```java
+@RestController
+public class AddController {
+    @Autowired
+    private AddService addService;
+
+    @PostMapping("/user/bot/add/")
+    public Map<String, String> add(@RequestParam Map<String, String> data) {
+        return addService.add(data);
+    }
+}
+```
+
+测试，在前台 views/user/bots 下的 UserBoxIndexView.vue 中：
+
+```vue
+<template>
+    <ContentField>
+        我的Bots
+    </ContentField>
+</template>
+
+<script>
+import ContentField from "../../../components/ContentField.vue"
+import $ from 'jquery'
+import { useStore } from "vuex";  // 需要读取token
+
+export default {
+    components: {
+        ContentField
+    },
+    setup() {
+        const store = useStore();
+        $.ajax({
+            url: "http://localhost:3000/user/bot/add/",
+            type: "post",
+            data: {
+                title: "Bot的标题",
+                description: "Bot的描述",
+                content: "Bot的代码",
+            },
+            headers: {  // 访问要授权的页面需要加header
+                Authorization: "Bearer " + store.state.user.token,
+            },
+            success(resp) {
+                console.log(resp);
+            },
+            error(resp) {
+                console.log(resp);
+            }
+        });
+    }
+}
+</script>
+<style scoped></style>
+```
+
+#### 删除
+
+RemoveServiceImpl：
+
+ ```java
+ @Service
+ public class RemoveServiceImpl implements RemoveService {
+     @Autowired
+     private BotMapper botMapper;
+     @Autowired
+     private QueryWrapper<Bot> queryWrapper;
+     @Override
+     public Map<String, String> remove(Map<String, String> data) {
+         // 先找到用户，因为用户只能删除自己的bot
+         UsernamePasswordAuthenticationToken authenticationToken =
+                 (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+         UserDetailsImpl loginUser = (UserDetailsImpl) authenticationToken.getPrincipal();
+         User user = loginUser.getUser();
+ 
+         int bot_id = Integer.parseInt(data.get("bot_id"));
+         Bot bot = botMapper.selectById(bot_id);
+         Map<String, String> map = new HashMap<>();
+ 
+         if (bot == null) {
+             map.put("message", "bot不存在或已被删除");
+             return map;
+         }
+ 
+         if (!bot.getUserId().equals(user.getId())) {
+             map.put("message", "没有权限删除该bot");
+             return map;
+         }
+ 
+         botMapper.deleteById(bot_id);
+         
+         map.put("message", "success");
+         return map;
+     }
+ }
+ ```
+
+RemoveController：
+
+```java
+@RestController
+public class RemoveController {
+    @Autowired
+    private RemoveService removeService;
+    
+    @PostMapping("/user/bot/remove/")
+    public Map<String, String> remove(@RequestParam Map<String, String> data) {
+        return removeService.remove(data);
+    }
+}
+```
+
+测试，在前台 views/user/bots 下的 UserBoxIndexView.vue 中：
+
+```js
+$.ajax({
+    url: "http://localhost:3000/user/bot/remove/",
+    type: "post",
+    data: {
+        bot_id: 1,
+    },
+    headers: {  // 访问要授权的页面需要加header
+        Authorization: "Bearer " + store.state.user.token,
+    },
+    success(resp) {
+        console.log(resp);
+    },
+    error(resp) {
+        console.log(resp);
+    }
+});
+```
+
+#### 更新
+
+UpdateServiceImpl：
+
+```java
+@Service
+public class UpdateServiceImpl implements UpdateService {
+    @Autowired
+    private BotMapper botMapper;
+    @Override
+    public Map<String, String> update(Map<String, String> data) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+                (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl loginUser = (UserDetailsImpl) authenticationToken.getPrincipal();
+        User user = loginUser.getUser();
+
+        Map<String, String> map = new HashMap<>();
+
+        int bot_id = Integer.parseInt(data.get("bot_id"));  // 要修改的bot的id
+        String title = data.get("title");
+        String content = data.get("content");
+        String description = data.get("description");
+
+        Bot bot = botMapper.selectById(bot_id);
+
+        if (title.isEmpty()) {
+            map.put("message", "标题不能为空");
+            return map;
+        }
+
+        if (title.length() > 100) {
+            map.put("message", "标题长度不能大于100");
+            return map;
+        }
+
+        if (description == null || description.isEmpty()) {
+            description = "这个用户很懒，什么也没留下~";
+        }
+
+        if (description.length() > 300) {
+            map.put("message", "Bot描述的长度不能大于300");
+            return map;
+        }
+
+        if (content == null || content.isEmpty()) {
+            map.put("message", "代码不能为空");
+            return map;
+        }
+
+        if (content.length() > 10000) {
+            map.put("message", "代码长度不能超过10000");
+            return map;
+        }
+
+        if (bot == null) {
+            map.put("message", "bot不存在或已被删除");
+            return map;
+        }
+
+        if (!bot.getUserId().equals(user.getId())) {
+            map.put("message", "没有权限修改该bot");
+            return map;
+        }
+
+        Date now = new Date();
+        // Bot bot2 = new Bot(bot_id,user.getId(),title,description,content,bot.getRating(),bot.getCreatetime(),now);
+        Bot bot2 = new Bot(bot_id,user.getId(),title,description,content,null,null,now);  // 使用null也不会更改原有的数据
+
+        botMapper.updateById(bot2);
+
+        map.put("message", "success");
+
+        return map;
+    }
+}
+```
+
+UpdateController：
+
+```java
+@RestController
+public class UpdateController {
+    @Autowired
+    private UpdateService updateService;
+    @PostMapping("/user/bot/update/")
+    public Map<String, String> update(@RequestParam Map<String, String> data) {
+        return updateService.update(data);
+    }
+}
+```
+
+测试，在前台 views/user/bots 下的 UserBoxIndexView.vue 中：
+
+```js
+$.ajax({
+    url: "http://localhost:3000/user/bot/update/",
+    type: "post",
+    data: {
+        bot_id: 2,
+        title: "22222",
+        description: "22222",
+        content: "22222",
+    },
+    headers: {  // 访问要授权的页面需要加header
+        Authorization: "Bearer " + store.state.user.token,
+    },
+    success(resp) {
+        console.log(resp);
+    },
+    error(resp) {
+        console.log(resp);
+    }
+});
+```
+
+#### 查询
+
+GetListServiceImpl：
+
+```java
+@Service
+public class GetListServiceImpl implements GetListService {
+    @Autowired
+    private BotMapper botMapper;
+    @Override
+    public List<Bot> getList() {
+        UsernamePasswordAuthenticationToken authenticationToken =
+                (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl loginUser = (UserDetailsImpl) authenticationToken.getPrincipal();
+        User user = loginUser.getUser();
+
+        QueryWrapper<Bot>  queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", user.getId());
+        return botMapper.selectList(queryWrapper);
+    }
+}
+```
+
+GetListController：
+
+```java
+@RestController
+public class GetListController {
+    @Autowired
+    private GetListService getListService;
+    @GetMapping("/user/bot/getlist/")
+    public List<Bot> getList() {
+        return getListService.getList();
+    }
+}
+```
+
+测试，在前台 views/user/bots 下的 UserBoxIndexView.vue 中：
+
+```js
+$.ajax({
+    url: "http://localhost:3000/user/bot/get/",
+    type: "get",
+    headers: {  // 访问要授权的页面需要加header
+        Authorization: "Bearer " + store.state.user.token,
+    },
+    success(resp) {
+        console.log(resp);
+    },
+    error(resp) {
+        console.log(resp);
+    }
+});
+```
+
+
+
