@@ -2719,11 +2719,11 @@ public class RegisterServiceImpl implements RegisterService {
 
         // 判断用户名和密码是否合法
         // 去除用户名的前后空白字符后，判断是否为空
-        if (username == null || username.trim().isEmpty()) {
+        if (username.isEmpty() || username.trim().isEmpty()) {
             map.put("message", "用户名不能为空");
             return map;
         }
-        if (password == null || confirmedPassword == null) {
+        if (password.isEmpty() || confirmedPassword.isEmpty()) {
             map.put("message", "密码不能为空");
             return map;
         }
@@ -2764,7 +2764,7 @@ public class RegisterServiceImpl implements RegisterService {
 
         userMapper.insert(user);
 
-        map.put("message", "注册成功");
+        map.put("message", "success");
         return map;
     }
 }
@@ -3219,3 +3219,308 @@ setup() {
 这样就实现了退出的功能。
 
 此时的系统的 token 保存在本地，一刷新页面就没有了，登录状态就没有了。
+
+### 4.10 前端页面授权
+
+当未登录时，所有页面都会重定向到登录页面。
+
+为了方便判断哪些页面是需要授权的，可以直接在 route 中保存一个信息：
+
+```js
+const routes = [
+    {
+        path: "/",
+        name: "home",
+        redirect: "/pk/",
+        meta: {  // 存放额外信息的域
+            requestAuth: true,  // 是否需要授权
+        }
+    },
+    //...
+]
+```
+
+在 router 下的 index.js 里，使用 beforeEach 函数：
+
+```js
+import { useStore } from 'vuex'  // 需要读取登录状态
+
+// router 在起作用之前执行的函数
+// 当每次通过 router 进入某个页面之前会被调用
+// to：跳转到的页面
+// form：从哪个页面跳过去
+// next：将页面要不要执行下一步操作
+router.beforeEach((to, from, next) => {
+  // 如果没有登录，且访问页面需要登录
+  if (to.meta.requestAuth && !useStore().state.user.is_login) {
+    next({ name: "user_account_login" });  // 导航到登录页面
+  } else {
+    next();  // 直接下一步
+  }
+})
+```
+
+### 4.11 注册页面
+
+将登录页面复制过来改一改：
+
+```vue
+<template>
+    <ContentField>
+        <div class="row justify-content-md-center">
+                <div class="col-3">
+                    <form @submit.prevent="register">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">用户名</label>
+                            <input v-model="username" type="text" class="form-control" id="username" placeholder="请输入用户名">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">密码</label>
+                            <input v-model="password" type="password" class="form-control" id="password" placeholder="请输入密码">
+                        </div>
+                        <div class="mb-3">
+                                <label for="confirmedPassword" class="form-label">确认密码</label>
+                                <input v-model="confirmedPassword" type="password" class="form-control" id="confirmedPassword" placeholder="请再次输入密码">
+                            </div>
+                        <div class="error_message">{{ message }}</div>
+                        <button type="submit" class="btn btn-primary">注册</button>
+                    </form>
+                </div>
+            </div>
+    </ContentField>
+</template>
+
+<script>
+import ContentField from "../../../components/ContentField.vue"
+import { ref } from 'vue'
+import router from "../../../router/index"
+import $ from "jquery"
+
+export default {
+    components: {
+        ContentField
+    },
+
+    setup() {
+        let username = ref('');
+        let password = ref('');
+        let confirmedPassword = ref('');
+        let message = ref('');
+
+        const register = () => {
+            $.ajax({
+                url: "http://localhost:3000/user/account/register/",
+                type: "post",
+                data: {  // 参数，看后端需要什么
+                    username: username.value,
+                    password: password.value,
+                    confirmedPassword: confirmedPassword.value,
+                },
+                success(resp) {  // 注册成功就直接返回登录页面
+                    if (resp.message === "success")
+                        router.push({ name: "user_account_login" });
+                    else  // 注册失败返回显示错误信息
+                        message.value = resp.message;
+                },
+                error(resp) {
+                    console.log(resp);
+                }
+            });
+        };
+
+        return {
+            username,
+            password,
+            confirmedPassword,
+            message,
+            register
+        }
+    }
+}
+</script>
+<style scoped >
+button {
+    width: 100%;
+}
+
+div.error_message {
+    color: red;
+}
+</style>
+```
+
+注册的 ajax 为什么不放在 user.js 中？
+
+是因为当我们有可能会修改我们 state 的值的时候，才会放在 user.js 中。
+
+### 4.12 登录状态持久化
+
+当前登录后的 token 其实存在内存中，一刷新页面内存就清空了。所以登录状态持久化就是将 token 存在本地浏览器的一小块内存控件里。这个空间是存在 localStorage 中，所以可以将 token 存在 localStorage 中。
+
+在 user.js 中，登录的时候，保存token：
+
+```js
+actions: {
+    login(context, data) {
+        $.ajax({
+            // ...
+            success(resp) {
+                if (resp.message === "success") {
+                    localStorage.setItem("jwt_token", resp.token);  // localStorage是一个字典
+                    //...
+                }
+            }
+            // ...
+        })
+    }
+}              
+```
+
+退出登录的时候，删除掉 token：
+
+```js
+actions: {
+    logout(context) {
+        localStorage.removeItem("jwt_token");
+        context.commit("logout");
+    },
+}   
+```
+
+这时登录后，按 F12 查看 Application 中的 Storage/Local storage 中就会有当前登录用户的 token 信息：
+
+![image-20231126171555449](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311261715550.png)
+
+但此时刷新页面后，依旧会取消我们的登录状态，原因是当我们刷新页面时，它不会自动地将我们的 token 从 localstorage 中取出来，所以需要我们手动判断一下。
+
+每次当用户重定向到了登录页面时，就判断有没有本地的 token
+
++ 有：取出来，验证是否过期
+  + 没有过期：直接登录，不需要输入用户密码
+
+在 UserAccountLoginView 中：
+
+```js
+setup() {
+    // ...
+    const jwt_token = localStorage.getItem("jwt_token");
+    if (jwt_token) {
+        store.commit("updateToken", jwt_token);  // 更新 token
+        // 验证token是否合法
+        // 从云端获取用户信息
+        store.dispatch("getInfo", {
+            success() {  // 如果成功，用户直接跳转到首页
+                router.push({ name: "home" });
+            },
+            error() {
+
+            }
+        })
+    }
+}
+```
+
+流程：刷新过后，是未登录状态，会跳转到登录页面，然后会从本地拿到 token ，如果 token 存在，则将 token 更新到内存当中，然后再从云端请求一下用户的信息，如果可以请求到信息，表示 token 是有效的，是可以登录的，所以就跳转到首页。
+
+> 也可以把从 localStorage 取用户信息的过程放在 router/index.js 的 beforeEach 函数中，在每次跳转路由前就不用再去请求登录页面，这样就可以每次刷新时对应的 url 也不会发生变化。
+>
+> ```js
+> router.beforeEach((to, from, next) => {
+> 
+>   let flag = 1;
+>   const jwt_token = localStorage.getItem("jwt_token");
+> 
+>   if (jwt_token) {
+>     store.commit("updateToken", jwt_token);
+>     store.dispatch("getInfo", {
+>       success() {
+>       },
+>       error() {
+>         alert("token无效，请重新登录！");
+>         router.push({ name: 'userLogin' });
+>       }
+>     })
+>   } else {
+>     flag = 2;
+>   }
+> 
+>   if (to.meta.requestAuth && !store.state.user.is_login) {
+>     if (flag === 1) {
+>       next();
+>     } else {
+>       alert("请先进行登录！");
+>       next({name: "userLogin"});
+>     }
+>   } else {
+>     next();
+>   }
+> })
+> ```
+>
+> 
+
+但是这里刷新的时候，虽然跳过了登录的页面，但是登录页面和导航栏在刷新的时候会一闪而过，不好看，优化：
+
+可以先让登录页面和导航栏默认不显示，等我们判断结束之后，再选择将他展示出来，使用一个全局变量来设置默认不显示，在 user.js 中：
+
+```js
+state: {
+    // ...
+    pulling_info: true,  // 表示当前是不是正在获取信息当中
+},
+mutations: {  // 一般用来修改数据
+    //...
+    updatePullingInfo(state, pulling_info) {
+        state.pulling_info = pulling_info;
+    }
+},
+```
+
+如果在获取信息的话，就不展示我们的登录页面：
+
+```js
+<ContentField v-if="!$store.state.user.pulling_info">  <!--正在拉取信息的话不展示-->
+    // ...
+</ContentField>
+// ...
+setup() {
+    // ...
+    const jwt_token = localStorage.getItem("jwt_token");
+    if (jwt_token) {
+        store.commit("updateToken", jwt_token);  // 更新 token
+        // 验证token是否合法
+        // 从云端获取用户信息
+        store.dispatch("getInfo", {
+            success() {  // 如果成功，用户直接跳转到首页
+                router.push({ name: "home" });
+                store.commit("updatePullingInfo", false);
+            },
+            error() {
+                store.commit("updatePullingInfo", false);
+            }
+        })
+    } else {  // 本地没有 token
+       	store.commit("updatePullingInfo", false);
+    }
+    // ...
+}
+```
+
+然后在 NavBar.vue 中：
+
+```vue
+<ul class="navbar-nav" v-else-if="!$store.state.user.pulling_info">
+    <li class="nav-item">
+        <router-link class="nav-link" :to="{ name: 'user_account_login' }" role="button">
+            登录
+        </router-link>
+    </li>
+    <li class="nav-item">
+        <router-link class="nav-link" :to="{ name: 'user_account_register' }" role="button">
+            注册
+        </router-link>
+    </li>
+</ul>
+```
+
+这样就可以了。
