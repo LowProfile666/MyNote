@@ -4003,5 +4003,429 @@ $.ajax({
 });
 ```
 
+### 5.3 实现前端
 
+在 src/views/user/bots 下的 UserBotsIndexView.vue 中实现。
+
+可以使用 bootstrap 中的 grid，grid 将一行分为 12 个部分，我们可以自己规定一个元素占多少格。
+
+```vue
+<template>
+    <div class="container"> <!--container会根据窗口自动调整大小-->
+        <div class="row">
+            <div class="col-3">
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-body">
+                        <img :src="$store.state.user.photo" alt="" style="width: 100%;">
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-9">
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <span style="font-size: 130%;">我的Bot</span>
+                        <button type="button" class="btn btn-dark float-end">创建Bot</button> <!--float-end是向右对齐的类-->
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>名称</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="bot in bots" :key="bot.id">
+                                    <td>{{ bot.title }}</td>
+                                    <td>{{ bot.createtime }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-secondary" style="margin-right: 10px;">修改</button>
+                                        <button type="button" class="btn btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</template>
+
+<script>
+
+import { ref } from 'vue'
+import $ from 'jquery'
+import { useStore } from 'vuex'
+
+export default {
+    setup() {
+        const store = useStore();
+        let bots = ref([]);
+        const refresh_bots = () => {
+            $.ajax({
+                url: "http://127.0.0.1:3000/user/bot/getlist/",
+                type: "get",
+                headers: {
+                    Authorization: "Bearer " + store.state.user.token,
+                },
+                success(resp) {
+                    bots.value = resp;
+                },
+                error() {
+
+                },
+            });
+        }
+
+        refresh_bots();
+
+        return {
+            bots
+        }
+    }
+}
+</script>
+<style scoped></style>
+```
+
+效果：
+
+![image-20231127144305563](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311271443913.png)
+
+### 5.4 创建功能
+
+点击创建按钮，弹出一个浮窗，在浮窗里创建。在 bootstrap 中搜索 modal。浮窗里需要表单，在 bootstrap 中搜索 form。
+
+还是在 UserBotsIndexView.vue 中添加代码：
+
+```vue
+<template>
+    <div class="container"> <!--container会根据窗口自动调整大小-->
+        <!--...-->
+            <div class="col-9">
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <span style="font-size: 130%;">我的Bot</span>
+                        <button type="button" class="btn btn-dark float-end" data-bs-toggle="modal"
+                            data-bs-target="#add-bot-btn">
+                            创建Bot
+                        </button> 
+                        <!-- data-bs-toggle="modal" data-bs-target="#exampleModal" 这一句在哪就是点哪打开浮窗 -->
+                        <!-- Modal -->
+                        <div class="modal fade" id="add-bot-btn" tabindex="-1" aria-labelledby="exampleModalLabel"
+                            aria-hidden="true">
+                            <div class="modal-dialog modal-xl">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="exampleModalLabel">创建 Bot</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="add-bot-title" class="form-label">名称</label>
+                                            <input v-model="botadd.title" type="text" class="form-control"
+                                                id="add-bot-title" placeholder="请输入Bot名称">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="add-bot-description" class="form-label">简介</label>
+                                            <textarea v-model="botadd.description" class="form-control"
+                                                id="add-bot-description" rows="3" placeholder="请输入Bot简介"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="add-bot-code" class="form-label">代码</label>
+                                            <textarea v-model="botadd.content" class="form-control" id="add-bot-code"
+                                                rows="7" placeholder="请编写Bot代码"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <div class="message">{{ botadd.message }}</div>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                        <button type="button" class="btn btn-primary" @click="addbot">创建</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>名称</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="bot in bots" :key="bot.id">
+                                    <td>{{ bot.title }}</td>
+                                    <td>{{ bot.createtime }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-secondary"
+                                            style="margin-right: 10px;">修改</button>
+                                        <button type="button" class="btn btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+import { ref, reactive } from 'vue'  // ref 绑定一个变量，reactive 绑定一个对象
+import $ from 'jquery'
+import { useStore } from 'vuex'
+import { Modal } from 'bootstrap/dist/js/bootstrap'  // 手动关闭浮窗，路径要写完全
+
+export default {
+    setup() {
+        const store = useStore();
+        let bots = ref([]);
+
+        const botadd = reactive({
+            title: "",
+            description: "",
+            content: "",
+            message: "",
+        });
+
+        const refresh_bots = () => {
+            $.ajax({
+                url: "http://127.0.0.1:3000/user/bot/getlist/",
+                type: "get",
+                headers: {
+                    Authorization: "Bearer " + store.state.user.token,
+                },
+                success(resp) {
+                    bots.value = resp;
+                },
+                error() {
+                },
+            });
+        }
+
+        const addbot = () => {
+            botadd.message = "";
+            $.ajax({
+                url: "http://127.0.0.1:3000/user/bot/add/",
+                type: "post",
+                data: {
+                    title: botadd.title,
+                    description: botadd.description,
+                    content: botadd.content,
+                },
+                headers: {
+                    Authorization: "Bearer " + store.state.user.token,
+                },
+                success(resp) {
+                    if (resp.message === "success") {
+                        botadd.title = "";
+                        botadd.content = "";
+                        botadd.description = "";
+                        Modal.getInstance("#add-bot-btn").hide();  // 关闭浮窗
+                        refresh_bots();
+                    }
+                    else
+                        botadd.message = resp.message;
+                },
+                error() {
+                }
+            });
+        }
+
+        refresh_bots();
+
+        return {
+            bots,
+            botadd,
+            addbot,
+        }
+    }
+}
+</script>
+<style scoped>
+div.message {
+    color: red;
+}
+</style>
+```
+
+如果创建时间不对，需要更改时区，在 pojo 层中修改：
+
+```java
+@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
+private Date createtime;
+@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
+private Date modifytime;
+```
+
+### 5.5 删除功能
+
+```js
+const removebot = (bot) => {
+    $.ajax({
+        url: "http://127.0.0.1:3000/user/bot/remove/",
+        type: "post",
+        data: {
+            bot_id: bot.id,
+        },
+        headers: {
+            Authorization: "Bearer " + store.state.user.token,
+        },
+        success(resp) {
+            if (resp.message === "success")
+                refresh_bots();
+        }
+    });
+}
+//...
+return {
+    //...
+    removebot,
+}
+```
+
+在删除按钮上绑定这个事件：
+
+```vue
+<button type="button" class="btn btn-danger" @click="removebot(bot)">删除</button>
+```
+
+### 5.6 修改功能
+
+要给修改按钮添加一个浮窗，浮窗的 id 随着当前 bot 的 id 有关：
+
+```vue
+<button type="button" class="btn btn-secondary" style="margin-right: 10px;"
+        data-bs-toggle="modal" :data-bs-target="'#update-bot-modal-' + bot.id">
+    修改
+</button>
+<!-- Modal -->
+<div class="modal fade" :id="'update-bot-modal-' + bot.id" tabindex="-1"
+     aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">修改 Bot</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="update-bot-title" class="form-label">名称</label>
+                    <input v-model="bot.title" type="text" class="form-control"
+                           id="update-bot-title" placeholder="请输入Bot名称">
+                </div>
+                <div class="mb-3">
+                    <label for="update-bot-description"
+                           class="form-label">简介</label>
+                    <textarea v-model="bot.description" class="form-control"
+                              id="update-bot-description" rows="3"
+                              placeholder="请输入Bot简介"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="update-bot-code" class="form-label">代码</label>
+                    <textarea v-model="bot.content" class="form-control"
+                              id="update-bot-code" rows="7"
+                              placeholder="请编写Bot代码"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="message">{{ bot.message }}</div>
+                <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary"
+                        @click="updatebot(bot)">修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+实现修改函数：
+
+```js
+const updatebot = (bot) => {
+    $.ajax({
+        url: "http://127.0.0.1:3000/user/bot/update/",
+        type: "post",
+        data: {
+            bot_id: bot.id,
+            title: bot.title,
+            description: bot.description,
+            content: bot.content,
+        },
+        headers: {
+            Authorization: "Bearer " + store.state.user.token,
+        },
+        success(resp) {
+            if (resp.message === "success") {
+                Modal.getInstance('#update-bot-modal-' + bot.id).hide();  // 关闭浮窗
+                refresh_bots();
+            }
+        }
+    });
+}
+return {
+     //...
+     updatebot,
+}
+```
+
+### 5.7 安装编辑器
+
+在 vue 控制台中安装一个依赖 ：vue3-ace-editor 和 ace-builds。安装之后需要集成一下：
+
+在 `<script>` 中导入：
+
+```js
+// 加了这个【import "ace-builds/webpack-resolver";】可能会报错
+//（若报错 则需要安装node.js的一个包 就是主题）
+// 命令：npm install --save-dev file-loader
+import "ace-builds/webpack-resolver";
+import 'ace-builds/src-noconflict/mode-json';
+import 'ace-builds/src-noconflict/theme-chrome';
+import 'ace-builds/src-noconflict/ext-language_tools';
+```
+
+在 `setup()` 中：
+
+```js
+const aceConfig = reactive({
+    theme: 'textmate', //主题
+    readOnly: false, //是否只读
+    options: {
+        enableBasicAutocompletion: true,
+        enableSnippets: true,
+        enableLiveAutocompletion: true,
+        tabSize: 2,
+        showPrintMargin: false,
+        fontSize: 16
+    }
+});
+```
+
+在创建按钮的浮窗中修改 textarea 为：
+
+```vue
+<VAceEditor v-model:value="botadd.content" @init="editorInit"
+            lang="java" :theme="aceConfig.theme" style="height: 300px"
+            :options="aceConfig.options" class="ace-editor" />
+```
+
+在修改按钮的浮窗中修改 textarea 为：
+
+```vue
+<VAceEditor v-model:value="bot.content" @init="editorInit"
+            lang="java" :theme="aceConfig.theme" style="height: 300px"
+            :options="aceConfig.options" class="ace-editor" />
+```
 
