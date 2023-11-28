@@ -4429,3 +4429,724 @@ const aceConfig = reactive({
             :options="aceConfig.options" class="ace-editor" />
 ```
 
+## 6、微服务：匹配系统
+
+匹配玩家之间 PK。匹配过程：
+
+![image-20231127170104804](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311271701978.png)
+
+在客户端，打开界面、点击匹配后，向服务器发送一个请求，服务器收到请求后会将请求发送到匹配系统，匹配系统将匹配结果返回给服务器，服务器再将匹配信息返回给玩家。
+
+同时，现在的地图是在用户本地生成的，而当两个玩家pk时，地图应该是在服务器端生成一张一模一样的地图，还有蛇的移动、判定等都应该放在服务器端完成。服务器判定完后，将结果返回给前端，前端不做业务逻辑，只画动画。
+
+### 6.1 集成 WebSocket
+
+在 pom.xml 文件中添加依赖：
+
++ spring-boot-starter-websocket（2.7.2）
++ fastjson（2.0.11）
+
+添加完依赖要刷新下 Maven。
+
+添加 config.WebSocketConfig 配置类：在 config 包下新建类 WebSocketConfig：
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.socket.server.standard.ServerEndpointExporter;
+
+@Configuration
+public class WebSocketConfig {
+
+    @Bean
+    public ServerEndpointExporter serverEndpointExporter() {
+
+        return new ServerEndpointExporter();
+    }
+}
+```
+
+添加 consumer.WebSocketServer 类，在 backend 下新建一个包 consumer，在 consumer 包下新建一个类 WebSocketServer：
+
+```java
+import org.springframework.stereotype.Component;
+
+import javax.websocket.*;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
+
+@Component
+@ServerEndpoint("/websocket/{token}")  // 这是映射的链接，注意不要以'/'结尾
+public class WebSocketServer {
+    @OnOpen
+    public void onOpen(Session session, @PathParam("token") String token) {
+        // 建立连接
+    }
+
+    @OnClose
+    public void onClose() {
+        // 关闭链接
+    }
+
+    @OnMessage
+    public void onMessage(String message, Session session) {
+        // 从Client接收消息
+    }
+
+    @OnError
+    public void onError(Session session, Throwable error) {
+        error.printStackTrace();
+    }
+}
+```
+
+配置 config.SecurityConfig，创建的链接默认都会被屏蔽掉，只有在 SecurityConfig 中指定放行的链接才能访问：
+
+```java
+@Override
+public void configure(WebSecurity web) throws Exception {
+    web.ignoring().antMatchers("/websocket/**");
+}
+```
+
+#### 测试连接
+
+PkIndexView.vue：
+
+```vue
+<template>
+    <PlayGround>
+    </PlayGround>
+</template>
+
+<script>
+import { useStore } from "vuex";
+import PlayGround from "../../components/PlayGround.vue"
+// 当当前的组件被加载出来后再建立连接，需要这两个函数
+import { onMounted, onUnmounted } from "vue";
+
+export default {
+    components: {
+        PlayGround
+    },
+    setup() {
+        const store = useStore();
+        const socketUrl = `ws://localhost:3000/websocket/${store.state.user.id}`;  // 这里使用的是飘号`，不是单引号
+
+        let socket = null;
+        onMounted(() => {  // 挂载的时候需要创建连接
+            socket = new WebSocket(socketUrl);  // 创建连接,WebSocket是js自带的类
+
+            socket.onopen = () => {  // 当链接创建成功时
+                console.log("connected");
+                // 成功创建了链接，要将这个链接存到全局变量里面
+                store.commit("updateSocket", socket);
+            };
+
+            socket.onmessage = msg => {  // 当接收到信息的时候
+                const data = JSON.parse(msg.data);  // sping发过来的是json格式
+                console.log(data);
+            }
+
+            socket.onclose = () => {  // 当关闭连接时
+                console.log("disconnected");
+            }
+        }); 
+
+        onUnmounted(() => {  // 当当前页面被关闭时
+            socket.onclose();  // 如果不断开链接的话，每次切换页面都会新建一个链接，然后刷新一下就会断开所有的链接
+        });
+    }
+}
+</script>
+
+<style scoped></style>
+```
+
+还要在 store 文件夹下新建一个 pk.js :
+
+```js
+// 存和pk有关的全局变量
+export default {
+    state: {
+        status: "matching",  // 当前的状态，matching表示匹配界面，playing表示对战界面
+        socket: null,  // 前端和后端建立的连接
+        opponent_username: "",  // 竞争对手的名字
+        opponent_photo: "",  // 竞争对手头像
+    },
+    getters: {
+    },
+    mutations: {
+        updateSocket(state, socket) {
+            state.socket = socket;
+        },
+        updateOpponent(state, opponent) {
+            state.opponent_username = opponent.username;
+            state.opponent_photo = opponent.photo;
+        },
+        updateStatus(state, status) {
+            state.status = status;
+        }
+    },
+    actions: {
+    },
+    modules: {
+    }
+}
+```
+
+后端中这样写：
+
+```java
+@Component
+@ServerEndpoint("/websocket/{token}")  // 这是映射的链接，注意不要以'/'结尾
+public class WebSocketServer {
+    // 存下所有的链接信息，ConcurrentHashMap 是一个线程安全的哈希表
+    // 这个是要对所有实例可见的，要加static，不加static的话，每个实例都会有一份
+    private static ConcurrentHashMap<Integer, WebSocketServer> users = new ConcurrentHashMap<>();
+    private User user;  // 存每个链接对应的用户是谁
+    private Session session = null;  // websocket里的一个包，从后端向前端发送信息需要用到的 API
+    // 注入数据库服务
+    private static UserMapper userMapper;
+    @Autowired
+    public void setUserMapper(UserMapper userMapper) {
+        WebSocketServer.userMapper = userMapper;
+    }
+    @OnOpen
+    public void onOpen(Session session, @PathParam("token") String token) {
+        this.session = session;
+        System.out.println("connection");
+        // 假设token是用户id
+        Integer userId = Integer.parseInt(token);
+        // 通过id查出用户
+        this.user = userMapper.selectById(userId);
+        users.put(userId, this);
+    }
+
+    @OnClose
+    public void onClose() {
+        // 关闭链接
+        System.out.println("disconnection");
+        // 需要将user从users里删掉
+        if (this.user != null) {
+            users.remove(this.user.getId());
+        }
+    }
+ 
+    // 从后端往前端发送信息
+    public void sendMessage(String message) {
+        // 异步操作，加个锁
+        synchronized (this.session) {
+            try {
+                this.session.getBasicRemote().sendText(message);  // 这个api可以从后端向当前的链接发送信息，链接是由session获得的
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+此时进入 pk 页面，就建立连接了，后端就可以拿到当前的用户信息。
+
+#### jwt验证
+
+将以上连接时的用户 id 换成 token，使用 jwt 验证。
+
+可以将验证 token 这一模块单独地写一个类出来，在 consumer 包下新建一个 utils 包，在 utils 包下新建一个 JwtAuthentication 类：
+
+```java
+public class JwtAuthentication {
+    public static Integer getUserId(String token) {
+        Integer userId = -1;
+        try {
+            Claims claims = JwtUtil.parseJWT(token);
+            userId = Integer.parseInt(claims.getSubject());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return userId;
+    }
+}
+```
+
+这一块代码是 config/filter  下的 JwtAuthenticationTokenFilter 中的验证代码。
+
+然后在 WebSocketServer 中修改 onOpen 方法：
+
+```java
+@OnOpen
+public void onOpen(Session session, @PathParam("token") String token) throws IOException {
+    this.session = session;
+    System.out.println("connection");
+    // 拿到用户id
+    Integer userId = JwtAuthentication.getUserId(token);
+    // 通过id查出用户
+    this.user = userMapper.selectById(userId);
+
+    if (this.user != null)
+        users.put(userId, this);
+    else
+        this.session.close();
+}
+```
+
+接下来就是实现匹配界面，以及实现匹配界面和pk界面的切换，切换由全局变量中的 status 决定，已经定义好了。
+
+### 6.2 实现匹配界面
+
+匹配页面的布局：
+
+![image-20231128160032585](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311281600677.png)
+
+在 components 下新建一个 MatchGround.vue 文件：
+
+```vue
+<template>
+    <div class="matchground">
+
+    </div>
+</template>
+
+<script>
+
+export default {
+
+}
+</script>
+
+<style scoped>
+div.matchground {
+    /* 百分之60的浏览器宽度，百分之70的高度*/
+    width: 60vw;
+    height: 70vh;
+    /* background-color: lightblue; */
+    /* 设置居中，且离上方有40px距离*/
+    margin: 40px auto;
+    background-color: lightblue;  /*调试用*/
+}
+</style>
+```
+
+然后要将匹配界面引入到主界面：
+
+```vue
+<template>
+    <PlayGround v-if="$store.state.pk.status === 'playing'" />  <!--当状态为playing时才显示-->
+    <MatchGround v-else/>
+</template>
+<script>
+//...
+import MatchGround from "../../components/MatchGround.vue"
+    export default {
+        components: {
+            PlayGround,
+            MatchGround
+        },
+    }
+    //...
+</script>
+```
+
+此时，将 store/pk.js 中的 status 设为 matching 就可以看到匹配界面：
+
+![image-20231128155820105](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311281558455.png)
+
+然后再修改下 MatchGround.vue：
+
+```vue
+<template>
+    <div class="matchground">
+        <div class="row">
+            <div class="col-6">
+                <div class="user-photo">
+                    <img :src="$store.state.user.photo" alt="">
+                </div>
+                <div class="user-username">
+                    {{ $store.state.user.username }}
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="user-photo">
+                        <img :src="$store.state.pk.opponent_photo" alt="">
+                    </div>
+                    <div class="user-username">
+                        {{ $store.state.pk.opponent_username }}
+                    </div>
+            </div>
+        </div>
+        <div class="col-12" style="text-align: center; padding-top: 10vh;">
+            <button @click="click_match_btn" type="button" class="btn btn-outline-warning btn-lg">
+                {{ match_btn_info }}
+    		</button>
+        </div>
+    </div>
+</template>
+
+<script>
+import { ref } from 'vue';
+
+export default {
+    setup() {
+        let match_btn_info = ref("开始匹配");
+
+        const click_match_btn = () => {
+            if (match_btn_info.value === "开始匹配")
+                match_btn_info.value = "取消"
+            else
+                match_btn_info.value = "开始匹配"
+        }
+
+        return {
+            match_btn_info,
+            click_match_btn,
+        }
+    }
+}
+</script>
+
+<style scoped>
+div.matchground {
+    /* 百分之60的浏览器宽度，百分之70的高度*/
+    width: 60vw;
+    height: 70vh;
+    /* background-color: lightblue; */
+    /* 设置居中，且离上方有40px距离*/
+    margin: 40px auto;
+    background-color: rgb(50,50,50,0.5);
+}
+/* 头像居中 */
+div.user-photo {
+    text-align: center;  
+    padding-top: 10vh;
+}
+/* 头像变圆变小 */
+div.user-photo > img{
+    border-radius: 50%;
+    width: 20vh;
+}
+/* 名字居中变大加粗 */
+div.user-username {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: white;
+    padding-top: 2vh;
+}
+</style>
+```
+
+可以 Pk 主页 PkIndexView 中的 onMounted 函数中指定一个对手的头像和名字：
+
+```js
+store.commit("updateOpponent", {
+    username: "我的对手",
+    photo: "https://cdn.acwing.com/media/article/image/2022/08/09/1_1db2488f17-anonymous.png"
+})
+```
+
+此时前端页面的效果就是：
+
+![image-20231128164231623](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311281642060.png)
+
+### 6.3 实现业务逻辑
+
+#### 匹配
+
+当点击开始匹配时，向后端发送一个请求，服务器会将请求放在匹配池中，当匹配池满 2 个后，就返回：
+
+![image-20231128164625465](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311281646567.png)
+
+如何区分事件（匹配和取消匹配）：因为传输的数据是 json，所以可以在 json 中添加一个域用来区分：
+
+```js
+setup() {
+    const store = useStore();
+
+    let match_btn_info = ref("开始匹配");
+
+    const click_match_btn = () => {
+        if (match_btn_info.value === "开始匹配") {
+            match_btn_info.value = "取消";
+            // socket有一个api：send，可以像后端发送信息
+            // stringify表示将一个json封装成字符串
+            store.state.pk.socket.send(JSON.stringify({
+                event: "start-matching",  // 后端用来区分事件
+            }));
+        }
+        else {
+            match_btn_info.value = "开始匹配"
+            store.state.pk.socket.send(JSON.stringify({
+                event: "stop-matching",
+            }));
+        }
+    }
+}
+```
+
+然后在后端程序 WebSocketServer 中：
+
+```java
+@OnMessage
+public void onMessage(String message, Session session) {  // 把message当作路由
+    // 从Client接收消息
+    System.out.println("receive message");
+
+    JSONObject data = JSONObject.parseObject(message);  // 解析字符串成json
+    String event = data.getString("event");  // 取出区分域
+
+    if ("start-matching".equals(event)) {
+        startMatching();  // 开始匹配
+    } else {
+        stopMatching();  // 停止匹配
+    }
+}
+public void startMatching() {
+    System.out.println("start matching");
+    // 开始匹配时，将用户加入匹配池
+    matchPool.add(this.user);
+
+    // 当匹配池用户多余两个时，任意匹配
+    while (matchPool.size() >= 2) {
+        Iterator<User> it = matchPool.iterator();
+        User a = it.next(), b = it.next();
+        matchPool.remove(a);
+        matchPool.remove(b);
+
+        // 匹配成功后。要将信息返回前端
+        JSONObject respA = new JSONObject();
+        respA.put("event", "start-matching");
+        respA.put("opponent_username", b.getUsername());
+        respA.put("opponent_photo", b.getPhoto());
+        // 获取a的连接，然后给前端发送信息
+        users.get(a.getId()).sendMessage(respA.toJSONString());
+
+        JSONObject respB = new JSONObject();
+        respB.put("event", "start-matching");
+        respB.put("opponent_username", a.getUsername());
+        respB.put("opponent_photo", a.getPhoto());
+        // 获取a的连接，然后给前端发送信息
+        users.get(b.getId()).sendMessage(respB.toJSONString());
+    }
+}
+
+public void stopMatching() {
+    System.out.println("stop matching");
+    // 取消匹配时，将用户移除匹配池
+    matchPool.remove(this.user);
+}
+```
+
+然后后端返回给前端的信息也需要接受判断，在 PjIndexView 中：
+
+```js
+socket.onmessage = msg => {  // 当接收到信息的时候
+    const data = JSON.parse(msg.data);  // sping发过来的是json格式
+    if (data.event.value === "start-matching") {  // 匹配成功
+        // 更新对手信息
+        store.commit("updateOpponent", {
+            username: data.opponent_username,
+            photo: data.opponent_photo, 
+        })
+    }
+}
+```
+
+然后使用两个浏览器来登录两个账号进行测试，因为一个浏览器不能登录两个账号。此时可以匹配成功：
+
+![image-20231128200145331](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311282001749.png)
+
+然后匹配成功后应该跳转 pk 页面，只需要将 pk 的 status 的值改为 playing 即可，同时设置个延迟，2 秒后跳转：
+
+```js
+setTimeout(() => {
+    store.commit("updateStatus", "playing");
+}, 2000);
+```
+
+然后设置点击其他页面后就自动取消 pk，当再回到 pk 页面时就是匹配界面，就是在当这个页面被卸载的时候将 pk 的 status 改为 matching：
+
+```js
+onUnmounted(() => {  // 当当前页面被关闭时
+    socket.onclose();  // 如果不断开链接的话，每次切换页面都会新建一个链接，然后刷新一下就会断开所有的链接
+    store.commit("updateStatus", "matching");
+});
+```
+
+现在就只有同步的问题。每个人的地图都是在本地生成的，所以两方的地图不一样。我们需要同一生成地图，就需要将生成地图的逻辑放在云端。
+
+#### 同步地图
+
+在后端 consumer 包下 utils 包下新建一个类 Game，用来管理整个游戏的流程：
+
+```java
+public class Game {
+    final private Integer rows;  // 地图行数
+    final private Integer cols;  // 地图列数
+    final private Integer inner_walls_count;  // 障碍物数
+    final private int[][] g;  // 地图
+    final private static int[] dx = {-1,0,1,0}, dy={0,1,0,-1};
+
+    public Game(Integer rows, Integer cols, Integer inner_walls_count) {
+        this.rows = rows;
+        this.cols = cols;
+        this.inner_walls_count = inner_walls_count;
+        this.g = new int[rows][cols];
+    }
+
+    // 返回地图
+    public int[][] getG() {
+        return g;
+    }
+
+    // 画地图
+    public void createMap() {
+        for (int i = 0; i < 1000; i++) {
+            if (draw())
+                break;
+        }
+    }
+    private boolean draw() {  // 0表示空地，1表示墙
+        for (int i = 0; i < this.rows; i++) {
+            for (int j = 0; j < this.cols; j++) {
+                g[i][j] = 0;
+            }
+        }
+
+        for (int r = 0; r < this.rows; r++) {
+            g[r][0] = g[r][this.cols - 1] = 1;
+        }
+
+        for (int c = 0; c < this.cols; c++) {
+            g[0][c] = g[this.rows - 1][c] = 1;
+        }
+
+        Random random = new Random();
+        for (int i = 0; i < this.inner_walls_count / 2; i++) {
+            int r, c;
+            do {
+                r = random.nextInt(this.rows);
+                c = random.nextInt(this.cols);
+
+                if (g[r][c] == 1 || g[this.rows - 1 - r][this.cols - 1 - c] == 1) continue;
+
+                if (r == this.rows - 2 && c == 1 || r == 1 && c == this.cols - 2) continue;
+                // Add symmetry
+                g[r][c] = g[this.rows - 1 - r][this.cols - 1 - c] = 1;
+                break;
+            } while (true);
+        }
+
+        return checkConnectivity(this.rows - 2, 1, 1, this.cols - 2);
+    }
+    private boolean checkConnectivity(int sx, int sy, int tx, int ty) {
+        if (sx == tx && sy == ty) return true;
+        g[sx][sy] = 1;
+
+        for (int i = 0; i < 4; i++) {
+            int x = sx + dx[i];
+            int y = sy + dy[i];
+
+            // 如果没有撞墙，且能连接到终点就返回 true
+            if (g[x][y] == 0 && this.checkConnectivity(x, y, tx, ty)) {
+                g[x][y] = 0;
+                return true;
+            }
+        }
+
+        g[sx][sy] = 0;
+        return false;
+    }
+}
+```
+
+然后在 WebSocketServer 中要将地图创建出来，并且返回给前端：
+
+```java
+public void startMatching() {
+ //...
+    Game game = new Game(13,14,20);
+    game.createMap();
+    while (matchPool.size() >= 2) {
+     //...
+        respA.put("gamemap", game.getG());
+     //...
+        respB.put("gamemap", game.getG());
+    }
+}
+```
+
+然后在前端要接收到地图，将地图存到一个全局变量中，在 pk.js 中：
+
+```js
+export default {
+    state: {
+        //...
+        gamemap: null,
+    },
+    getters: {
+    },
+    mutations: {
+        //...
+        updateGamemap(state, gamemap) {
+            state.gamemap = gamemap;
+        }
+    },
+    actions: {
+    },
+    modules: {
+    }
+}
+```
+
+然后在匹配成功后，更新地图，在 PkIndexView 中：
+
+```js
+store.commit("updateGamemap", data.gamemap);
+```
+
+在 GameMap.vue 中：
+
+```js
+import { useStore } from "vuex";
+
+onMounted(() => {
+    new GameMap(canvas.value.getContext('2d'), parent.value, useStore()); 
+});
+```
+
+然后修改 GameMap.js ：
+
+```js
+//...
+import { Snake } from "./Snake";
+
+export class GameMap extends AcGameObject {
+    constructor(ctx, parent, store) {  
+//...
+        this.store = store;
+//...
+    }
+
+    create_walls() {
+        // 画出障碍物
+        const g = this.store.state.pk.gamemap;
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+                if (g[r][c])
+                    this.walls.push(new Wall(r, c, this));
+            }
+        }
+        return true;
+    }
+//...
+    start() {
+        this.create_walls();
+        this.add_listening_events();
+    }
+//...
+}
+```
+
+这样地图就同步好了。
+
