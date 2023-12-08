@@ -1445,6 +1445,9 @@ public async Task<ActionResult> Approve(FrameworkUserVM vm)
 然后将 Edit.cshtml 文件复制一份，改名为 Approve ，其他部分都可以和 Edit 页面一样，只不过需要将提交和关闭按钮改成同意和拒绝：
 
 ```c#
+<wt:form vm="@Model" url="/_Admin/FrameworkUser/Approve" >
+    
+
 <wt:hidden field="ActionName"/> 
     
 <wt:row>
