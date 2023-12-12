@@ -370,74 +370,74 @@ Systemd 是一个在现代 Linux 系统上管理系统和服务的系统和服�
 
 
 
-## 安装Docker
+## ~~安装Docker~~
 
-1. 安装必要的依赖：
+1. ~~安装必要的依赖：~~
 
    ```
    sudo yum install -y yum-utils device-mapper-persistent-data lvm2
    ```
 
-2. 添加 Docker 存储库：
+2. ~~添加 Docker 存储库：~~
 
    ```
    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
    ```
 
-3. 安装 Docker：
+3. ~~安装 Docker：~~
 
    ```
    sudo yum install -y docker-ce docker-ce-cli containerd.io
    ```
 
-4. 启动 Docker 服务：
+4. ~~启动 Docker 服务：~~
 
    ```
    sudo systemctl start docker
    ```
 
-5. 设置 Docker 开机启动：
+5. ~~设置 Docker 开机启动：~~
 
    ```
    sudo systemctl enable docker
    ```
 
-6. 验证安装是否成功：
+6. ~~验证安装是否成功：~~
 
    ```
    sudo docker run hello-world
    ```
 
-由于 CentOS8 防火墙使用了 `nftables`，但 Docker 尚未支持 `nftables`，我们可以行如下命令：
+~~由于 CentOS8 防火墙使用了 `nftables`，但 Docker 尚未支持 `nftables`，我们可以行如下命令：~~
 
 ```bash
 $ firewall-cmd --permanent --zone=trusted --add-interface=docker0
 $ firewall-cmd --reload
 ```
 
-如果您需要获取Docker官方提供的CentOS 8镜像，可以通过以下命令从Docker Hub下载它：
+~~如果您需要获取Docker官方提供的CentOS 8镜像，可以通过以下命令从Docker Hub下载它：~~
 
 ```
 复制代码docker pull centos:8
 ```
 
-这将会下载一个最新版本的CentOS 8 Docker镜像，您可以使用它来创建并运行容器。
+~~这将会下载一个最新版本的CentOS 8 Docker镜像，您可以使用它来创建并运行容器。~~
 
-运行 Docker 容器：
+~~运行 Docker 容器：~~
 
 ```bash
 docker run -d -p 8080:80 --name your_container_name your_image_name
 ```
 
-- `docker run`: 这个部分指示 Docker 启动一个新的容器。
-- `-d`: 这个选项让容器在后台（detached mode）运行，也就是说，容器会在后台执行，并且不会阻塞终端。
-- `-p 8080:80`: 这个选项定义了端口映射。它将容器内的端口 80 映射到主机机器上的端口 8080。这意味着，当你在主机上访问 `localhost:8080` 时，实际上是访问了容器内运行在端口 80 上的应用程序。
-- `--name your_container_name`: 这个选项为容器指定了一个名称，可以使用这个名称来引用容器，而不必依赖于自动生成的容器 ID。
-- `your_image_name`: 这是你要运行的 Docker 镜像的名称。这应该是你之前使用 `docker build` 命令创建的镜像的名称。
+- ~~`docker run`: 这个部分指示 Docker 启动一个新的容器。~~
+- ~~`-d`: 这个选项让容器在后台（detached mode）运行，也就是说，容器会在后台执行，并且不会阻塞终端。~~
+- ~~`-p 8080:80`: 这个选项定义了端口映射。它将容器内的端口 80 映射到主机机器上的端口 8080。这意味着，当你在主机上访问 `localhost:8080` 时，实际上是访问了容器内运行在端口 80 上的应用程序。~~
+- ~~`--name your_container_name`: 这个选项为容器指定了一个名称，可以使用这个名称来引用容器，而不必依赖于自动生成的容器 ID。~~
+- ~~`your_image_name`: 这是你要运行的 Docker 镜像的名称。这应该是你之前使用 `docker build` 命令创建的镜像的名称。~~
 
-综合起来，整个命令告诉 Docker 在后台运行一个容器，使用端口映射将容器内的端口 80 映射到主机机器的端口 8080，容器的名称是 `your_container_name` ，名称可以随意，使用的镜像是 `your_image_name`。这样，你可以通过访问 `http://localhost:8080` 来访问在容器内运行的应用程序。
+~~综合起来，整个命令告诉 Docker 在后台运行一个容器，使用端口映射将容器内的端口 80 映射到主机机器的端口 8080，容器的名称是 `your_container_name` ，名称可以随意，使用的镜像是 `your_image_name`。这样，你可以通过访问 `http://localhost:8080` 来访问在容器内运行的应用程序。~~
 
-卸载docker：
+~~卸载docker：~~
 
 ```bash
 sudo yum remove docker-ce docker-ce-cli containerd.io
