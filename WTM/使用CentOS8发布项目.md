@@ -35,7 +35,7 @@ yum install mysql-community-server --nogpgcheck
 service mysqld start
 ```
 
-会提示：
+会报错提示：
 
 ```bash
 Redirecting to /bin/systemctl start mysqld.service
@@ -83,11 +83,16 @@ ERROR 1819 (HY000): Your password does not satisfy the current policy requiremen
 
 所以要先修改成一个满足要求的密码，然后修改它的密码策略，最后修改成自己想要的密码：
 
-```bash
-# 先将密码修改为满足它密码策略的密码
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'Root_21root';
+1. 先将密码修改为满足它密码策略的密码
 
-# 查看它的密码策略
+```bash
+
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'Root_21root';
+```
+
+2. 查看它的密码策略
+
+```bash
 SHOW VARIABLES LIKE 'validate_password%';
 +-------------------------------------------------+--------+
 | Variable_name                                   | Value  |
@@ -101,11 +106,23 @@ SHOW VARIABLES LIKE 'validate_password%';
 | validate_password.policy                        | MEDIUM |
 | validate_password.special_char_count            | 1      |
 +-------------------------------------------------+--------+
-# 修改密码长度：
+```
+
+3. 修改密码长度：
+
+```bash
 set global validate_password.length=1; 
-# 修改密码等级：
+```
+
+4.  修改密码等级：
+
+```bash
 set global validate_password.policy=0; 
-# 查看修改后的密码策略
+```
+
+5. 查看修改后的密码策略
+
+```bash
 SHOW VARIABLES LIKE 'validate_password%';
 +-------------------------------------------------+-------+
 | Variable_name                                   | Value |
@@ -119,7 +136,11 @@ SHOW VARIABLES LIKE 'validate_password%';
 | validate_password.policy                        | LOW   |
 | validate_password.special_char_count            | 1     |
 +-------------------------------------------------+-------+
-# 设置成自己想要的密码:
+```
+
+6. 设置成自己想要的密码:
+
+```bash
 ALTER USER 'root'@'localhost' IDENTIFIED BY '1234';
 ```
 

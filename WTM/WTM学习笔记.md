@@ -326,6 +326,8 @@ public IActionResult Index()
 
 ![image-20231111142554022](https://gitee.com/LowProfile666/image-bed/raw/master/img/202311111425055.png)
 
+如果改变了左侧菜单顶部的文字和logo，如果没有显示，则按 F12，选择 network 下的 Disable Cache，清除缓存
+
 ### 4、TagHelper
 
 在 .cshtml 文件中，所有带 `wt:` 的标签，都是框架提供的 TagHelper，本质的作用就是生成 HTML，原理还是反射。
