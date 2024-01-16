@@ -1238,7 +1238,7 @@ ImportVM 有一个 ErrorListVM，它是在 BaseImportVM 中定义的，本身是
 要输出错误信息，向 ErrorListVM 里加入错误信息就行：
 
 ```c#
-ErrorListVM.EntityList.Add(new ErrorMessage{Message="", index=0});
+ErrorListVM.EntityList.Add(new ErrorMessage{Message="", Index=0});
 ```
 
 ## 十、BatchVM
