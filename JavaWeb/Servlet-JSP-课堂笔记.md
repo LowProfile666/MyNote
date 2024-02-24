@@ -462,13 +462,13 @@ public void service(ServletRequest request, ServletResponse response){
       >
       > 2、
       >
-      > ![](https://gitee.com/LowProfile666/image-bed/raw/master/img/202312301004463.png)
+      > ![image-20240222103940985](https://gitee.com/LowProfile666/image-bed/raw/master/img/202402221040889.png)
       >
       > 3、默认生成的是web目录，我改成了webapp目录，下面改了，上面的路径也要改
       >
       > ![image-20231230100455741](https://gitee.com/LowProfile666/image-bed/raw/master/img/202312301004817.png)
       >
-      > 4、
+      > 4、要将该模块做成一个 Artifacts ，因为部署在 Tomcat 的时候需要 Artifact
       >
       > ![image-20231230104943630](https://gitee.com/LowProfile666/image-bed/raw/master/img/202312301049682.png)
       >
