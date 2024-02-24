@@ -1594,3 +1594,147 @@ HTTP 请求（ajax也是HTTP请求）是用户端向服务器端发送请求，�
 ## Canvas
 
 [教程](https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API/Tutorial)
+
+# 12、ES6语法补充
+
+## 使用bind()函数绑定this取值
+
+在JavaScript中，函数里的this指向的是执行时的调用者，而非定义时所在的对象。
+
+例如：
+
+```js
+const person = {
+  name: "zsm",
+  talk: function() {
+    console.log(this);
+  }
+}
+
+person.talk();
+
+const talk = person.talk;  // 所有的全局变量都相当于绑在window上的
+talk();
+```
+
+运行结果：
+
+```js
+{name: 'yxc', talk: ƒ}
+Window
+```
+
+bind() 函数，可以绑定this的取值。例如：
+
+```js
+const talk = person.talk.bind(person);
+```
+
+## 箭头函数的简写方式
+
+```js
+const f = (x) => {
+  return x * x;
+};
+```
+
+可以简写为：
+
+```js
+const f = x => x * x;
+```
+
+## 箭头函数不重新绑定this的取值
+
+例如：
+
+```js
+const person = {
+  talk: function() {
+    setTimeout(function() {
+      console.log(this);
+    }, 1000);
+  }
+};
+
+person.talk();  // 输出Window
+```
+
+```js
+const person = {
+  talk: function() {
+    setTimeout(() => {
+      console.log(this);
+    }, 1000);
+  }
+};
+
+person.talk();  // 输出 {talk: f}
+```
+
+## 对象的解构
+
+例如：
+
+```js
+const person = {
+  name: "yxc",
+  age: 18,
+  height: 180,
+};
+
+const {name : nm, age} = person;  // nm是name的别名
+console.log(nm,age) // yxc, 18
+```
+
+## 数组和对象的展开
+
+`... ` 在数组前面加这三个点，就代表将这个数组展开放在这个位置：
+
+例如：
+
+```js
+let a = [1, 2, 3];
+let b = [...a];  // b是a的复制
+let c = [...a, 4, 5, 6];
+```
+
+```js
+const a = {name: "zsm"};
+const b = {age: 18};
+const c = {...a, ...b, height: 180};
+```
+
+## Named 与 Default exports
+
++ Named Export：可以export多个，import的时候需要加大括号，名称需要匹配
+
++ Default Export：最多export一个，import的时候不需要加大括号，可以直接定义别名
+
+  ```js
+  export default class player {
+      
+  }
+  ```
+
+  ```js
+  // 不加大括号就会把默认export的引进来
+  // 所以名字可以随便写
+  import Player from "./player";
+  ```
+
+  也可以和一般的export一起用：
+
+  ```js
+  let i = 10;
+  export {
+  	i
+  }
+  ```
+
+  ```js
+  import Player, {i} from "./player"
+  ```
+
+  
+
