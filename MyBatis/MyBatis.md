@@ -1614,7 +1614,7 @@ public class ConfigurationTest {
 
 ![img](https://gitee.com/LowProfile666/image-bed/raw/master/img/202402031455443.png)
 
-## 4.2 transactionManager'
+## 4.2 transactionManager
 
 mybatis-config2.xml
 

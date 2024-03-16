@@ -2322,6 +2322,7 @@ public void testAutowireByName(){
 执行结果：
 ![image.png](https://cdn.nlark.com/yuque/0/2022/png/21376908/1665535913374-7031648f-fad4-4fa1-a3f1-68dcf2318bef.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_13%2Ctext_5Yqo5Yqb6IqC54K5%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10#averageHue=%23f5f4f3&clientId=ubfe41891-11ea-4&from=paste&height=116&id=u09b0d555&originHeight=116&originWidth=471&originalType=binary&ratio=1&rotation=0&showTitle=false&size=9778&status=done&style=shadow&taskId=u99de35e6-3c78-4628-b282-8fe94b88194&title=&width=471)
 我们来测试一下，byName装配是和属性名有关还是和set方法名有关系：
+
 ```java
 public class UserService {
     // 这里没修改
@@ -2367,6 +2368,7 @@ public class UserService {
 例如：setAge() 对应的名字是age，setPassword()对应的名字是password，setEmail()对应的名字是email。
 
 ### 4.7.2 根据类型自动装配
+
 ```java
 public class AccountDao {
     public void insert(){
