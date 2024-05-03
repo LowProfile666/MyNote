@@ -12,7 +12,7 @@ yum install mysql80-community-release-el8-1.noarch.rpm
 安装 mysql 命令
 
 ```bash
-yum module disable mysql
+yum install mysql-server
 ```
 
 如果出现 No match for argument: mysql-community-server 报错，需要先禁用CentOS8自带mysql模块

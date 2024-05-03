@@ -19,6 +19,8 @@ find / -name 'java'  # 查找 jdk 安装位置
 
 ## 方法2
 
+安装目录可以自定义
+
 ```python
 mkdir /usr/java21  # 创建一个文件夹
 cd /usr/java21  # 进入文件夹
@@ -26,7 +28,7 @@ wget https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.tar.gz  # �
 tar zxvf jdk-21_linux-x64_bin.tar.gz  # 解压
 vim /etc/profile  # 修改文件，在文件的末尾添加以下代码，相当于配置环境变量：
 
-export JAVA_HOME=/usr/java21/jdk-21.0.2
+export JAVA_HOME=/usr/java21/jdk-21.0.3
 export PATH=$JAVA_HOME/bin:$PATH
 export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 
@@ -76,6 +78,8 @@ cp /usr/local/redis/bin/redis-cli /usr/local/bin/
 yum install nginx -y  # 安装Nginx
 systemctl enable nginx  # 设置nginx开启启动
 systemctl start nginx  # 启动nginx
+
+ps -aux|grep nginx  # 查看nginx的安装目录，在进程的后面
 ```
 
 # 安装 node
@@ -100,9 +104,93 @@ tar -zxvf apache-tomcat-11.0.0-M17.tar.gz  # 解压tomcat
 
 如果有多个 tomcat 运行，需要修改 tomcat 的端口，因为默认 tomcat 的端口都是 8080，目前我的 tomcat9 端口是 8081，tomcat11 端口是 8082。
 
+# 安装MySQL
+
+先删除服务器上有的mysql。
+
+```shell
+# 下载 mysql 安装包
+wget https://dev.mysql.com/get/mysql80-community-release-el8-1.noarch.rpm
+yum install mysql80-community-release-el8-1.noarch.rpm
+
+# 安装 mysql 
+yum install mysql-server
+
+# 如果出现 No match for argument: mysql-community-server 报错，需要先禁用CentOS8自带mysql模块
+yum module disable mysql
+
+# 如果以上报错 Error: GPG check FAILED 的话，使用：
+yum install mysql-community-server --nogpgcheck
+
+# 安装成功。启动 mysql 服务：
+service mysqld start
+# 显示 mysql 的随机密码：
+cat /var/log/mysql/mysqld.log | grep password
+# 如果 root@localhost is created with an empty password ! 的话，当前登录时不需要密码
+# 登录mysql，空密码按两次回车
+mysql -uroot -p
+
+# 修改密码
+ALTER USER 'root'@'localhost' IDENTIFIED BY '1234'
+# 开放远程访问：
+create user 'root'@'%' identified by 'root123';  # 1、先创建权限记录
+grant all privileges on *.* to 'root'@'%' with grant option;  # 2、授权
+```
+
+在本地使用 navicat 连接 ssh 再连接 mysql 时，如果报错：
+
+![image-20240427104924285](https://gitee.com/LowProfile666/image-bed/raw/master/img/202404271049360.png)
+
+这是因为之前连过，本地的保存的密码和现在服务器上的匹对不了，所以打开本地的 .ssh/known_hosts 文件，将服务器对应的那个记录删除就行。
+
+![image-20240427105134404](https://gitee.com/LowProfile666/image-bed/raw/master/img/202404271051467.png)
+
+重新连接，又会重新生成。
+
+# 安装.NET
+
+```shell
+# 添加 Microsoft 存储库：
+sudo rpm -Uvh https://packages.microsoft.com/config/centos/8/packages-microsoft-prod.rpm
+# 安装.NET SDK
+sudo dnf install dotnet-sdk-6.0
+# 验证安装
+dotnet --version
+```
+
+# 开放防火墙
+
+```shell
+# 启动防火墙
+systemctl start firewalld.service
+
+# 为了使外部用户能够访问您的Web服务器，需要启用到主机的HTTP和HTTPS通信
+# 修改防火墙规则并添加以下条目：
+sudo firewall-cmd --permanent --zone=public --add-service=http
+sudo firewall-cmd --permanent --zone=public --add-service=https
+
+# 更新防火墙规则
+sudo firewall-cmd --reload
+
+# 查看所有打开的端口
+firewall-cmd --list-ports
+
+# 开放端口
+firewall-cmd --add-port=8080/tcp --permanent
+firewall-cmd --add-port=22/tcp --permanent
+firewall-cmd --add-port=3306/tcp --permanent
+
+# 更新防火墙规则
+sudo firewall-cmd --reload
+```
+
 # 持久运行
 
 要想某个命令或程序以服务的方式一直运行在服务器上，可以使用 systemctl 管理。
+
+```shell
+systemctl list-units --type=service --all  # 查看systemctl管理所有服务
+```
 
 比如要一直运行 redis 服务器：在 systemd 服务目录中 `/etc/systemd/system/`，创建服务单元文件 `redis.service`，文件内容：
 
@@ -130,3 +218,18 @@ systemctl start redis  # 开启服务
 systemctl enable redis  # 设置开机自启
 ```
 
+# 各安装目录
+
+jdk21：/root/java21/jdk-21.0.3 
+
+redis：/root/redis、/usr/local/redis
+
+nginx：/usr/sbin/nginx
+
++ 配置文件：/etc/nginx/nginx.conf
+
+node：/root/.nvm/versions/node/v20.11.1/bin/node
+
+tomcat11：/root/tomcat/apache-tomcat-11.0.0-M13
+
+mysql8：/usr/libexec/mysqld
