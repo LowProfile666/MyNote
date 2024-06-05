@@ -4,10 +4,10 @@
 - **HTML+CSS+JavaScript**
 - **Vue**
 - **AJAX + axios**
-- **Thymeleaf**
-- **Servlet**
+- **Thymeleaf**（模板引擎）
+- **Servlet**（javaweb的核心，springmvc底层封装的就是Servlet）
 - **Maven**
-- **Spring**
+- **Spring**（SpringMVC其实叫Spring webmvc，是Spring中的一部分）
 
 # 什么是MVC
 MVC架构模式相关课程，在老杜的JavaWeb课程中已经详细的讲解了，如果没有学过的，可以看这个视频：[https://www.bilibili.com/video/BV1Z3411C7NZ](https://www.bilibili.com/video/BV1Z3411C7NZ/?share_source=copy_web&vd_source=ec35128d1000684f9b28e503d6278a41)
@@ -33,8 +33,6 @@ MVC将应用分为三块，每一块各司其职，都有自己专注的事情�
 MVC架构模式如下所示：
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710142469881-5dee11e1-80e8-4cbc-8f0c-726d4e42bbfa.png#averageHue=%23fcfbfb&clientId=uce1673f1-7a5d-4&from=paste&height=490&id=u4dd05c22&originHeight=490&originWidth=1378&originalType=binary&ratio=1&rotation=0&showTitle=false&size=59855&status=done&style=shadow&taskId=ua013f031-1935-4a3d-8005-8a873b6c68a&title=&width=1378)
 MVC架构模式的描述：前端浏览器发送请求给web服务器，web服务器中的Controller接收到用户的请求，Controller负责将前端提交的数据进行封装，然后Controller调用Model来处理业务，当Model处理完业务后会返回处理之后的数据给Controller，Controller再调用View来完成数据的展示，最终将结果响应给浏览器，浏览器进行渲染展示页面。
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=VmQoW&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 
 面试题：什么是三层模型，并说一说MVC架构模式与三层模型的区别？
 三层模型：
@@ -63,20 +61,20 @@ Spring框架中有一个子项目叫做Spring Web，Spring Web子项目当中包
 以下就是Spring官方给出的Spring架构图，其中Web中的servlet指的就是Spring MVC：
 ![163550G63-0.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710215881989-618986f1-11c4-459a-8eaa-b58c4ee28d19.png#averageHue=%23404136&clientId=u4dcade31-9013-4&from=paste&height=475&id=u6664721a&originHeight=475&originWidth=647&originalType=binary&ratio=1&rotation=0&showTitle=false&size=17253&status=done&style=shadow&taskId=u159efa0f-eecd-4b86-8737-63a6635acf0&title=&width=647)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=KLL0J&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-
 ## SpringMVC帮我们做了什么
 SpringMVC框架帮我们做了什么，与纯粹的Servlet开发有什么区别？
 
-1.  入口控制：SpringMVC框架通过DispatcherServlet作为入口控制器，负责接收请求和分发请求。而在Servlet开发中，需要自己编写Servlet程序，并在web.xml中进行配置，才能接受和处理请求。 
+1. 入口控制：SpringMVC框架通过DispatcherServlet作为入口控制器，负责接收请求和分发请求。而在Servlet开发中，需要自己编写Servlet程序，并在web.xml中进行配置，才能接受和处理请求。 
+
+   （SpringMVC提供了一个Controller，所有的请求都要经过这个Controller，这个Controller会进行接收和处理。）
 2. 在SpringMVC中，表单提交时可以自动将表单数据绑定到相应的JavaBean对象中，只需要在控制器方法的参数列表中声明该JavaBean对象即可，无需手动获取和赋值表单数据。而在纯粹的Servlet开发中，这些都是需要自己手动完成的。
-3.  IoC容器：SpringMVC框架通过IoC容器管理对象，只需要在配置文件中进行相应的配置即可获取实例对象，而在Servlet开发中需要手动创建对象实例。 
-4.  统一处理请求：SpringMVC框架提供了拦截器、异常处理器等统一处理请求的机制，并且可以灵活地配置这些处理器。而在Servlet开发中，需要自行编写过滤器、异常处理器等，增加了代码的复杂度和开发难度。 
-5.  视图解析：SpringMVC框架提供了多种视图模板，如JSP、Freemarker、Velocity等，并且支持国际化、主题等特性。而在Servlet开发中需要手动处理视图层，增加了代码的复杂度。 
+3. IoC容器：SpringMVC框架通过IoC容器管理对象，只需要在配置文件中进行相应的配置即可获取实例对象，而在Servlet开发中需要手动创建对象实例。 
+4. 统一处理请求：SpringMVC框架提供了拦截器、异常处理器等统一处理请求的机制，并且可以灵活地配置这些处理器。而在Servlet开发中，需要自行编写过滤器、异常处理器等，增加了代码的复杂度和开发难度。 
+5. 视图解析：SpringMVC框架提供了多种视图模板，如JSP、Freemarker、Velocity等，并且支持国际化、主题等特性。而在Servlet开发中需要手动处理视图层，增加了代码的复杂度。 
 
 总之，与Servlet开发相比，SpringMVC框架可以帮我们节省很多时间和精力，减少代码的复杂度，更加专注于业务开发。同时，也提供了更多的功能和扩展性，可以更好地满足企业级应用的开发需求。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=GI0Y0&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## SpringMVC框架的特点
 
 1.  轻量级：相对于其他Web框架，Spring MVC框架比较小巧轻便。（只有几个几百KB左右的Jar包文件） 
@@ -93,7 +91,7 @@ SpringMVC框架帮我们做了什么，与纯粹的Servlet开发有什么区别�
    1. Spring MVC框架基于约定大于配置的原则，对常用的配置约定进行自动化配置。
 7.  灵活性：Spring MVC框架支持多种视图技术，如JSP、FreeMarker、Thymeleaf、FreeMarker等，针对不同的视图配置不同的视图解析器即可。 
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=WDXEp&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 # 本套教程相关版本
 
 - JDK版本：Java21
@@ -104,9 +102,29 @@ SpringMVC框架帮我们做了什么，与纯粹的Servlet开发有什么区别�
 - IDEA版本：2023.3
 - Thymeleaf版本：3.1.2
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=JBVA4&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # 第一个SpringMVC程序
+
+步骤：
+
+1. 创建Maven模块
+   1. 创建一个空的工程
+   2. 设置JDK版本
+   3. 设置Maven
+   4. 创建Maven模块
+   5. 在pom文件中设置打包方式（war包）
+   6. 引入依赖
+2. 添加web支持
+   1. 在模块下src\main目录下新建webapp目录（默认是带有小蓝点的，没有小蓝点的话，需要自己添加web支持）
+   2. 在添加web支持的时候，需要添加web.xml文件，注意添加的路径
+3. 在web.xml中配置前端控制器（SpringMVC框架内置的一个类：DispatchServlet），所有的请求都应该经过这个DispatchServlet的处理。
+   1. 重点：`<url-pattern>/</url-pattern>` 这里的 / 表示：除 xx.jsp 结尾的请求路径之外的所有请求路径
+4. 编写FirstController，在类上标注 @Controller 注解，纳入Ioc容器的管理。
+5. 编写SpringMVC框架自己的配置文件
+   1. 默认名字：<servlet-name>-servlet.xml
+   2. 默认存放位置：WEB-INF
+
 ## 创建Maven模块
+
 第一步：创建Empty Project，起名：springmvc。
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710230195763-9f5da726-de76-4ba3-9297-c912390a4df3.png#averageHue=%232b2e32&clientId=u4dcade31-9013-4&from=paste&height=691&id=u6e826b07&originHeight=691&originWidth=783&originalType=binary&ratio=1&rotation=0&showTitle=false&size=53646&status=done&style=shadow&taskId=uf253c6e8-a4c3-457f-90b8-f12f0689297&title=&width=783)
 第二步：设置springmvc工程的JDK版本：Java21。
@@ -116,7 +134,9 @@ SpringMVC框架帮我们做了什么，与纯粹的Servlet开发有什么区别�
 第四步：创建Maven模块
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710230477117-f9659e1e-196e-4b8b-aa00-2a2a4b9e1a9b.png#averageHue=%232f343c&clientId=u4dcade31-9013-4&from=paste&height=170&id=ue8072ae5&originHeight=170&originWidth=354&originalType=binary&ratio=1&rotation=0&showTitle=false&size=13198&status=done&style=shadow&taskId=u654baeb7-3032-4edc-a3c3-c20a8f6e13e&title=&width=354)
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710234129822-b45b7ab8-0275-4828-b0f1-04bacdd4ee33.png#averageHue=%232c2e32&clientId=u2f9b3597-10b9-4&from=paste&height=819&id=ufe00ce61&originHeight=819&originWidth=918&originalType=binary&ratio=1&rotation=0&showTitle=false&size=79340&status=done&style=shadow&taskId=ue99e2081-ff4d-432a-b9fc-b7d344c3356&title=&width=918)
+
 第五步：将pom.xml文件中的打包方式修改为war
+
 ```xml
 <groupId>com.powernode.springmvc</groupId>
 <artifactId>springmvc-001</artifactId>
@@ -144,6 +164,8 @@ SpringMVC框架帮我们做了什么，与纯粹的Servlet开发有什么区别�
         <groupId>jakarta.servlet</groupId>
         <artifactId>jakarta.servlet-api</artifactId>
         <version>6.0.0</version>
+        <!--指定该依赖的范围，provided表示这个依赖由第三方容器来提供，-->
+        <!--打war包的时候这个依赖不会打进war包内，因为这个依赖由其他容器提供-->
         <scope>provided</scope>
     </dependency>
     <!--Spring6和Thymeleaf整合依赖-->
@@ -155,7 +177,8 @@ SpringMVC框架帮我们做了什么，与纯粹的Servlet开发有什么区别�
 </dependencies>
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=czxF4&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
++ 其中的Servlet依赖是为了写代码时使用，不需要打包，因为Tomcat中自带了Servlet依赖
+
 ## 添加web支持
 第一步：在main目录下创建一个webapp目录
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710236651417-5d2d8216-0848-41b8-9dcd-82daf9928e60.png#averageHue=%232d3138&clientId=u28b24a89-f425-4&from=paste&height=331&id=u9088a24c&originHeight=331&originWidth=347&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23354&status=done&style=shadow&taskId=u22c28912-f26d-4b02-925f-a389b1d51d8&title=&width=347)
@@ -167,7 +190,7 @@ SpringMVC框架帮我们做了什么，与纯粹的Servlet开发有什么区别�
 添加web支持后的目录结构：
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710236989434-41f9727a-6944-40ee-899c-3aa58fa1904f.png#averageHue=%232e323a&clientId=u28b24a89-f425-4&from=paste&height=267&id=ub49f5f76&originHeight=267&originWidth=232&originalType=binary&ratio=1&rotation=0&showTitle=false&size=14025&status=done&style=shadow&taskId=ud572ee2f-beae-4750-bf36-e33e0ee7891&title=&width=232)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=qyLy7&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 配置web.xml文件
 Spring MVC是一个web框架，在javaweb中谁来负责接收请求，处理请求，以及响应呢？当然是Servlet。在SpringMVC框架中已经为我们写好了一个Servlet，它的名字叫做：DispatcherServlet，我们称其为前端控制器。既然是Servlet，那么它就需要在web.xml文件中进行配置：
 ```xml
@@ -194,6 +217,8 @@ Spring MVC是一个web框架，在javaweb中谁来负责接收请求，处理请
 </web-app>
 ```
 
++ `<url-pattern>/</url-pattern>` 表示除了以 .jsp 结尾的请求路径外，所有的请求路径都能匹配上
+
 DispatcherServlet是SpringMVC框架为我们提供的最核心的类，它是整个SpringMVC框架的前端控制器，负责接收HTTP请求、将请求路由到处理程序、处理响应信息，最终将响应返回给客户端。DispatcherServlet是Web应用程序的主要入口点之一，它的职责包括：
 
 1.  接收客户端的HTTP请求：DispatcherServlet监听来自Web浏览器的HTTP请求，然后根据请求的URL将请求数据解析为Request对象。 
@@ -202,7 +227,7 @@ DispatcherServlet是SpringMVC框架为我们提供的最核心的类，它是整
 4.  渲染视图：DispatcherServlet将调用视图引擎，将模型对象呈现为用户可以查看的HTML页面。 
 5.  返回响应给客户端：DispatcherServlet将为用户生成的响应发送回浏览器，响应可以包括表单、JSON、XML、HTML以及其它类型的数据
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=h71oP&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 编写控制器FirstController
 DispatcherServlet接收到请求之后，会根据请求路径分发到对应的Controller，Controller来负责处理请求的核心业务。在SpringMVC框架中Controller是一个普通的Java类（一个普通的POJO类，不需要继承任何类或实现任何接口），需要注意的是：POJO类要纳入IoC容器来管理，POJO类的生命周期由Spring来管理，因此要使用注解标注：
 ```java
@@ -210,20 +235,13 @@ package com.powernode.springmvc.controller;
 
 import org.springframework.stereotype.Controller;
 
-/**
- * ClassName: FirstController
- * Description:
- * Datetime: 2024/3/13 11:56
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 @Controller
 public class FirstController {
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=jzufR&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
++ 加 @Controller 注解为了让Spring容器来创建这个类的对象
+
 ## 配置springmvc-servlet.xml文件
 SpringMVC框架有它自己的配置文件，该配置文件的名字默认为：<servlet-name>-servlet.xml，默认存放的位置是WEB-INF 目录下：
 ```xml
@@ -232,7 +250,7 @@ SpringMVC框架有它自己的配置文件，该配置文件的名字默认为�
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
-    <!--组件扫描-->
+    <!--组件扫描，为了找到所有包内需要纳入Spring管理的类-->
     <context:component-scan base-package="com.powernode.springmvc.controller"/>
     <!--视图解析器-->
     <bean id="thymeleafViewResolver" class="org.thymeleaf.spring6.view.ThymeleafViewResolver">
