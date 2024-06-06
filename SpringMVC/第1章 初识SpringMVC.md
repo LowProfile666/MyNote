@@ -122,6 +122,7 @@ SpringMVC框架帮我们做了什么，与纯粹的Servlet开发有什么区别�
 5. 编写SpringMVC框架自己的配置文件
    1. 默认名字：<servlet-name>-servlet.xml
    2. 默认存放位置：WEB-INF
+   3. 名字和位置都可以自定义
 
 ## 创建Maven模块
 
@@ -279,6 +280,8 @@ SpringMVC框架有它自己的配置文件，该配置文件的名字默认为�
     </bean>
 </beans>
 ```
++ 将来要在xxx.thymeleaf文件中编写符合Thymeleaf语法格式的字符串：Thymeleaf模板字符串。
+
 在WEB-INF目录下新建springmvc-servlet.xml文件，并且提供以上配置信息。
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710309679329-4454ce41-d80a-42dc-abb7-683bd9397856.png#averageHue=%23f0f3f8&clientId=u0dd2e7db-835e-4&from=paste&height=265&id=ueec9abf4&originHeight=265&originWidth=296&originalType=binary&ratio=1&rotation=0&showTitle=false&size=15499&status=done&style=shadow&taskId=u118f717f-100a-4863-83f9-800ca76eab0&title=&width=296)
 以上配置主要两项：
@@ -292,15 +295,12 @@ SpringMVC框架有它自己的配置文件，该配置文件的名字默认为�
 - FreeMarker视图解析器：FreeMarkerViewResolver
 - Velocity视图解析器：VelocityViewResolver
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=rY0Jq&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 提供视图
 在WEB-INF目录下新建templates目录，在templates目录中新建html文件，例如：first.html，并提供以下代码：
 ```html
 <!DOCTYPE html>
-<!--指定 th 命名空间，让 Thymeleaf 标准表达式可以被解析和执行-->
-<!--th不是固定的，可以指定其它的命名空间，只不过大部分情况下用th-->
-<!--表示程序中出现的 th 开头的后面代码都是 Thymeleaf语法，需要被 Thymeleaf识别-->
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>first springmvc</title>
@@ -310,10 +310,6 @@ SpringMVC框架有它自己的配置文件，该配置文件的名字默认为�
 </body>
 </html>
 ```
-对于每一个Thymeleaf文件来说 xmlns:th="[http://www.thymeleaf.org"](http://www.thymeleaf.org") 是必须要写的，为了方便后续开发，可以将其添加到html模板文件中：
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710310831388-377e7bc4-f5b2-4fa3-9410-d90bfdd894b8.png#averageHue=%2381baa0&clientId=u0dd2e7db-835e-4&from=paste&height=543&id=u0d2806df&originHeight=543&originWidth=1159&originalType=binary&ratio=1&rotation=0&showTitle=false&size=106487&status=done&style=shadow&taskId=u203bebbc-500e-4cac-af4e-a5ffd79afe9&title=&width=1159)
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=L9Yg4&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## 控制器FirstController处理请求返回逻辑视图名称
 ```java
 package com.powernode.springmvc.controller;
@@ -321,17 +317,10 @@ package com.powernode.springmvc.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * ClassName: FirstController
- * Description:
- * Datetime: 2024/3/13 11:56
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 @Controller
 public class FirstController {
     @RequestMapping(value="/haha")
-    public String 名字随意(){
+    public String haha(){
         System.out.println("正在处理请求....");
         // 返回逻辑视图名称（决定跳转到哪个页面）
         return "first";
@@ -339,7 +328,19 @@ public class FirstController {
 }
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=JeSVo&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
++ 这个haha方法的名字随意
+
+此时，当通过浏览器访问这个url时，会访问到FirstController上haha这个方法，会返回一个“first”，这个“first”叫做逻辑视图名称（不是物理视图名称），然后会在这个逻辑视图名称前面加上前缀，后面加上后缀，组成了物理视图名称，这个前缀和后缀就是在视图解析器中配置的：
+
+```xml
+<!--设置模板文件的位置（前缀）-->
+<property name="prefix" value="/WEB-INF/templates/"/>
+<!--设置模板文件后缀（后缀）-->
+<property name="suffix" value=".html"/>
+```
+
+然后就会组成物理视图名称：/WEB-INF/templates/first.html，这样就可以访问到first.html 这个资源，使用Thymeleaf模板引擎将这个文件转为HTML代码，响应给浏览器。
+
 ## 测试
 第一步：配置Tomcat服务器
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710311594124-3fb7be8b-9029-4b30-990c-78d2233fb404.png#averageHue=%23f3f5f8&clientId=u0dd2e7db-835e-4&from=paste&height=719&id=ue0c3bfa6&originHeight=719&originWidth=1152&originalType=binary&ratio=1&rotation=0&showTitle=false&size=84996&status=done&style=shadow&taskId=uea40fb78-9d1c-43d0-957d-4f9344ed40c&title=&width=1152)
@@ -352,18 +353,18 @@ public class FirstController {
 后端控制台输出：
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710312475793-dfb94231-5efe-4a72-840f-63d72143d47f.png#averageHue=%23faf5f3&clientId=u0dd2e7db-835e-4&from=paste&height=60&id=ude4fd229&originHeight=60&originWidth=297&originalType=binary&ratio=1&rotation=0&showTitle=false&size=5273&status=done&style=shadow&taskId=u0ab8cffa-e1db-4cba-b5b3-ab7d1827efe&title=&width=297)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=hMFB9&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 执行流程总结
 
 1. 浏览器发送请求：http://localhost:8080/springmvc/haha
 2. SpringMVC的前端控制器DispatcherServlet接收到请求
-3. DispatcherServlet根据请求路径 /haha 映射到 FirstController#名字随意()，调用该方法
-4. FirstController#名字随意() 处理请求
-5. FirstController#名字随意() 返回逻辑视图名称 first 给视图解析器
+3. DispatcherServlet根据请求路径 /haha 映射到 FirstController#haha()，调用该方法
+4. FirstController#haha() 处理请求
+5. FirstController#haha() 返回逻辑视图名称 first 给视图解析器
 6. 视图解析器找到 /WEB-INF/templates/first.html 文件，并进行解析，生成视图解析对象返回给前端控制器DispatcherServlet
 7. 前端控制器DispatcherServlet响应结果到浏览器。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=nInVb&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 
 ## 一个Controller可以编写多个方法
 一个Controller可以提供多个方法，每个方法通常是处理对应的请求，例如：
@@ -387,7 +388,7 @@ public class FirstController {
 提供 other.html 文件
 ```html
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>other</title>
@@ -398,6 +399,28 @@ public class FirstController {
 </html>
 ```
 在 first.html 文件中，添加超链接，用超链接发送 /other 请求：
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>这是一个文件</h1>
+    <a href="/springmvc/other">hehe</a>
+</body>
+</html>
+```
+启动Tomcat，打开浏览器，输入请求路径：http://localhost:8080/springmvc/haha
+![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710313350020-eaecbfaf-c1ba-44d1-9422-3371248f69a2.png#averageHue=%23f0efee&clientId=u0dd2e7db-835e-4&from=paste&height=193&id=u5a81f52c&originHeight=193&originWidth=470&originalType=binary&ratio=1&rotation=0&showTitle=false&size=15658&status=done&style=shadow&taskId=u4443d95d-723e-49d2-a72c-e1e6b8ed38f&title=&width=470)
+点击超链接：other请求
+![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710313367394-acfcdb9e-576c-4cc2-8d08-2858854a947e.png#averageHue=%23f9f9f8&clientId=u0dd2e7db-835e-4&from=paste&height=160&id=u773a31a3&originHeight=160&originWidth=416&originalType=binary&ratio=1&rotation=0&showTitle=false&size=7427&status=done&style=shadow&taskId=uc14056fa-bf74-46b1-812a-87722cb2245&title=&width=416)
+
+## 当前的问题
+
+在上面的代码的超链接中，将项目的名字/springmvc写死了，而在Thymeleaf中，可以动态的获取项目的根路径：
+
 ```html
 <!DOCTYPE html>
 <!--指定 th 命名空间，让 Thymeleaf 标准表达式可以被解析和执行-->
@@ -417,13 +440,50 @@ public class FirstController {
 </body>
 </html>
 ```
-启动Tomcat，打开浏览器，输入请求路径：http://localhost:8080/springmvc/haha
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710313350020-eaecbfaf-c1ba-44d1-9422-3371248f69a2.png#averageHue=%23f0efee&clientId=u0dd2e7db-835e-4&from=paste&height=193&id=u5a81f52c&originHeight=193&originWidth=470&originalType=binary&ratio=1&rotation=0&showTitle=false&size=15658&status=done&style=shadow&taskId=u4443d95d-723e-49d2-a72c-e1e6b8ed38f&title=&width=470)
-点击超链接：other请求
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710313367394-acfcdb9e-576c-4cc2-8d08-2858854a947e.png#averageHue=%23f9f9f8&clientId=u0dd2e7db-835e-4&from=paste&height=160&id=u773a31a3&originHeight=160&originWidth=416&originalType=binary&ratio=1&rotation=0&showTitle=false&size=7427&status=done&style=shadow&taskId=uc14056fa-bf74-46b1-812a-87722cb2245&title=&width=416)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=gbso3&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+对于每一个Thymeleaf文件来说 xmlns:th="[http://www.thymeleaf.org"](http://www.thymeleaf.org") 是必须要写的，为了方便后续开发，可以将其添加到html模板文件中：
+![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710310831388-377e7bc4-f5b2-4fa3-9410-d90bfdd894b8.png#averageHue=%2381baa0&clientId=u0dd2e7db-835e-4&from=paste&height=543&id=u0d2806df&originHeight=543&originWidth=1159&originalType=binary&ratio=1&rotation=0&showTitle=false&size=106487&status=done&style=shadow&taskId=u203bebbc-500e-4cac-af4e-a5ffd79afe9&title=&width=1159)
+
+## 加一个首页
+
+当访问这个项目时，跳到首页，首页有两个超链接。
+
+在web.xml文件中配置了 / 路径的servlet，所以可以写一个方法对应这个路径：
+
+```java
+@RequestMapping("/")
+public String index() {
+    return "index";
+}
+```
+
+然后在WEB-INF/templates下新建一个index.html文件：
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>这是首页</h1>
+    <a th:href="@{hehe}">hehe</a>
+    <a th:href="@{haha}">haha</a>
+</body>
+</html>
+```
+
+接着在浏览器访问http://localhost:8080/springmvc：
+
+
+
+
+
+
+
 # 第二个SpringMVC程序
+
 ## 创建Maven模块
 
 1. pom.xml文件中添加依赖
