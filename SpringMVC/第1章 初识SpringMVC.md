@@ -476,9 +476,7 @@ public String index() {
 
 接着在浏览器访问http://localhost:8080/springmvc：
 
-
-
-
+![image-20240608101728149](https://gitee.com/LowProfile666/image-bed/raw/master/img/image-20240608101728149.png)
 
 
 
@@ -493,14 +491,14 @@ public String index() {
    4. thymeleaf与spring6整合依赖
 2. 打包方式war
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=IPU2Z&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 添加web支持
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710315550290-18c819de-15fb-4653-a242-8ac1c8d1255d.png#averageHue=%23eef1f8&clientId=u0dd2e7db-835e-4&from=paste&height=198&id=u1bc1a1cd&originHeight=198&originWidth=219&originalType=binary&ratio=1&rotation=0&showTitle=false&size=9851&status=done&style=shadow&taskId=u9ae36ed0-8799-403a-843d-6ea0c0f28a6&title=&width=219)
 webapp目录没有小蓝点怎么办？添加web支持
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710315591600-e1e8f89d-9731-40ee-b601-04c8b2923258.png#averageHue=%23b2cec4&clientId=u0dd2e7db-835e-4&from=paste&height=373&id=u6dc66d24&originHeight=373&originWidth=369&originalType=binary&ratio=1&rotation=0&showTitle=false&size=33616&status=done&style=shadow&taskId=u8345e6f1-5eb2-4184-bb3b-37bceb8ac17&title=&width=369)
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710315690201-7d425088-0775-4e64-97a3-e33c09374add.png#averageHue=%23f4f5f9&clientId=u0dd2e7db-835e-4&from=paste&height=590&id=u16041e99&originHeight=590&originWidth=1359&originalType=binary&ratio=1&rotation=0&showTitle=false&size=44597&status=done&style=shadow&taskId=u685dcb7d-f2e7-4a7b-a636-3807141b073&title=&width=1359)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=TdHdN&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 配置web.xml文件
 重点：SpringMVC配置文件的名字和路径是可以手动设置的，如下：
 ```xml
@@ -516,6 +514,8 @@ webapp目录没有小蓝点怎么办？添加web支持
         <!--手动设置springmvc配置文件的路径及名字-->
         <init-param>
             <param-name>contextConfigLocation</param-name>
+            <!--指定了SpringMVC配置文件的名字是：springmvc.xml-->
+            <!--指定了SpringMVC配置文件的存放路径是：类的根路径-->
             <param-value>classpath:springmvc.xml</param-value>
         </init-param>
         <!--为了提高用户的第一次访问效率，建议在web服务器启动时初始化前端控制器-->
@@ -527,10 +527,16 @@ webapp目录没有小蓝点怎么办？添加web支持
     </servlet-mapping>
 </web-app>
 ```
-**通过<init-param>来设置SpringMVC配置文件的路径和名字。在DispatcherServlet的init方法执行时设置的。**
-**<load-on-startup>1</load-on-startup>建议加上，这样可以提高用户第一次访问的效率。表示在web服务器启动时初始化DispatcherServlet。**
+Servlet有生命周期，在Servlet被创建的时候会执行Servlet的init方法，这个方法就会初始化参数。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=XEPhx&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+**通过<init-param>来设置SpringMVC配置文件的路径和名字。在DispatcherServlet的init方法执行时设置的。**
+
+`<param-value>classpath:springmvc.xml</param-value>` 指定了SpringMVC配置文件的名字是：springmvc.xml，存放路径是：类的根路径。在src\main下的java目录和resource目录都是类的根路径，一般java下放源代码，resource下放配置文件。
+
+**<load-on-startup>1</load-on-startup>建议加上，这样可以提高用户第一次访问的效率。表示在web服务器启动时初始化DispatcherServlet。**不加一个表示第一次请求的时候才会创建这个对象，所以第一次加载慢些。
+
+
+
 ## 编写IndexController
 ```java
 package com.powernode.springmvc.controller;
@@ -538,13 +544,6 @@ package com.powernode.springmvc.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * ClassName: IndexController
- * Description:
- * Datetime: 2024/3/13 15:47
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 @Controller
 public class IndexController {
     @RequestMapping("/")
@@ -556,12 +555,35 @@ public class IndexController {
 表示请求路径如果是：[http://localhost:8080/springmvc/](http://localhost:8080/springmvc/) ，则进入 /WEB-INF/templates/index.html 页面。
 **这就是项目的首页效果！！！！！**
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=TG1Ma&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 在resources目录下配置springmvc.xml文件
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710316235461-25d719f5-5b8f-4600-922a-8568d9cd63dc.png#averageHue=%23f0f3f8&clientId=u0dd2e7db-835e-4&from=paste&height=315&id=u6e0a9fe3&originHeight=315&originWidth=366&originalType=binary&ratio=1&rotation=0&showTitle=false&size=21866&status=done&style=shadow&taskId=ubf2c7ec6-0ca1-437f-9ab5-941d3f16c50&title=&width=366)
 配置内容和之前一样，一个是视图解析器，一个是组件扫描。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=Y3hK7&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+```xml
+<!--    组件扫描-->
+<context:component-scan base-package="com.zsm.controller"></context:component-scan>
+<!--    视图解析器-->
+<bean id="thymeleafViewResolver" class="org.thymeleaf.spring6.view.ThymeleafViewResolver">
+    <property name="characterEncoding" value="UTF-8"/>
+    <property name="order" value="1"/>
+    <property name="templateEngine">
+        <bean class="org.thymeleaf.spring6.SpringTemplateEngine">
+            <property name="templateResolver">
+                <bean class="org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver">
+                    <property name="prefix" value="/WEB-INF/templates/"/>
+                    <property name="suffix" value=".html"/>
+                    <property name="templateMode" value="HTML"/>
+                    <property name="characterEncoding" value="UTF-8"/>
+                </bean>
+            </property>
+        </bean>
+    </property>
+</bean>
+```
+
+
+
 ## 提供视图
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710316353838-aac1cd57-12e3-47e4-8b73-2ea2a07a0954.png#averageHue=%23eef0f4&clientId=u0dd2e7db-835e-4&from=paste&height=128&id=u9a159361&originHeight=128&originWidth=289&originalType=binary&ratio=1&rotation=0&showTitle=false&size=7935&status=done&style=shadow&taskId=uaf3f4b6a-fb23-4ec5-8294-00978351f60&title=&width=289)
 ```html
@@ -577,7 +599,7 @@ public class IndexController {
 </html>
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=QSrlq&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+以上代码虽然是html文件中的，但是仍然是Thymeleaf的模板字符串，只有Thymeleaf模板引擎才可以解析以上代码，转为浏览器能认识的html代码。
 ## 测试
 部署到web服务器，启动web服务器，打开浏览器，在地址栏上输入：[http://localhost:8080/springmvc/](http://localhost:8080/springmvc/)
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710317491301-4104920d-3537-40d1-b950-2ad1f3398a2d.png#averageHue=%23f7f7f6&clientId=u0dd2e7db-835e-4&from=paste&height=170&id=uc8b7b484&originHeight=170&originWidth=421&originalType=binary&ratio=1&rotation=0&showTitle=false&size=8615&status=done&style=shadow&taskId=u9896bf63-92fb-4dd5-9584-0cbffeb8277&title=&width=421)

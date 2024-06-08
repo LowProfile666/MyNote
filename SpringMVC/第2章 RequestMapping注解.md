@@ -1,12 +1,12 @@
 # RequestMapping的作用
 `@RequestMapping` 注解是 Spring MVC 框架中的一个控制器映射注解，用于将请求映射到相应的处理方法上。具体来说，它可以将指定 URL 的请求绑定到一个特定的方法或类上，从而实现对请求的处理和响应。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=u48f9f116&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 # RequestMapping的出现位置
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710318777635-df02afe3-e065-4a05-877e-3a6f8a6eea4e.png#averageHue=%23fdfbfa&clientId=u149a58a6-22bb-4&from=paste&height=601&id=u2ad3fa51&originHeight=601&originWidth=774&originalType=binary&ratio=1&rotation=0&showTitle=false&size=92825&status=done&style=none&taskId=u6b548f73-490a-41c9-bbab-2db00cd31b9&title=&width=774)
 通过RequestMapping的源码可以看到RequestMapping注解只能出现在类上或者方法上。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=Aayvk&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 # 类上与方法上结合使用
 我们先来看，在同一个web应用中，是否可以有两个完全一样的RequestMapping。测试一下：假设两个RequestMapping，其中一个是展示用户详细信息，另一个是展示商品详细信息。提供两个Controller，一个是UserController，另一个是ProductController。如下：
 ```java
@@ -15,13 +15,6 @@ package com.powernode.springmvc.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * ClassName: UserController
- * Description:
- * Datetime: 2024/3/13 16:40
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 @Controller
 public class UserController {
     @RequestMapping("/detail")
@@ -29,7 +22,6 @@ public class UserController {
         return "detail";
     }
 }
-
 ```
 ```java
 package com.powernode.springmvc.controller;
@@ -37,13 +29,6 @@ package com.powernode.springmvc.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * ClassName: ProductController
- * Description:
- * Datetime: 2024/3/13 16:40
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 @Controller
 public class ProductController {
     @RequestMapping("/detail")
@@ -51,7 +36,6 @@ public class ProductController {
         return "detail";
     }
 }
-
 ```
 以上两个Controller的RequestMapping相同，都是"/detail"，我们来启动服务器看会不会出现问题：异常发生了，异常信息如下
 ```java
@@ -68,7 +52,7 @@ com.powernode.springmvc.controller.ProductController#toDetail() mapped.
 - 第一种方案：将方法上RequestMapping的映射路径修改的不一样。
 - 第二种方案：在类上添加RequestMapping的映射路径，以类上的RequestMapping作为命名空间，来加以区分两个不同的映射。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=y0H08&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 第一种方案
 将方法上RequestMapping的映射路径修改的不一样。
 ```java
@@ -131,23 +115,17 @@ public String toDetail(){
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710323998528-e38bedfd-8915-4dd5-a5ff-47c7f65df143.png#averageHue=%23d5b281&clientId=ub006eeb4-d5e7-4&from=paste&height=219&id=u353f7f40&originHeight=219&originWidth=493&originalType=binary&ratio=1&rotation=0&showTitle=false&size=11545&status=done&style=none&taskId=ub7bf346b-8e18-48bf-b338-5cf89bc4193&title=&width=493)
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710324010676-719ba465-0cc1-49bf-a9e6-3d1375dfdc65.png#averageHue=%23f7f7f6&clientId=ub006eeb4-d5e7-4&from=paste&height=241&id=u66baa171&originHeight=241&originWidth=402&originalType=binary&ratio=1&rotation=0&showTitle=false&size=11385&status=done&style=none&taskId=u0a5f7eac-1eca-44f3-bfeb-93abbb39cb4&title=&width=402)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=mrSpB&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 第二种方案
 在类上和方法上都使用RequestMapping注解来进行路径的映射。假设在类上映射的路径是"/a"，在方法上映射的路径是"/b"，那么整体表示映射的路径就是："/a/b"
 在第一种方案中，假设UserController类中有很多方法，每个方法的 RequestMapping注解中都需要以"/user"开始，显然比较啰嗦，干脆将"/user"提升到类级别上，例如：
+
 ```java
 package com.powernode.springmvc.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * ClassName: UserController
- * Description:
- * Datetime: 2024/3/13 16:40
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 @Controller
 @RequestMapping("/user")
 public class UserController {
@@ -164,13 +142,6 @@ package com.powernode.springmvc.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * ClassName: ProductController
- * Description:
- * Datetime: 2024/3/13 16:40
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 @Controller
 @RequestMapping("/product")
 public class ProductController {
@@ -183,7 +154,7 @@ public class ProductController {
 ```
 经过测试，程序可以正常执行！！！
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=lsaj2&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 # RequestMapping注解的value属性
 ## value属性的使用
 value属性是该注解最核心的属性，value属性填写的是请求路径，也就是说通过该请求路径与对应的控制器的方法绑定在一起。另外通过源码可以看到value属性是一个字符串数组：
