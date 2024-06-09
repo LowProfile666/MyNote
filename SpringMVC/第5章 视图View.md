@@ -1,5 +1,13 @@
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=u48f9f116&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # SpringMVC中视图的实现原理
+
+MVC中的Model和Controller都讲过了：
+
++ Model：三个域对象，request、session、application
+
++ Controller：@Controller、@RequestMapping……
+
++ View：只知道处理方法返回一个逻辑视图的名称。
+
 ## Spring MVC视图支持可配置
 在Spring MVC中，视图View是支持定制的，例如我们之前在 springmvc.xml 文件中进行了如下的配置：
 ```xml
@@ -33,11 +41,10 @@
 如果你需要换成其他的视图View，修改以上的配置即可。这样就可以非常轻松的完成视图View的扩展。
 这种设计是完全符合OCP开闭原则的。视图View和框架是解耦合的，耦合度低扩展能力强。视图View可以通过配置文件进行灵活切换。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=RiuE0&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## Spring MVC支持的常见视图
 Spring MVC支持的常见视图包括：
 
-1. InternalResourceView：内部资源视图（Spring MVC框架内置的，专门为`JSP模板语法`准备的）
+1. InternalResourceView：内部资源视图（Spring MVC框架内置的，专门为`JSP模板语法`准备的，转发效果也是用这个视图）
 2. RedirectView：重定向视图（Spring MVC框架内置的，用来完成重定向效果）
 3. ThymeleafView：Thymeleaf视图（第三方的，为`Thymeleaf模板语法`准备的）
 4. FreeMarkerView：FreeMarker视图（第三方的，为`FreeMarker模板语法`准备的）
@@ -46,23 +53,23 @@ Spring MVC支持的常见视图包括：
 7. ExcelView：Excel视图（第三方的，专门用来生成excel文件视图）
 8. ......
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=jRDpb&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## 实现视图机制的核心接口
 实现视图的核心类与接口包括：
 
 1. DispatcherServlet类（前端控制器）：
-   1. 职责：在整个Spring MVC执行流程中，负责中央调度。
+   1. 职责：在整个Spring MVC执行流程中，负责中央调度。负责接收前端的请求，根据请求路径找到对应的处理器方法，执行处理器方法，并最终返回ModelAndView对象。
    2. 核心方法：doDispatch
 
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710824946253-84de4b12-1985-4976-ae39-dd62e77b43b8.png#averageHue=%23fbf8f6&clientId=u16fbe6d5-b81c-4&from=paste&height=293&id=ue3be2feb&originHeight=293&originWidth=893&originalType=binary&ratio=1&rotation=0&showTitle=false&size=43306&status=done&style=shadow&taskId=u6922fdb3-95ed-4c9f-be18-18482d003b9&title=&width=893)
 
-2. ViewResolver接口（视图解析器）：
+2. ViewResolver接口（视图解析器）： 
+   
+   （InternalResourceViewResolver、ThymeleafViewResolver实现了ViewResolver接口）
+   
    1. 职责：负责将`逻辑视图名`转换为`物理视图名`，最终创建View接口的实现类，即视图实现类对象。
    2. 核心方法：resolveViewName
 
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710824983130-13d175e9-be25-4e76-bccf-d50f63cee853.png#averageHue=%23fcfbfa&clientId=u16fbe6d5-b81c-4&from=paste&height=164&id=u9237c0b9&originHeight=164&originWidth=774&originalType=binary&ratio=1&rotation=0&showTitle=false&size=21642&status=done&style=shadow&taskId=ub3dd9f15-a32b-4871-a00b-48723bce0ff&title=&width=774)
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=CF9VF&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 
 3. View接口（视图）:
    1. 职责：负责将模型数据Model渲染为视图格式（HTML代码），并最终将生成的视图（HTML代码）输出到客户端。（它负责将模板语言转换成HTML代码）
@@ -83,10 +90,183 @@ Spring MVC支持的常见视图包括：
    - **ThymeleafView**
    - **ThymeleafViewResolver**
 
+## 视图机制源码跟踪
+
+前端发送一个请求过来时，会先走到DispatcherServlet类中，DispatcherServlet类中重要代码：
+
+```java
+public class DispatcherServlet extends FrameworkServlet {
+    protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        // ...
+        mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+        // ...
+        processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
+        // ...
+    }
+}
+```
+
++ `DispatcherServlet`：前端控制器，SpringMVC最核心的类
++ `doDispatch()`：前端控制器最核心的方法，这个方法是负责处理请求的，一次请求，调用一次 doDispatch 方法。处理请求，返回视图，渲染视图，都是在这个方法中完成的。
++ `mv = ha.handle(processedRequest, response, mappedHandler.getHandler());`：根据请求路径调用映射的处理器方法，处理器方法执行结束之后，返回逻辑视图名称。逻辑视图名称返回之后，DispatcherServlet会将逻辑视图名称（ViewName）加上 Model，将其封装为ModelAndView对象。
++ `processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);`：这行代码的作用是处理视图。
+
+进入这个processDispatchResult方法中，这个方法还是在DispatcherServlet类中：
+
+```java
+private void processDispatchResult(HttpServletRequest request, 
+                                   HttpServletResponse response,
+                                   @Nullable HandlerExecutionChain mappedHandler, 
+                                   @Nullable ModelAndView mv,
+                                   @Nullable Exception exception) 
+    throws Exception {
+    // ...
+    render(mv.getModelInternal(), request, response);
+}
+```
+
++ `render(mv.getModelInternal(), request, response);`：渲染页面，将模板字符串转换为HTML代码，响应到浏览器。
+
+再进入这个render方法中，这个render方法也还是在DispatcherServlet类中：
+```java
+protected void render(ModelAndView mv, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    // ...
+    View view = resolveViewName(viewName, mv.getModelInternal(), locale, request);
+}
+```
+
++ `View view = resolveViewName(viewName, mv.getModelInternal(), locale, request);`：这个方法的作用是将逻辑视图的名称转换成物理视图的名称，并且最终返回视图对象view
+
+再进入以上代码中的resolveViewName方法中，这个方法还是在DispatcherServlet类中：
+
+```java
+protected View resolveViewName(String viewName, 
+                               @Nullable Map<String, Object> model,
+                               Locale locale, HttpServletRequest request) 
+    throws Exception {
+    // ...
+    // 视图解析器
+    ViewResolver viewResolver;
+    View view = viewResolver.resolveViewName(viewName, locale);
+    return view;
+}
+```
+
++ `View view = viewResolver.resolveViewName(viewName, locale);`：这一行代码才是真正起作用的：将逻辑视图的名称转换成物理视图的名称，并且最终返回视图对象View
++ 如果使用的是Thymeleaf，那么这个view对象就是ThymeleafView对象
+
++ ViewResolver是一个接口，负责视图解析的：
+
+  ```java
+  public interface ViewResolver {
+  	View resolveViewName(String viewName, Locale locale) throws Exception;
+  }
+  ```
+
+  + 如果是使用Thymeleaf，那么该接口的实现类就是ThymeleafViewResolver
+
+程序执行到这已经返回了View对象，接着会返回到render方法中：
+
+```java
+protected void render(ModelAndView mv, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    // ...
+    View view = resolveViewName(viewName, mv.getModelInternal(), locale, request);
+    // ...
+    view.render(mv.getModelInternal(), request, response);
+}
+```
+
++ `view.render(mv.getModelInternal(), request, response);`：程序执行到这，真正的将模板字符串转换成HTML代码，并且响应给浏览器。
+
++ View是一个接口，负责将模板字符串转换为HTML代码响应给浏览器的：
+
+  ```java
+  public interface View{
+  	void render(@Nullable Map<String, ?> model, HttpServletRequest request, HttpServletResponse response)
+  			throws Exception;
+  }
+  ```
+
+源码总结：
+
+```java
+// 前端控制器，SpringMVC最核心的类
+public class DispatcherServlet extends FrameworkServlet {
+	// 前端控制器最核心的方法，这个方法是负责处理请求的，一次请求，调用一次 doDispatch 方法。
+	protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		// 通过请求获取处理器
+		// 请求：http://localhost:8080/springmvc/hello （有URI）
+		// 根据请求路径来获取对应的要执行的处理器
+		// 实际上返回的是一个处理器执行链对象
+		// 这个执行链(链条)把谁串起来了呢？把这一次请求要执行的所有拦截器和处理器串起来了。
+		// HandlerExecutionChain是一次请求对应一个对象
+		HandlerExecutionChain mappedHandler = getHandler(request);
+		
+		// 根据处理器获取处理器适配器对象
+		HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler()); // Handler就是我们写的Controller
+
+		// 执行该请求对应的所有拦截器中的 preHandle 方法
+		if (!mappedHandler.applyPreHandle(processedRequest, response)) {
+			return;
+		}
+
+		// 调用处理器方法，返回ModelAndView对象
+		// 在这里进行的数据绑定，实际上调用处理器方法之前要给处理器方法传参
+		// 需要传参的话，这个参数实际上是要经过一个复杂的数据绑定过程（将前端提交的表单数据转换成POJO对象）
+		mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+
+		// 执行该请求对应的所有拦截器中的 postHandle 方法
+		mappedHandler.applyPostHandle(processedRequest, response, mv);
+
+		// 处理分发结果（本质上就是响应结果到浏览器）
+		processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
+	}
+
+	private void processDispatchResult(HttpServletRequest request, HttpServletResponse response,
+			@Nullable HandlerExecutionChain mappedHandler, @Nullable ModelAndView mv,
+			@Nullable Exception exception) throws Exception {
+		// 渲染
+		render(mv, request, response);
+		// 执行该请求所对应的所有拦截器的afterCompletion方法
+		mappedHandler.triggerAfterCompletion(request, response, null);
+	}
+
+	protected void render(ModelAndView mv, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		// 通过视图解析器进行解析，返回视图View对象
+		View view = resolveViewName(viewName, mv.getModelInternal(), locale, request);
+		// 调用视图对象的渲染方法（完成响应）
+		view.render(mv.getModelInternal(), request, response);
+	}
+
+	protected View resolveViewName(String viewName, @Nullable Map<String, Object> model,
+			Locale locale, HttpServletRequest request) throws Exception {
+		// 视图解析器
+		ViewResolver viewResolver;
+		// 通过视图解析器解析返回视图对象View
+		View view = viewResolver.resolveViewName(viewName, locale);
+	}
+}
+
+// 视图解析器接口
+public interface ViewResolver {
+	View resolveViewName(String viewName, Locale locale) throws Exception;
+}
+
+// 视图解析器接口实现类也很多：ThymeleafViewResolver、InternalResourceViewResolver
+
+// 视图接口
+public interface View{
+	void render(@Nullable Map<String, ?> model, HttpServletRequest request, HttpServletResponse response)
+			throws Exception;
+}
+
+// 每一个接口肯定是有接口下的实现类，例如View接口的实现类：ThymeleafView、InternalResourceView....
+```
 
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=hPuLr&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 实现视图机制的原理描述
+
 假设我们SpringMVC中使用了Thymeleaf作为视图。
 第一步：浏览器发送请求给web服务器
 第二步：Spring MVC中的DispatcherServlet接收到请求
@@ -95,7 +275,6 @@ Spring MVC支持的常见视图包括：
 第五步：Controller的方法处理业务并返回一个`逻辑视图名`给DispatcherServlet
 第六步：DispatcherServlet调用ThymeleafViewResolver的resolveViewName方法，将`逻辑视图名`转换为`物理视图名`，并创建ThymeleafView对象返回给DispatcherServlet
 第七步：DispatcherServlet再调用ThymeleafView的render方法，render方法将模板语言转换为HTML代码，响应给浏览器，完成最终的渲染。
-
 
 假设我们SpringMVC中使用了JSP作为视图。
 第一步：浏览器发送请求给web服务器
@@ -106,11 +285,10 @@ Spring MVC支持的常见视图包括：
 第六步：DispatcherServlet调用`InternalResourceViewResolver`的`resolveViewName`方法，将`逻辑视图名`转换为`物理视图名`，并创建`InternalResourceView`对象返回给DispatcherServlet
 第七步：DispatcherServlet再调用`InternalResourceView`的`render`方法，render方法将模板语言转换为HTML代码，响应给浏览器，完成最终的渲染。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=zTlMp&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-
 ## 逻辑视图名到物理视图名的转换
-逻辑视图名最终转换的物理视图名是什么，取决再springmvc.xml文件中视图解析器的配置：
+逻辑视图名最终转换的物理视图名是什么，取决在springmvc.xml文件中视图解析器的配置：
 假如视图解析器配置的是ThymeleafViewResolver，如下：
+
 ```xml
 <bean id="thymeleafViewResolver" class="org.thymeleaf.spring6.view.ThymeleafViewResolver">
     <property name="characterEncoding" value="UTF-8"/>
@@ -154,10 +332,10 @@ public String toIndex(){
 ```
 最终逻辑视图名"index" 转换为物理视图名：/WEB-INF/templates/index.jsp
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=RF4m5&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # Thymeleaf视图
 我们在学习前面内容的时候，采用的都是Thymeleaf视图。我们再来测试一下，看看底层创建的视图对象是不是`ThymeleafView`
 springmvc.xml配置内容如下：
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -217,8 +395,6 @@ public class IndexController {
 </html>
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=TxdMH&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-
 添加断点：在DispatcherServlet的doDispatch方法的下图位置添加断点
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710835859057-703d8177-8e9c-4a42-9f8d-e36d0bfb1e42.png#averageHue=%23fdfaf8&clientId=u6bedb242-223f-4&from=paste&height=285&id=uc3fe801e&originHeight=285&originWidth=1004&originalType=binary&ratio=1&rotation=0&showTitle=false&size=30503&status=done&style=shadow&taskId=ude602775-dc45-492d-87c4-4dbffb33b0e&title=&width=1004)
 
@@ -233,12 +409,12 @@ public class IndexController {
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710836196992-3d3ef841-db8b-4642-aa9a-fa2ffef5ef0e.png#averageHue=%23faf6f4&clientId=u6bedb242-223f-4&from=paste&height=264&id=u048d73aa&originHeight=264&originWidth=580&originalType=binary&ratio=1&rotation=0&showTitle=false&size=52949&status=done&style=shadow&taskId=u56330a98-d26c-4dd5-b182-21f4d11dd0d&title=&width=580)
 走到上图位置就可以看到底层创建的是ThymeleafView对象。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=pTbjM&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # JSP视图（了解）
 我们再来跟一下源码，看看JSP视图底层创建的是不是InternalResourceView对象。
 我们前面说过 InternalResourceView是SpringMVC框架内置的，翻译为内部资源视图，SpringMVC把JSP看做是内部资源。可见JSP在之前的技术栈中有很高的地位。
 不过，当下流行的开发中JSP使用较少，这里不再详细讲解。只是测试一下。
 springmvc.xml配置如下：
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -288,8 +464,10 @@ public class IndexController {
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710836651520-2ea9a9ba-0a71-4f3e-977c-4bce0ddfdcf8.png#averageHue=%23fbf6f5&clientId=u6bedb242-223f-4&from=paste&height=265&id=ua9f75b72&originHeight=265&originWidth=481&originalType=binary&ratio=1&rotation=0&showTitle=false&size=42624&status=done&style=shadow&taskId=u080e28c2-8c70-4da4-a5eb-a62d15d6818&title=&width=481)
 通过测试得知：对于JSP视图来说，底层创建的视图对象是InternalResourceView。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=sb97g&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # 转发与重定向
+
+转发和重定向是用来资源跳转的。
+
 ## 回顾转发和重定向区别
 
 1. 转发是一次请求。因此浏览器地址栏上的地址不会发生变化。
@@ -305,15 +483,15 @@ public class IndexController {
    2. 在AServlet 中通过`request.getRequestDispatcher("/b").forward(request,response);`转发到BServlet
    3. 从AServlet跳转到BServlet是服务器内部来控制的。对于浏览器而言，浏览器只发送了一个 /a 请求。
 10. 重定向原理：
-   1. 假设发送了 /a 请求，执行了 AServlet
-   2. 在AServlet 中通过`response.sendRedirect("/webapproot/b")`重定向到BServlet
-   3. 此时服务器会将请求路径`/webapproot/b`响应给浏览器
-   4. 浏览器会自发的再次发送`/webapproot/b`请求来访问BServlet
-   5. 因此对于重定向来说，发送了两次请求，一次是 `/webapproot/a`，另一次是`/webapproot/b`。
+    1. 假设发送了 /a 请求，执行了 AServlet
+    2. 在AServlet 中通过`response.sendRedirect("/webapproot/b")`重定向到BServlet
+    3. 此时服务器会将请求路径`/webapproot/b`响应给浏览器
+    4. 浏览器会自发的再次发送`/webapproot/b`请求来访问BServlet
+    5. 因此对于重定向来说，发送了两次请求，一次是 `/webapproot/a`，另一次是`/webapproot/b`。
+
 
 以上所描述的是使用原生Servlet API来完成转发和重定向。在Spring MVC中是如何转发和重定向的呢？
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=mtMox&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## forward
 在Spring MVC中默认就是转发的方式，我们之前所写的程序，都是转发的方式。只不过都是转发到Thymeleaf的模板文件xxx.html上。
 那么，在Spring MVC中如何转发到另一个Controller上呢？可以使用Spring MVC的`forward`
