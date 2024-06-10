@@ -495,7 +495,11 @@ public class IndexController {
 ## forward
 在Spring MVC中默认就是转发的方式，我们之前所写的程序，都是转发的方式。只不过都是转发到Thymeleaf的模板文件xxx.html上。
 那么，在Spring MVC中如何转发到另一个Controller上呢？可以使用Spring MVC的`forward`
+
+格式：`return "forward:下一个资源的路径";`
+
 代码实现如下：
+
 ```java
 package com.powernode.springmvc.controller;
 
@@ -504,7 +508,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 public class IndexController {
-
     @RequestMapping("/a")
     public String toA(){
         return "forward:/b";
@@ -516,7 +519,17 @@ public class IndexController {
     }
 }
 ```
++ return "forward:/b"; 这里的这个路径是不能随便写，必须是要跳转的路径
++ 当 return "b" 的时候，返回了一个逻辑视图的名称，这种方式跳转到视图，默认采用的就是 forward 方式。底层是创建的ThymeleafView对象（使用的是Thymeleaf模板）
+
+在 ThymeleafViewReslover 类中的createView方法里，有这样一段：
+
+![image-20240610124233023](https://gitee.com/LowProfile666/image-bed/raw/master/img/image-20240610124233023.png)
+
++ 这是不是源码，这是反编译后的代码
+
 视图页面：
+
 ```html
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
@@ -537,7 +550,7 @@ public class IndexController {
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710846891647-16906724-4f82-4a5f-9bae-655b3ce869e3.png#averageHue=%23fbf4f2&clientId=u7eaef306-20e2-4&from=paste&height=167&id=ua9ef9d83&originHeight=167&originWidth=1289&originalType=binary&ratio=1&rotation=0&showTitle=false&size=53389&status=done&style=shadow&taskId=u0bea72cc-b0c1-481f-a5e3-954a34be29a&title=&width=1289)
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710846943388-ff000327-18e6-4920-96d7-f96e59c62202.png#averageHue=%23cca26b&clientId=u7eaef306-20e2-4&from=paste&height=141&id=u2688da80&originHeight=141&originWidth=642&originalType=binary&ratio=1&rotation=0&showTitle=false&size=29346&status=done&style=shadow&taskId=u4c181cf8-4ef8-44ff-8e3e-dc65c2eb6f0&title=&width=642)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=M28w6&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 
 通过源码的跟踪得知：整个请求处理过程中，一共创建了两个视图对象
 
@@ -545,12 +558,14 @@ public class IndexController {
 - ThymeleafView
 
 这说明转发底层创建的视图对象是：InternalResourceView。
-**思考：既然会创建InternalResourceView，应该会对应一个视图解析器呀（InternalResourceViewResolver）？但是我在springmvc.xml文件中只配置了ThymeleafViewResolver，并没有配置InternalResourceViewResolver呀？这是为什么？**
-**这是因为**`**forward:**`** 后面的不是**`**逻辑视图名**`**，而是一个**`**请求路径**`**。因此转发是不需要视图解析器的。**
-**另外，转发使用的是InternalResourceView，也说明了转发是内部资源的跳转。（Internal是内部的意思，Resource是资源的意思。）**
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=T5nVM&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+思考：既然会创建InternalResourceView，应该会对应一个视图解析器呀（InternalResourceViewResolver）？但是我在springmvc.xml文件中只配置了ThymeleafViewResolver，并没有配置InternalResourceViewResolver呀？这是为什么？
+
+这是因为`forward: `后面的不是`逻辑视图名`，而是一个`请求路径`。因此转发是不需要视图解析器的。
+另外，转发使用的是InternalResourceView，也说明了转发是内部资源的跳转。（Internal是内部的意思，Resource是资源的意思。）
+
 ## redirect
+
 redirect是专门完成重定向效果的。和forward语法类似，只需要将之前的 `return "forward:/b"`修改为 `return "redirect:/b"`即可。
 ```java
 package com.powernode.springmvc.controller;
@@ -596,8 +611,6 @@ public class IndexController {
 通过断点调试可以看出，当重定向的时候，SpringMVC会创建一个重定向视图对象：**RedirectView**。这个视图对象也是SpringMVC框架内置的。
 另外可以看出重定向之后的第二次请求创建的视图对象就是ThymeleafView了。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=MLNVb&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-
 注意：从springmvc应用重定向到springmvc2应用（跨域），语法是：
 ```java
 @RequestMapping("/a")
@@ -607,11 +620,14 @@ public String a(){
 ```
 可以自行测试一下！！！
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=zHgEk&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-# <mvc:view-controller>
+# `<mvc:view-controller>`
+
+视图控制器，这个配置可以在springmvc.xml文件中进行配置。如果有一个控制器，控制器中有一个处理器方法，这个处理器方法只是为了跳转页面，不处理任何业务，那么就可以使用这个配置，不用写这个控制器的代码。
+
 `<mvc:view-controller>` 配置用于将某个请求映射到特定的视图上，即指定某一个 URL 请求到一个视图资源的映射，使得这个视图资源可以被访问。它相当于是一个独立的处理程序，不需要编写任何 Controller，只需要指定 URL 和对应的视图名称就可以了。
 一般情况下，`<mvc:view-controller>` 配置可以替代一些没有业务逻辑的 Controller，例如首页、错误页面等。当用户访问配置的 URL 时，框架将直接匹配到对应的视图，而无需再经过其他控制器的处理。
 `<mvc:view-controller>` 配置的格式如下： 
+
 ```xml
 <mvc:view-controller path="/如何访问该页面" view-name="对应的逻辑视图名称" />
 ```
@@ -620,24 +636,30 @@ public String a(){
 - `path`：被映射的 URL 路径。
 - `view-name`：对应的逻辑视图名称。
 
-例如，配置首页的映射：
+例如
 ```xml
-<mvc:view-controller path="/" view-name="index" />
+<mvc:view-controller path="/test" view-name="a" />
 ```
-上述配置将会匹配上访问应用程序的根路径，如：http://localhost:8080/。当用户在浏览器中访问该根路径时，就会直接渲染名为 `index` 的视图。
+上述配置将会匹配上访问应用程序的/test路径，如：http://localhost:8080/springmvc/test。当用户在浏览器中访问该根路径时，就会直接渲染名为 `a` 的视图。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=jRx1M&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-# <mvc:annotation-driven/>
-在SpringMVC中，如果在springmvc.xml文件中配置了 `<mvc:view-controller>`，就需要同时在springmvc.xml文件中添加如下配置：
+但是添上了这一句代码后，其他的地址却是访问不了了，只能访问这一个地址，这是因为加了这句代码后，原先控制器上的那些注解全都失效了，必须要将这些注解全部开启。就需要使用到`<mvc:annotation-driven/>`。
+
+# `<mvc:annotation-driven/>`
+
+在SpringMVC中，如果在springmvc.xml文件中配置了 `<mvc:view-controller>`，就需要同时在springmvc.xml文件中添加如下配置，开启注解驱动：
 ```xml
 <mvc:annotation-driven/>
 ```
 该配置的作用是：启用Spring MVC的注解。
 如果没有以上的配置，Controller就无法访问到。访问之前的Controller会发生 404 问题。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=IpycH&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # 访问静态资源
 一个项目可能会包含大量的静态资源，比如：css、js、images等。
+
+现在在项目的webapp下新建一个目录static，里面新建一个img目录，放置一些图片，然后启动项目，直接输入地址访问图片：
+
+![image-20240610131159309](https://gitee.com/LowProfile666/image-bed/raw/master/img/image-20240610131159309.png)
+
 由于我们DispatcherServlet的url-pattern配置的是“/”，之前我们说过，这个"/"代表的是除jsp请求之外的所有请求，也就是说访问应用中的静态资源，也会走DispatcherServlet，这会导致404错误，无法访问静态资源，如何解决，两种方案：
 
 - 使用默认 Servlet 处理静态资源
@@ -645,17 +667,9 @@ public String a(){
 
 这两种方式都可以。自行选择。
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=k2Q01&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## 使用默认Servlet处理静态资源
-首先需要在springmvc.xml文件中添加以下配置，开启 `默认Servlet处理静态资源` 功能：
-```xml
-<!-- 开启注解驱动 -->
-<mvc:annotation-driven />
+Tomcat自带的web.xml（CATALINA_HOME/conf/web.xml）有一个DefaultServlet可以用来处理静态资源，如果Tomcat没有自带，将一下代码手动写到自己的web.xml文件中也可以：
 
-<!--开启默认Servlet处理-->
-<mvc:default-servlet-handler>
-```
-然后在web.xml文件中指定什么样的路径走其他Servlet：
 ```xml
 <servlet>
     <servlet-name>default</servlet-name>
@@ -675,14 +689,27 @@ public String a(){
     <url-pattern>/</url-pattern>
 </servlet-mapping>
 ```
-以上配置url-pattern使用的也是"/"，和DispatcherServlet一样。表示的含义是：**同一个请求路径，先走DispatcherServlet，如果找不到则走默认的Servlet。**
-默认的 Servlet 类中的代码已经由 Tomcat 服务器提供了实现，一般不需要开发者自己编写。在上面的示例中，我们指定了 `org.apache.catalina.servlets.DefaultServlet`，则 Tomcat 服务器会自动将请求转发给该类处理。在处理时，该类会根据请求的 URL 去查询 Web 应用的静态资源（如 HTML、CSS、JavaScript 和图片等），并将其返回给用户。
-告诉大家一个好消息，以上在web.xml文件中的配置我们也可以省略了，因为在Tomcat服务器中已经为我们提前配置好了，在CATALINA_HOME/conf/web.xml文件中，如下：
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710919316908-f4fb4a3a-7f7f-48f4-b135-9c8476a1c49b.png#averageHue=%23f8f3f3&clientId=ud3910891-1b7b-4&from=paste&height=219&id=u1c3362ec&originHeight=219&originWidth=678&originalType=binary&ratio=1&rotation=0&showTitle=false&size=19691&status=done&style=shadow&taskId=u09d388cd-fa37-4280-ac12-1ba9318e982&title=&width=678)
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1710919337577-14f47775-113c-4316-8a15-84278d9cb6f7.png#averageHue=%23f6efef&clientId=ud3910891-1b7b-4&from=paste&height=83&id=ud68554f3&originHeight=83&originWidth=417&originalType=binary&ratio=1&rotation=0&showTitle=false&size=6803&status=done&style=shadow&taskId=u29d364df-aae8-4d7b-b6aa-7cec6607e6e&title=&width=417)
-因此我们只需要在springmvc.xml文件中启用这个默认的Servlet即可：`<mvc:default-servlet-handler>`
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=bXWdN&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
++ 以上配置url-pattern使用的也是"/"，和DispatcherServlet一样。表示的含义是：**同一个请求路径，先走DispatcherServlet，如果找不到则走默认的Servlet。**
+
+需要在springmvc.xml文件中添加以下配置，开启 `默认Servlet处理静态资源` 功能：
+
+```xml
+<!-- 开启注解驱动 -->
+<mvc:annotation-driven />
+
+<!--开启默认Servlet处理-->
+<mvc:default-servlet-handler>
+```
++ 这个功能默认没有开启
++ 开启这个功能的同时，也要开启注解驱动器
+
+开启之后，再次访问静态资源时，还是会先走DispatcherViewController，当走DispatcherViewController发生了404时，就会走Tomcat指定的DefaultServlet，而这个DefaultServlet就可以按照常规的思路去找静态资源：
+
+![image-20240610132004709](https://gitee.com/LowProfile666/image-bed/raw/master/img/image-20240610132004709.png)
+
+默认的 Servlet 类中的代码已经由 Tomcat 服务器提供了实现，一般不需要开发者自己编写。在上面的示例中，我们指定了 `org.apache.catalina.servlets.DefaultServlet`，则 Tomcat 服务器会自动将请求转发给该类处理。在处理时，该类会根据请求的 URL 去查询 Web 应用的静态资源（如 HTML、CSS、JavaScript 和图片等），并将其返回给用户。
+
 ## 使用 mvc:resources 标签配置静态资源
 访问静态资源，也可以在springmvc.xml文件中添加如下的配置：
 ```xml
