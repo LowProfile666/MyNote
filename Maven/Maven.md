@@ -308,6 +308,8 @@ LICENSE、NOTICE、README.txt：针对Maven版本，第三方软件等简要介�
         <mirrorOf>central</mirrorOf>
     </mirror>
     ```
+    
+    + 可以添加多个镜像源
 3.  配置jdk17版本项目构建
     ```xml
     <!--在profiles节点(标签)下添加jdk编译版本 268行附近-->
