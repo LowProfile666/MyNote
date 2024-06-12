@@ -1,5 +1,5 @@
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=N5vfq&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # 整个完整系统的参与者
+
 对于一个完整的web项目参与者包括：
 
 - Servlet规范的制定者（已有）
@@ -7,13 +7,14 @@
 - Spring MVC框架的开发者（手写Spring MVC框架）
 - 编写webapp的开发者（用Spring MVC框架的人）
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=X6nRa&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # 基本结构搭建
+
 ## 创建Maven模块
+
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712020799342-9ee1720f-5a83-4a2f-b5da-7fccca5b7fca.png#averageHue=%233d4145&clientId=uae70fab4-1447-4&from=paste&height=656&id=u4d017e69&originHeight=656&originWidth=775&originalType=binary&ratio=1&rotation=0&showTitle=false&size=46398&status=done&style=none&taskId=u6d15b9d4-b8a5-4625-8988-b39b6a8c0b4&title=&width=775)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=mWp3K&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## 引入Servlet依赖
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -45,8 +46,8 @@
 </project>
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=eqBOF&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## 配置Tomcat服务器
+
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712020903992-0aae56a0-5652-464c-9b43-bb784f75daf2.png#averageHue=%233e4143&clientId=uae70fab4-1447-4&from=paste&height=62&id=u0581fcfc&originHeight=62&originWidth=257&originalType=binary&ratio=1&rotation=0&showTitle=false&size=2845&status=done&style=shadow&taskId=u12a01a2e-098f-4071-acb2-6820980160b&title=&width=257)
 ## 添加web支持
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712020961226-61820425-2590-4efe-bad2-6220d08a36ea.png#averageHue=%23404852&clientId=uae70fab4-1447-4&from=paste&height=164&id=u2ff19a4d&originHeight=164&originWidth=234&originalType=binary&ratio=1&rotation=0&showTitle=false&size=5850&status=done&style=shadow&taskId=uce4273cf-4649-429e-857d-a7d213ccfd6&title=&width=234)
@@ -59,13 +60,50 @@
 </web-app>
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=kTWoE&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## 创建基本类和接口
+
+先分析一下SpringMVC中有哪些重要的类和接口：
+
++ DispatcherServlet 类（所有servlet都要实现Servlet接口，或者直接继承HttpServlet，javaWeb规范中的）
+
++ HandlerExecutionChain 类
+
++ HandlerMapping 处理器映射器接口
+
++ RequestMappingHandlerMapping 类（是HandlerMapping接口的实现类，专门为@RequestMapping注解使用的）
+
++ HandlerMethod 类（处理器方法）
+
+  请求路径通过HandlerMapping映射到这个方法上，这个方法就是HandlerMethod，然后给HandlerExecutionChain处理器执行链中的Object handler 属性
+
+  ![image-20240612151512443](https://gitee.com/LowProfile666/image-bed/raw/master/img/image-20240612151512443.png)、
+
++ HandlerInterceptor 接口（拦截器接口）
+
++ HandlerAdapter 接口（处理器适配器接口）
+
++ RequestMappingHandlerAdapter 类（是HandlerAdapter接口的实现类，专门给@RequestMapping注解使用的）
+
++ ModelAndView 类
+
++ ViewResolver 接口
+
++ InternalResourceViewReslover 类（使用JSP模板引擎）
+
++ View 接口
+
++ InternalResourceView 类
+
++ @Controller 注解
+
++ @RequestMapping 注解
+
 根据Spring MVC执行流程，目前先创建出以下的类和接口，后期如果需要其他的再添加：
+
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712024526752-2594cbc4-c663-43cf-af59-55c43be03292.png#averageHue=%2347618e&clientId=uae70fab4-1447-4&from=paste&height=658&id=u8d639099&originHeight=658&originWidth=458&originalType=binary&ratio=1&rotation=0&showTitle=false&size=35034&status=done&style=shadow&taskId=u464af5dd-9c26-43b3-9696-03782e1196a&title=&width=458)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=AO39v&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # 部分类和接口的代码完善
+
 ## @Controller注解
 ```java
 package org.myspringmvc.stereotype;
