@@ -567,6 +567,7 @@ public class ModelMap extends LinkedHashMap<String, Object> {
         <!--这个init-param的数据在ServletConfig对象中-->
         <init-param>
             <param-name>contextConfigLocation</param-name>
+            <!--表示springmvc.xml是从类路径开始查找，表示类的根路径下有个springmvc.xml文件-->
             <param-value>classpath:springmvc.xml</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
@@ -579,49 +580,10 @@ public class ModelMap extends LinkedHashMap<String, Object> {
 </web-app>
 ```
 
-DispatcherServlet的<init-param>的contextConfigLocation可以编写代码了：
-
-```java
-@Override
-public void init() throws ServletException {
-    ServletConfig servletConfig = this.getServletConfig();
-    String contextConfigLocation = servletConfig.getInitParameter(Constant.CONTEXT_CONFIG_LOCATION);
-    String springMvcXmlPath = getSpringMvcXmlPath(contextConfigLocation);
-    System.out.println("Spring MVC配置文件路径解析完成：" + springMvcXmlPath);
-}
-
-private String getSpringMvcXmlPath(String contextConfigLocation) throws UnsupportedEncodingException {
-    if(contextConfigLocation.startsWith(Constant.CLASSPATH)){
-        String path = contextConfigLocation.substring(Constant.CLASSPATH.length()).trim();
-        String springMvcXmlPath = Thread.currentThread().getContextClassLoader().getResource(path).getPath();
-        // 对路径解码，防止路径中有 % 等字符。
-        return URLDecoder.decode(springMvcXmlPath, Charset.defaultCharset());
-    }
-    return null;
-}
-```
-定义系统常量类：Constant
-```java
-package org.myspringmvc.web.constant;
-
-/**
- * ClassName: Constant
- * Description:SpringMVC系统常量类
- * Datetime: 2024/4/2 11:28
- * Author: 老杜@动力节点
- * Version: 1.0
- */
-public class Constant {
-    public static final String CONTEXT_CONFIG_LOCATION = "contextConfigLocation";
-    public static final String CLASSPATH = "classpath:";
-}
-
-```
-
 ## 编写springmvc.xml
 
 ```xml
-<?xml version="1.0" encoding="UTF-8">
+<?xml version="1.0" encoding="UTF-8" ?>
 
 <beans>
 <!--    组件扫描-->
@@ -637,6 +599,48 @@ public class Constant {
         <bean class="com.zsm.interceptors.Interceptor2"/>
     </interceptors>
 </beans>
+```
+
+视图解析器中有两个属性，要在InternalResourceViewResolver类中添加属性：suffix和prefix
+
+```java
+package org.myspringmvc.web.servlet.view;
+/**
+ * 内部资源的视图解析器,可以解析JSP
+ */
+public class InternalResourceViewResolver implements ViewResolver {
+    private String prefix;
+    private String suffix;
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+    public String getSuffix() {
+        return suffix;
+    }
+
+    public void setSuffix(String suffix) {
+        this.suffix = suffix;
+    }
+
+    public InternalResourceViewResolver() {
+    }
+
+    public InternalResourceViewResolver(String prefix, String suffix) {
+        this.prefix = prefix;
+        this.suffix = suffix;
+    }
+
+    @Override
+    public View resolveViewName(String viewName, Locale locale) throws Exception {
+        return null;
+    }
+}
 ```
 
 ## 编写拦截器
@@ -693,54 +697,95 @@ public class UserController {
 </body>
 ```
 
+# 服务器启动阶段的处理
 
+## 如何找到配置文件
 
-InternalResourceViewResolver类中添加属性：suffix和prefix
+首先要让DispatcherServlet能找到springmvc.xml文件，只能通过web.xml中的配置来找：
 
-```java
-package org.myspringmvc.web.servlet.view;
-
-import org.myspringmvc.web.servlet.View;
-import org.myspringmvc.web.servlet.ViewResolver;
-
-import java.util.Locale;
-
-/**
- * ClassName: InternalResourceViewResolver
- * Description:
- * Datetime: 2024/4/2 9:45
- * Author: 老杜@动力节点
- * Version: 1.0
- */
-public class InternalResourceViewResolver implements ViewResolver {
-    private String suffix;
-    private String prefix;
-
-    public String getSuffix() {
-        return suffix;
-    }
-
-    public void setSuffix(String suffix) {
-        this.suffix = suffix;
-    }
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    @Override
-    public View resolveViewName(String viewName, Locale locale) throws Exception {
-        return null;
-    }
-}
-
+```xml
+<init-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath:springmvc.xml</param-value>
+</init-param>
 ```
 
-# 服务器启动阶段的处理
+以上信息会被封装到ServletConfig对象里面，这个ServletConfig对象不需要自己创建，Tomcat服务器已经创建好了，并且Tomcat调用init方法的时候会自动将创建好的ServletConfig对象传递给init方法。要在DispatcherServlet类中的init方法中编写代码：
+
+```java
+@Override
+public void init() throws ServletException {
+    // 获取ServletConfig对象（Servlet配置信息对象，该对象由web容器自动创建，并且将其传递给init方法）
+    ServletConfig servletConfig = this.getServletConfig();
+    // 获取配置springmvc.xml文件路径的值
+    String contextConfigLocation = servletConfig.getInitParameter("contextConfigLocation"); 
+}
+```
+
+这里的这个名字contextConfigLocation是写死的，一般用一个常量来代替，所以可以创建一个常量类，用来表示系统中的所有的常量。在org.myspringmvc.web下新建一个包constant，包中新建一个类Const：
+
+```java
+public class Const {
+    /**
+     * web.xml文件中配置DispatcherServlet的初始化参数的contextConfigLocation的名字
+     */
+    public static final String CONTEXT_CONFIG_LOCATION = "contextConfigLocation";
+}
+```
+
+然后接着写init方法：
+
+```java
+public void init() throws ServletException {
+    // 获取ServletConfig对象（Servlet配置信息对象，该对象由web容器自动创建，并且将其传递给init方法）
+    ServletConfig servletConfig = this.getServletConfig();
+    // 获取配置springmvc.xml文件路径的值
+    String contextConfigLocation = servletConfig.getInitParameter(Const.CONTEXT_CONFIG_LOCATION);
+    System.out.println("spirngmvc: " + contextConfigLocation);
+}
+```
+
+这时候启动服务器就可以看到输出：
+
+![image-20240612200034675](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406122002644.png)
+
+接着判断这个路径是不是以classpath:开始，以这个开始表示从类的根路径开始查找，同时在Const类中将这个“classpath:”字符串也定义成一个常量：
+
+```java
+/**
+     * contextConfigLocation的前缀
+     */
+public static final String PREFIX_CLASSPATH = "classpath:";v
+```
+
+在DispatcherServlet类中查找：
+
+```java
+if (contextConfigLocation.trim().startsWith(Const.PREFIX_CLASSPATH)) {
+    // 表示这个配置文件要从类的路径当中查找
+    // 从类路径中找：
+    String springMvcConfigPath = Thread.currentThread().getContextClassLoader().getResource("springmvc.xml").getPath();
+    System.out.println("springMvcConfigPath--->" + springMvcConfigPath);
+}
+```
+
+![image-20240613101728389](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406131017581.png)
+
+那么这个“springmvc.xml”名字不应该写死，而是从contextConfigLocation中截取出来：
+
+```java
+String springMvcConfigPath = Thread.currentThread().getContextClassLoader().getResource(contextConfigLocation.substring(Const.PREFIX_CLASSPATH.length())).getPath();
+```
+
+这样就是通用的了，可以在web.xml中随便配置名字。
+
+如果路径中有空格或中文的话，会出现编码的问题，解决编码的问题：
+
+```java
+springMvcConfigPath = URLDecoder.decode(springMvcConfigPath, Charset.defaultCharset());
+```
+
++ URLDecoder是解码，第一个参数要解码的字符串，第二个参数是指定字符集，Charset.defaultCharset()是当前JDK的字符集，默认是UTF-8
 
 ## 分析服务器启动阶段都需要初始化什么
 
@@ -753,12 +798,106 @@ public class InternalResourceViewResolver implements ViewResolver {
 3. 初始化HandlerAdapter
 4. 初始化ViewResolver
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=N1l3f&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## 初始化Spring容器
-Spring容器：ApplicationContext
-Spring Web容器：WebApplicationContext
-### 组件扫描
-添加解析xml文件的依赖
+
+接着要初始化Spring Web容器：
+
++ Spring容器：ApplicationContext（普通的Java项目使用Spring的话就会创建ApplicationContext对象）
++ Spring Web容器：WebApplicationContext（继承自ApplicationContext，多了个ServletContext属性，web项目专属的）
+
+也就是要将所有的要创建的bean都创建出来，然后放在容器中，容器是以map集合的方式存储，key是bean的id或名字，value是bean对象。
+
+接下来就是将springmvc.xml中配置的组件扫描、视图解析器和拦截器初始化到容器中，还要初始化处理器适应器和处理器映射器。
+
+创建一个包org.myspringmvc.context，在包下创建出ApplicationContext类，里面有个map集合用来存储所有的bean，还有一个通过map集合的key来获取bean的方法：
+
+```java
+package org.myspringmvc.context;
+/**
+ * Spring的IoC容器，Spring上下文，适合于普通的java项目
+ */
+public class ApplicationContext {
+    private Map<String, Object> beanMap = new HashMap<>();
+
+    public ApplicationContext(String xmlPath) {
+        // 解析xml文件
+        // 组件扫描
+        // 创建视图解析器
+        // 创建拦截器
+        // 创建org.myspringmvc.web.servlet.mvc.method.annotation下的所有HandlerAdapter
+        // 创建org.myspringmvc.web.servlet.mvc.method.annotation下的所有HandlerMapping
+    }
+
+    /**
+     * 通过beanName获取对应的bean
+     * @param beanName
+     * @return
+     */
+    public Object getBean(String beanName) {
+        return beanMap.get(beanName);
+    }
+}
+```
+
+创建一个包org.myspringmvc.web.context，在包下创建出WebApplicationContext类，继承自ApplicationContext类，且有一个自己的ServletContext，以及用来指定springmvc配置文件的属性：
+
+```java
+package org.myspringmvc.web.context;
+public class WebApplicationContext extends ApplicationContext {
+    private ServletContext servletContext;
+    private String springMvcConfigPath;
+
+    public WebApplicationContext(ServletContext servletContext, String springMvcConfigPath) {
+        super(springMvcConfigPath);
+        this.servletContext = servletContext;
+    }
+
+    public ServletContext getServletContext() {
+        return servletContext;
+    }
+
+    public void setServletContext(ServletContext servletContext) {
+        this.servletContext = servletContext;
+    }
+
+    public String getSpringMvcConfigPath() {
+        return springMvcConfigPath;
+    }
+
+    public void setSpringMvcConfigPath(String springMvcConfigPath) {
+        this.springMvcConfigPath = springMvcConfigPath;
+    }
+}
+```
+
+然后在DispatcherServlet中继续初始化容器，创建WebApplicationContext对象：
+
+```java
+WebApplicationContext webApplicationContext = new WebApplicationContext(this.getServletContext(), contextConfigLocation);
+```
+
+webApplicationContext代表的就是Spring Web容器，我们最好将其存储到Servlet上下文中，以便后期的使用：
+
+```java
+this.getServletContext().setAttribute("webApplicationContext", webApplicationContext);
+```
+
+这里有个常量，将这个常量定义在Const类中：
+
+```java
+public static final String WEB_APPLICATION_CONTEXT = "webApplicationContext";
+```
+
+然后使用：
+
+```java
+this.getServletContext().setAttribute(Const.WEB_APPLICATION_CONTEXT, webApplicationContext);
+```
+
+### 解析xml文件
+
+先添加解析xml文件的依赖
+
 ```xml
 <!--dom4j-->
 <dependency>
@@ -773,358 +912,348 @@ Spring Web容器：WebApplicationContext
     <version>1.1.6</version>
 </dependency>
 ```
+
+然后实现ApplicationContext中的代码：
+
 ```java
-package org.myspringmvc.context;
-
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
-
-import java.io.File;
-import java.lang.reflect.Constructor;
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * ClassName: ApplicationContext
- * Description: Spring容器，启动服务器时，初始化
- * Datetime: 2024/4/2 13:52
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 public class ApplicationContext {
     private Map<String, Object> beanMap = new HashMap<>();
 
-    public ApplicationContext(String xmlPath) throws Exception {
-        // 组件扫描
-        SAXReader saxReader = new SAXReader();
-        Document document = saxReader.read(new File(xmlPath));
-        Element componentScanElement = (Element)document.selectSingleNode("/beans/context:component-scan");
-        String basePackage = componentScanElement.attributeValue("base-package");
-        System.out.println("组件扫描：" + basePackage);
-        componentScan(basePackage);
-        System.out.println("Spring Web容器当下状态：" + beanMap);
-    }
+    public ApplicationContext(String xmlPath) {
+        try {
+            // 解析xml文件
+            SAXReader reader = new SAXReader();
+            Document document = reader.read(new File(xmlPath));  // 这个document就是spingmvc.xml文件
+            // 组件扫描
+            Element componentScanElement = (Element) document.selectSingleNode("/beans/component-scan");
+            componentScan(componentScanElement);
 
-    private void componentScan(String basePackage) throws Exception{
-        String dirPath = Thread.currentThread().getContextClassLoader().getResource(basePackage.replace(".", "/")).getPath();
-        File file = new File(URLDecoder.decode(dirPath));
-        if(file.isDirectory()){
-            File[] files = file.listFiles();
-            for (File classFile : files){
-                if(classFile.getName().endsWith(".class")){
-                    String className = basePackage + "." + classFile.getName().substring(0, classFile.getName().lastIndexOf("."));
-                    Class<?> clazz = Class.forName(className);
-                    Constructor<?> defaultCon = clazz.getDeclaredConstructor();
-                    Object bean = defaultCon.newInstance();
-                    beanMap.put(firstCharLowerCase(clazz.getSimpleName()), bean);
-                }
-            }
+            // 创建视图解析器
+            Element viewResloverElement = (Element) document.selectSingleNode("/beans/bean");
+            createViewResolver(viewResloverElement);
+
+            // 创建拦截器
+            Element interceptorsElement = (Element) document.selectSingleNode("/beans/interceptors");
+            createInterceptors(interceptorsElement);
+
+            // 创建org.myspringmvc.web.servlet.mvc.method.annotation下的所有HandlerAdapter
+            // 将包名传过去，包名定为了常量
+            createHandlerAdapter(Const.DEFAULT_PACKAGE);
+
+            // 创建org.myspringmvc.web.servlet.mvc.method.annotation下的所有HandlerMapping
+            createHandlerMapping(Const.DEFAULT_PACKAGE);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    private String firstCharLowerCase(String simpleName) {
-        return simpleName.substring(0, 1).toLowerCase() + simpleName.substring(1);
+    private void createHandlerAdapter(String defaultPackage) {
     }
 
-    public Object getBean(String beanName){
+    private void createHandlerMapping(String defaultPackage) {
+        
+    }
+
+    private void createViewResolver(Element viewResloverElement) {
+        
+    }
+
+    private void createInterceptors(Element interceptorsElement) {
+        
+    }
+
+    private void componentScan(Element componentScanElement) {
+        
+    }
+
+    /**
+     * 通过beanName获取对应的bean
+     * @param beanName
+     * @return
+     */
+    public Object getBean(String beanName) {
         return beanMap.get(beanName);
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=lRrYR&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+### 组件扫描
+
+获取到springmvc.xml文件中<component-scan>标签中的包名，拿到包中所有的类，再看每个类上是否有@Controller注解，如果有则创建出对象，放到spring容器（beanMap）中。
+
 ```java
-package org.myspringmvc.context;
-
-import jakarta.servlet.ServletContext;
-
-/**
- * ClassName: WebApplicationContext
- * Description:
- * Datetime: 2024/4/2 14:24
- * Author: 老杜@动力节点
- * Version: 1.0
- */
-public class WebApplicationContext extends ApplicationContext{
-
-    private ServletContext servletContext;
-
-    public WebApplicationContext(String xmlPath, ServletContext servletContext) throws Exception {
-        super(xmlPath);
-        this.servletContext = servletContext;
-    }
-
-    public ServletContext getServletContext() {
-        return servletContext;
-    }
-}
-
-```
-在DispatcherServlet中添加如下代码：
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712041922023-4a1c3828-06cf-4443-a02a-e873e16993e1.png#averageHue=%232e2b2b&clientId=uae70fab4-1447-4&from=paste&height=457&id=u19a612c8&originHeight=457&originWidth=1367&originalType=binary&ratio=1&rotation=0&showTitle=false&size=80860&status=done&style=shadow&taskId=uc2d2171d-a841-4e76-acc5-456330636b2&title=&width=1367)
-添加常量值：
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712041948893-c2315381-d5a0-4ba6-b97e-ecb53436073e.png#averageHue=%23302b2b&clientId=uae70fab4-1447-4&from=paste&height=289&id=u966d7c5a&originHeight=289&originWidth=962&originalType=binary&ratio=1&rotation=0&showTitle=false&size=34450&status=done&style=shadow&taskId=u2f340b9b-afc4-4ec2-aacc-c2f7addf677&title=&width=962)
-
-启动服务器测试：
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712042124851-e6e6cb3c-0701-4e37-bcec-0a3fdd4d79c0.png#averageHue=%233a302f&clientId=uae70fab4-1447-4&from=paste&height=143&id=uc81ebad9&originHeight=143&originWidth=986&originalType=binary&ratio=1&rotation=0&showTitle=false&size=35638&status=done&style=shadow&taskId=u24621a8b-919d-4c01-afb9-b753b73c2aa&title=&width=986)
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=cYNFp&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-### 创建视图解析器对象
-InternalResourceViewResolver类代码改动，添加prefix和suffix属性：
-```java
-package org.myspringmvc.web.servlet.view;
-
-import org.myspringmvc.web.servlet.View;
-import org.myspringmvc.web.servlet.ViewResolver;
-
-import java.util.Locale;
-
-/**
- * ClassName: InternalResourceViewResolver
- * Description:
- * Datetime: 2024/4/2 9:45
- * Author: 老杜@动力节点
- * Version: 1.0
- */
-public class InternalResourceViewResolver implements ViewResolver {
-    private String suffix;
-    private String prefix;
-
-    public String getSuffix() {
-        return suffix;
-    }
-
-    public void setSuffix(String suffix) {
-        this.suffix = suffix;
-    }
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    @Override
-    public View resolveViewName(String viewName, Locale locale) throws Exception {
-        return null;
-    }
-}
-
-```
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=NWtZm&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712050149246-9884a89f-d261-49b1-8a99-6a9768ca69cc.png#averageHue=%232f2c2b&clientId=uae70fab4-1447-4&from=paste&height=711&id=u706ae1ca&originHeight=711&originWidth=1243&originalType=binary&ratio=1&rotation=0&showTitle=false&size=146866&status=done&style=shadow&taskId=ud73960b1-6428-4dd6-a43c-f19f75bfa42&title=&width=1243)
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=bKpf0&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-```java
-// 创建视图解析器对象
-Element viewResolverBean = (Element) document.selectSingleNode("/beans/bean");
-String viewResolverClassName = viewResolverBean.attributeValue("class");
-Class viewResolverClass = Class.forName(viewResolverClassName);
-Object viewResolverObj = viewResolverClass.newInstance();
-if(viewResolverObj instanceof InternalResourceViewResolver internalResourceViewResolver){
-    // 前缀
-    Element prefixProperty = (Element)viewResolverBean.selectSingleNode("property[@name='prefix']");
-    internalResourceViewResolver.setPrefix(prefixProperty.attributeValue("value"));
-    // 后缀
-    Element suffixProperty = (Element)viewResolverBean.selectSingleNode("property[@name='suffix']");
-    internalResourceViewResolver.setSuffix(suffixProperty.attributeValue("value"));
-}
-beanMap.put(Constant.VIEW_RESOLVER, viewResolverObj);
-System.out.println("Spring Web容器当下状态：" + beanMap);
-```
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=qwP75&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-### 创建所有的拦截器对象
-在ApplicationContext构造方法中继续添加如下代码：
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712045626658-02f8ddf3-e2a4-46e7-bbc2-5c154000c7c5.png#averageHue=%232e2d2c&clientId=uae70fab4-1447-4&from=paste&height=300&id=u99830af4&originHeight=300&originWidth=1000&originalType=binary&ratio=1&rotation=0&showTitle=false&size=59672&status=done&style=shadow&taskId=u8e5decaf-a146-4740-83bc-8c98f3a784a&title=&width=1000)
-```java
-// 创建所有拦截器对象
-Element interceptorsElement = (Element) document.selectSingleNode("/beans/interceptors");
-List<Element> interceptorBeans = interceptorsElement.elements("bean");
-List<HandlerInterceptor> interceptors = new ArrayList<>();
-for(Element interceptorBean : interceptorBeans){
-    String className = interceptorBean.attributeValue("class");
-    Class<?> clazz = Class.forName(className);
-    interceptors.add((HandlerInterceptor) clazz.newInstance());
-}
-beanMap.put(Constant.INTERCEPTORS, interceptors);
-System.out.println("Spring Web容器当下状态：" + beanMap);
-```
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=ibmZO&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-### 初始化annotation包下所有类的实例
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712048048630-7038a487-0f3d-4518-9d9f-49e320e58cdd.png#averageHue=%232c2b2b&clientId=uae70fab4-1447-4&from=paste&height=569&id=u510034ac&originHeight=569&originWidth=1636&originalType=binary&ratio=1&rotation=0&showTitle=false&size=105235&status=done&style=shadow&taskId=u1eb68c84-3791-49ca-93a3-69a1ddb62b3&title=&width=1636)
-```java
-// 将这个包下所有的类实例化：org.myspringmvc.web.servlet.mvc.method.annotation
-String dirPath = Thread.currentThread().getContextClassLoader().getResource(Constant.PACKAGE_AUTO_CREATE.replace(".", "/")).getPath();
-File file = new File(URLDecoder.decode(dirPath));
-if(file.isDirectory()){
+private void componentScan(Element componentScanElement) throws Exception {
+    // 获取包名，将属性“base-package”变成常量
+    String basePackage = componentScanElement.attributeValue(Const.BASE_PACKAGE);
+    System.out.println("组件扫描的包：" + basePackage);
+    // 获取包的路径，将包名中的.换成/
+    String basePath = basePackage.replace(".", "/");
+    System.out.println("包对应的路径：" + basePath);
+    // 获取包的绝对路径
+    String absolutePath = Thread.currentThread().getContextClassLoader().getResource(basePath).getPath();
+    System.out.println("包的绝对路径：" + absolutePath);
+    // 封装成File对象
+    File file = new File(absolutePath);
+    // 获取该目录下所有的子文件
     File[] files = file.listFiles();
-    for (File classFile : files){
-        if(classFile.getName().endsWith(".class")){
-            String className = Constant.PACKAGE_AUTO_CREATE + "." + classFile.getName().substring(0, classFile.getName().lastIndexOf("."));
+    for (File f : files) {
+        String className = f.getName();
+        System.out.println("类的名字：" + className);
+        // 判断文件的名字是不是以.class结尾的，将".class"字符串写为一个常量
+        if (f.getName().endsWith(Const.SUFFIX_CLASS)) {
+            // 是的话，只需要拿到文件名，不需要后缀名
+            String simpleClassName = className.substring(0,className.lastIndexOf('.'));
+            System.out.println("简单类名：" + simpleClassName);
+            // 完整类名
+            className = basePackage + "." + simpleClassName;
+            System.out.println("完整类名：" + className);
+
+            // 如果类上有@Controller注解，则创建Controller对象，加入IoC容器
             Class<?> clazz = Class.forName(className);
-            Constructor<?> defaultCon = clazz.getDeclaredConstructor();
-            Object bean = defaultCon.newInstance();
-            if(bean instanceof HandlerMapping){
-                beanMap.put(Constant.HANDLER_MAPPING, bean);
-            }
-            if(bean instanceof HandlerAdapter){
-                beanMap.put(Constant.HANDLER_ADAPTER, bean);
+            if (clazz.isAnnotationPresent(Controller.class)) {
+                // 创建controller对象
+                Object bean = clazz.newInstance();
+                // 将其存储到IoC容器中，
+                // 这个key取决于@Controller注解中指定的名字，如果没有，则是将类名首字母小写作为key
+                beanMap.put(toFirstLower(simpleClassName), bean);
             }
         }
     }
 }
-System.out.println("Spring Web容器当下状态：" + beanMap);
+```
+测试结果：
+
+![image-20240613154658453](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406131619092.png)
+
+### 创建视图解析器对象
+
+springmvc.xml文件中配置的视图解析器：
+
+```xml
+<bean class="org.myspringmvc.web.servlet.view.InternalResourceViewResolver">
+    <property name="prefix" value="/WEB-INF/jsp/"/>
+    <property name="suffix" value=".jsp"/>
+</bean>
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=zOGSi&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-## 初始化HandlerMapping
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712050860912-9b46aa11-9b17-43df-9f38-74802dba5d59.png#averageHue=%232e2b2b&clientId=uae70fab4-1447-4&from=paste&height=783&id=u666aa25c&originHeight=783&originWidth=1325&originalType=binary&ratio=1&rotation=0&showTitle=false&size=144195&status=done&style=shadow&taskId=uce12b2d5-0cbc-408c-84f2-669275d0280&title=&width=1325)
+需要创建出InternalResourceViewResolver对象，并且给对象的prefix和suffix属性赋值：
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=ogZJm&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-## 初始化HandlerAdapter
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712050860912-9b46aa11-9b17-43df-9f38-74802dba5d59.png#averageHue=%232e2b2b&clientId=uae70fab4-1447-4&from=paste&height=783&id=osYOB&originHeight=783&originWidth=1325&originalType=binary&ratio=1&rotation=0&showTitle=false&size=144195&status=done&style=shadow&taskId=uce12b2d5-0cbc-408c-84f2-669275d0280&title=&width=1325)
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=tkRZU&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-## 初始化ViewResolver
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712050860912-9b46aa11-9b17-43df-9f38-74802dba5d59.png#averageHue=%232e2b2b&clientId=uae70fab4-1447-4&from=paste&height=783&id=nOiWp&originHeight=783&originWidth=1325&originalType=binary&ratio=1&rotation=0&showTitle=false&size=144195&status=done&style=shadow&taskId=uce12b2d5-0cbc-408c-84f2-669275d0280&title=&width=1325)
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=ssl3B&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-# 根据请求流程补充代码
-## 根据请求获取处理器执行链
 ```java
-private void doDispatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    try {
-        // 根据请求获取处理器执行链
-        HandlerExecutionChain mappedHandler = handlerMapping.getHandler(request);
-        System.out.println(mappedHandler);
-    } catch (Exception e) {
-        e.printStackTrace();
+private void createViewResolver(Element viewResloverElement) throws Exception {
+    // 获取viewResloverElement的class属性，也就是类名，将这个“class”字符串写为常量
+    String className = viewResloverElement.attributeValue(Const.BEAN_TAG_CLASS_ATTRIBUTE);
+    System.out.println("视图解析器的名字：" + className);
+    // 创建对象
+    Class<?> clazz = Class.forName(className);
+    // 视图解析器对象
+    Object bean = clazz.newInstance();
+    // 需要给对象的suffix和prefix属性赋值，调用set方法
+    // 先获取当前bean节点下的子节点property,"property"也定位常量
+    List<Element> propertyElements = viewResloverElement.elements(Const.PROPERTY_TAG_NAME);
+    // 获取每个property的name和value属性值，"name"、"value"都定位常量
+    for (Element propertyElement : propertyElements) {
+        String fieldName = propertyElement.attributeValue(Const.PROPERTY_NAME);
+        String fieldValue = propertyElement.attributeValue(Const.PROPERTY_VALUE);
+        System.out.println("属性名：" + fieldName);
+        System.out.println("属性值：" + fieldValue);
+
+        // 将属性名转为set方法名
+        String setMethodName = fieldNameToSetMethodName(fieldName);
+        System.out.println("set方法名：" + setMethodName);
+
+        // 通过方法名获取方法
+        Method setMethod = clazz.getDeclaredMethod(setMethodName, String.class);
+        // 通过反射机制调用方法
+        setMethod.invoke(bean, fieldValue);
+    }
+    // 添加到IoC容器
+    // 为了更方便的访问，将key设为一个常量“viewSolver”
+    beanMap.put(Const.VIEW_RESOLVER, bean);
+}
+```
+
+测试结果：
+
+![image-20240613160726390](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406131620251.png)
+
+### 创建所有的拦截器对象
+
+在springmvc.xml文件中配置的拦截器对象：
+
+```xml
+<interceptors>
+    <bean class="com.zsm.interceptors.Interceptor1"/>
+    <bean class="com.zsm.interceptors.Interceptor2"/>
+</interceptors>
+```
+
+要将配置的拦截器对象都创建出来，放到一个List集合中，然后将这个List集合放到beanMap中：
+
+```java
+private void createInterceptors(Element interceptorsElement) throws Exception {
+    // 准备一个List集合存储拦截器对象
+    List<HandlerInterceptor> interceptors = new ArrayList<>();
+
+    // 获取该标签下的所有的bean标签
+    List<Element> beans = interceptorsElement.elements("bean");
+    // 遍历bean标签
+    for  (Element beanElement : beans) {
+        // 获取bean标签中的class属性，获取到类名
+        String className = beanElement.attributeValue(Const.BEAN_TAG_CLASS_ATTRIBUTE);
+        // 通过反射机制创建对象
+        Class<?> clazz = Class.forName(className);
+        Object interceptor = clazz.newInstance();
+        interceptors.add((HandlerInterceptor) interceptor);
+    }
+    // 存储到IoC容器中
+    // 方便取，给key定义个常量
+    beanMap.put(Const.INTERCEPTORS, interceptors);
+}
+```
+
+测试效果：
+
+![image-20240613163322768](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406131633939.png)
+
+### 初始化annotation包下所有类的实例
+
+createHandlerAdapter：
+
+```java
+private void createHandlerAdapter(String defaultPackage) throws Exception {
+    // 将包名中的.换成/，变成路径
+    String defaultPath = defaultPackage.replace(".", "/");
+    System.out.println("defaultPath ：" + defaultPath);
+    // 获取绝对路径
+    String absolutePath = Thread.currentThread().getContextClassLoader().getResource(defaultPath).getPath();
+    absolutePath = URLDecoder.decode(absolutePath, Charset.defaultCharset());
+    System.out.println("绝对路径：" + absolutePath);
+    // 封装成一个File对象
+    File file = new File(absolutePath);
+    // 获取包下所有文件
+    File[] files = file.listFiles();
+    for (File f : files) {
+        // 获取文件名字
+        String classFileName = f.getName();
+        System.out.println("classFileName ：" + classFileName);
+        // 获取简单类名
+        String simpleClassName = classFileName.substring(0, classFileName.lastIndexOf('.'));
+        System.out.println("simpleClassName : " + simpleClassName);
+        // 获取完整类名
+        String className = defaultPackage + "." + simpleClassName;
+        System.out.println("className ： " + className);
+        // 获取class
+        Class<?> clazz = Class.forName(className);
+        // 只有实现了HandlerAdapter接口的，再创建对象
+        if (HandlerAdapter.class.isAssignableFrom(clazz)) {
+            Object bean = clazz.newInstance();
+            // 放入容器
+            beanMap.put(Const.HANDLER_ADAPTER, bean);
+            return;
+        }
     }
 }
 ```
+
+createHandlerMapping：
+
 ```java
-package org.myspringmvc.web.servlet.mvc.method.annotation;
+private void createHandlerMapping(String defaultPackage) throws Exception {
+    // 将包名中的.换成/，变成路径
+    String defaultPath = defaultPackage.replace(".", "/");
+    System.out.println("defaultPath ：" + defaultPath);
+    // 获取绝对路径
+    String absolutePath = Thread.currentThread().getContextClassLoader().getResource(defaultPath).getPath();
+    absolutePath = URLDecoder.decode(absolutePath, Charset.defaultCharset());
+    System.out.println("绝对路径：" + absolutePath);
+    // 封装成一个File对象
+    File file = new File(absolutePath);
+    // 获取包下所有文件
+    File[] files = file.listFiles();
+    for (File f : files) {
+        // 获取文件名字
+        String classFileName = f.getName();
+        System.out.println("classFileName ：" + classFileName);
+        // 获取简单类名
+        String simpleClassName = classFileName.substring(0, classFileName.lastIndexOf('.'));
+        System.out.println("simpleClassName : " + simpleClassName);
+        // 获取完整类名
+        String className = defaultPackage + "." + simpleClassName;
+        System.out.println("className ： " + className);
+        // 获取class
+        Class<?> clazz = Class.forName(className);
+        // 只有实现了HandlerMapping接口的，再创建对象
+        if (HandlerMapping.class.isAssignableFrom(clazz)) {
+            Object bean = clazz.newInstance();
+            // 放入容器
+            beanMap.put(Const.HANDLER_MAPPING, bean);
+            return;
+        }
+    }
+}
+```
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.myspringmvc.context.WebApplicationContext;
-import org.myspringmvc.web.constant.Constant;
-import org.myspringmvc.web.method.HandlerMethod;
-import org.myspringmvc.web.servlet.HandlerExecutionChain;
-import org.myspringmvc.web.servlet.HandlerInterceptor;
-import org.myspringmvc.web.servlet.HandlerMapping;
-import org.myspringmvc.web.servlet.mvc.RequestMappingInfo;
+结果：
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+![image-20240613165103966](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406131651254.png)
 
+## 初始化ViewResolver、HandlerMapping、HandlerAdapter
+
+在DispatcherServlet中的doDispatch方法里，需要用到视图解析器等，所以要先定义属性：
+
+```java
 /**
- * ClassName: RequestMappingHandlerMapping
- * Description:
- * Datetime: 2024/4/2 9:44
- * Author: 老杜@动力节点
- * Version: 1.0
- */
-public class RequestMappingHandlerMapping implements HandlerMapping {
-
-    private Map<RequestMappingInfo, HandlerMethod> map;
-
-    public RequestMappingHandlerMapping(Map<RequestMappingInfo, HandlerMethod> map) {
-        this.map = map;
-    }
-
-    @Override
-    public HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
-        RequestMappingInfo requestMappingInfo = new RequestMappingInfo(request.getServletPath(), request.getMethod());
-        HandlerExecutionChain handlerExecutionChain = new HandlerExecutionChain();
-        handlerExecutionChain.setHandler(map.get(requestMappingInfo));
-        WebApplicationContext wac = (WebApplicationContext) request.getServletContext().getAttribute(Constant.WEB_APPLICATION_CONTEXT);
-        handlerExecutionChain.setInterceptorList((List<HandlerInterceptor>)wac.getBean(Constant.INTERCEPTORS));
-        return handlerExecutionChain;
-    }
-}
-
+     * 视图解析器，做页面解析的
+     */
+private ViewResolver viewResolver;
+/**
+     * 处理器映射器，通过请求路径找处理器的
+     */
+private HandlerMapping handlerMapping;
+/**
+     * 处理器适配器，调用处理器方法的
+     */
+private HandlerAdapter handlerAdapter;
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=V9Lap&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+属性定义好后，要初始化，在初始化Spring容器之后：
+
 ```java
-private Map<RequestMappingInfo, HandlerMethod> componentScan(String basePackage) throws Exception{
-    // 初始化HandlerMethod
-    Map<RequestMappingInfo, HandlerMethod> handlerMethodMap = new HashMap<>();
-
-    String dirPath = Thread.currentThread().getContextClassLoader().getResource(basePackage.replace(".", "/")).getPath();
-    File file = new File(URLDecoder.decode(dirPath));
-    if(file.isDirectory()){
-        File[] files = file.listFiles();
-        for (File classFile : files){
-            if(classFile.getName().endsWith(".class")){
-                String className = basePackage + "." + classFile.getName().substring(0, classFile.getName().lastIndexOf("."));
-                Class<?> clazz = Class.forName(className);
-                Constructor<?> defaultCon = clazz.getDeclaredConstructor();
-                Object bean = defaultCon.newInstance();
-                beanMap.put(firstCharLowerCase(clazz.getSimpleName()), bean);
-                // 如果clazz被@Controller注解标注
-                if(clazz.isAnnotationPresent(Controller.class)){
-                    // 获取该类中所有的方法
-                    Method[] methods = clazz.getDeclaredMethods();
-                    for(Method method : methods){
-                        if(method.isAnnotationPresent(RequestMapping.class)){
-                            RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
-                            // 创建RequestMappingInfo对象
-                            RequestMappingInfo requestMappingInfo = new RequestMappingInfo();
-                            requestMappingInfo.setRequestURI(requestMapping.value()[0]);
-                            requestMappingInfo.setRequestMethod(requestMapping.method().toString());
-                            // 创建HandlerMethod对象
-                            HandlerMethod handlerMethod = new HandlerMethod();
-                            handlerMethod.setMethod(method);
-                            handlerMethod.setHandler(bean);
-
-                            handlerMethodMap.put(requestMappingInfo, handlerMethod);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return handlerMethodMap;
-}
+// 初始化视图解析器
+this.viewResolver = (ViewResolver) webApplicationContext.getBean(Const.VIEW_RESOLVER);
+// 初始化处理器适配器
+this.handlerAdapter = (HandlerAdapter) webApplicationContext.getBean(Const.HANDLER_ADAPTER);
+// 初始化处理器映射器
+this.handlerMapping = (HandlerMapping) webApplicationContext.getBean(Const.HANDLER_MAPPING);
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=jp4ib&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-ApplicationContext代码还有以下改造：
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712055939500-e4301f42-0486-43b6-b3fa-bc9780fd91c4.png#averageHue=%23302c2b&clientId=uae70fab4-1447-4&from=paste&height=311&id=uf747f873&originHeight=311&originWidth=1037&originalType=binary&ratio=1&rotation=0&showTitle=false&size=57663&status=done&style=shadow&taskId=u6c597b6a-2e25-448d-a843-cfbadc876e5&title=&width=1037)
-添加一个新的类：RequestMappingInfo
+# 根据请求流程补充代码
+
+七个流程：
+
+1. 根据请求对象获取对应的处理器执行链对象
+2. 根据”处理器方法“获取对应的处理器适配器对象
+3. 执行拦截器中的preHandle方法
+4. 执行处理器方法，并返回ModelAndView
+5. 执行拦截器中的postHandle方法
+6. 响应
+7. 执行拦截器中的afterCompletion方法
+
+## 根据请求获取处理器执行链
+
+处理器映射器通过前端提交的”请求“，来映射底层要执行的HandlerMethod。前端提交的信息包括：请求路径、请求方式。所以可以将请求路径和方式包装成一个对象RequestMappingInfo，然后将底层要执行的HandleMethod合在一起，看成一个map集合Map<RequestMappingInfo, HandleMethod>，这个map集合可以作为RequestMappingHandlerMaping的属性。
+
+重新创建一个类，在org.myspringmvc.web.servlet.mvc包下：
+
 ```java
 package org.myspringmvc.web.servlet.mvc;
-
-import java.util.Objects;
-
 /**
- * ClassName: RequestMappingInfo
- * Description:
- * Datetime: 2024/4/2 17:58
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 请求映射信息，包含请求路径、请求方式……
  */
 public class RequestMappingInfo {
     private String requestURI;
-    private String requestMethod;
-
-    public RequestMappingInfo() {
-    }
-
-    public RequestMappingInfo(String requestURI, String requestMethod) {
-        this.requestURI = requestURI;
-        this.requestMethod = requestMethod;
-    }
+    private String method;
 
     public String getRequestURI() {
         return requestURI;
@@ -1134,75 +1263,263 @@ public class RequestMappingInfo {
         this.requestURI = requestURI;
     }
 
-    public String getRequestMethod() {
-        return requestMethod;
+    public String getMethod() {
+        return method;
     }
 
-    public void setRequestMethod(String requestMethod) {
-        this.requestMethod = requestMethod;
+    public void setMethod(String method) {
+        this.method = method;
     }
 
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        RequestMappingInfo that = (RequestMappingInfo) o;
-        return Objects.equals(requestURI, that.requestURI) && Objects.equals(requestMethod, that.requestMethod);
+    public RequestMappingInfo(String requestURI, String method) {
+        this.requestURI = requestURI;
+        this.method = method;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(requestURI, requestMethod);
-    }
-
-    @Override
-    public String toString() {
-        return "RequestMappingInfo{" +
-                "requestURI='" + requestURI + '\'' +
-                ", requestMethod='" + requestMethod + '\'' +
-                '}';
+    public RequestMappingInfo() {
     }
 }
+```
+然后在RequestMappingHandlerMapping类中创建一个Map属性，并在初始化的时候初始化：
 
+```java
+public class RequestMappingHandlerMapping implements HandlerMapping {
+    /**
+     * 处理器映射器，主要就是通过以下的map集合进行映射
+     * key：请求信息
+     * vlaue：该请求信息要执行的处理器方法
+     */
+    private Map<RequestMappingInfo, HandlerMethod> map;
+
+    /**
+     * 创建HandlerMapping对象时，给map赋值
+     * @param map
+     */
+    public RequestMappingHandlerMapping(Map<RequestMappingInfo, HandlerMethod> map) {
+        this.map = map;
+    }
+
+    @Override
+    public HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+        return null;
+    }
+}
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=ZxO2a&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+但是在这前的代码中，使用的是该类的无参构造方法来创建对象，但是使用无参构造方法创建对象时又没有办法给map属性赋值，所以，在服务器启动的时候创建所有的HandlerMethod，将其存储在map集合中。
+
+而HandlerMethod在controller类中，所以可以在进行包扫描的时候就创建所有的HandlerMthod类，让componentScan方法返回一个map集合，再将这个map集合传到createHandlerMapping中，在ApplicationContext类中的构造方法中：
+
+![image-20240613211437041](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406132114262.png)
+
+```java
+Map<RequestMappingInfo, HandlerMethod> map = componentScan(componentScanElement);
+createHandlerMapping(Const.DEFAULT_PACKAGE, map);
+```
+
+在createHandlerMapping方法中，使用有参构造方法创建实例：
+
+![image-20240613211536412](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406132115606.png)
+
+```java
+Constructor<?> con = clazz.getDeclaredConstructor(Map.class);
+Object bean = con.newInstance(map);
+```
+
+然后修改componentScan方法：
+
+```java
+private Map<RequestMappingInfo, HandlerMethod> componentScan(Element componentScanElement) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    // 创建处理器映射器大Map
+    Map<RequestMappingInfo, HandlerMethod> map = new HashMap<>();
+    // 获取包名，将属性“base-package”变成常量
+    String basePackage = componentScanElement.attributeValue(Const.BASE_PACKAGE);
+    System.out.println("组件扫描的包：" + basePackage);
+    // 获取包的路径，将包名中的.换成/
+    String basePath = basePackage.replace(".", "/");
+    System.out.println("包对应的路径：" + basePath);
+    // 获取包的绝对路径
+    String absolutePath = Thread.currentThread().getContextClassLoader().getResource(basePath).getPath();
+    System.out.println("包的绝对路径：" + absolutePath);
+    // 封装成File对象
+    File file = new File(absolutePath);
+    // 获取该目录下所有的子文件
+    File[] files = file.listFiles();
+    for (File f : files) {
+        String className = f.getName();
+        System.out.println("类的名字：" + className);
+        // 判断文件的名字是不是以.class结尾的，将".class"字符串写为一个常量
+        if (f.getName().endsWith(Const.SUFFIX_CLASS)) {
+            // 是的话，只需要拿到文件名，不需要后缀名
+            String simpleClassName = className.substring(0,className.lastIndexOf('.'));
+            System.out.println("简单类名：" + simpleClassName);
+            // 完整类名
+            className = basePackage + "." + simpleClassName;
+            System.out.println("完整类名：" + className);
+
+            // 如果类上有@Controller注解，则创建Controller对象，加入IoC容器
+            Class<?> clazz = Class.forName(className);
+            if (clazz.isAnnotationPresent(Controller.class)) {
+                // 创建controller对象
+                Object bean = clazz.newInstance();
+                // 将其存储到IoC容器中，
+                // 这个key取决于@Controller注解中指定的名字，如果没有，则是将类名首字母小写作为key
+                beanMap.put(toFirstLower(simpleClassName), bean);
+                // 创建这个bean中的所有HandlerMethod对象，将其放到map集合中
+                // 获取类中所有的方法
+                Method[] methods = clazz.getMethods();
+                for (Method method : methods) {
+                    if (method.isAnnotationPresent(RequestMapping.class)) {
+                        // 如果被@RequestMapping注解标注了
+                        // 获取注解
+                        RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
+                        // 创建RequestMappingIngo对象
+                        RequestMappingInfo requestMappingInfo = new RequestMappingInfo();
+                        requestMappingInfo.setRequestURI(requestMapping.value()[0]);
+                        requestMappingInfo.setMethod(requestMapping.method().toString());
+                        // 创建HandlerMethod对象
+                        HandlerMethod handlerMethod = new HandlerMethod();
+                        handlerMethod.setHandler(bean);
+                        handlerMethod.setMethod(method);
+                        // 放到map集合
+                        map.put(requestMappingInfo, handlerMethod);
+                    }
+                }
+            }
+        }
+    }
+    return map;
+}
+```
+
+接着要实现这个getHandler方法：
+
+```java
+public HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+    // 通过request对象，获取请求路径、方式，封装成RequestMappingInfo对象
+    RequestMappingInfo requestMappingInfo = new RequestMappingInfo(request.getServletPath(), request.getMethod());
+
+    // 创建处理器执行对象
+    HandlerExecutionChain handlerExecutionChain = new HandlerExecutionChain();
+
+    // 给执行链设置HandleMethod
+    handlerExecutionChain.setHandler(map.get(requestMappingInfo));
+
+    // 获取所有拦截器
+    WebApplicationContext webApplicationContext = (WebApplicationContext) request.getServletContext().getAttribute(Const.WEB_APPLICATION_CONTEXT);
+    List<HandlerInterceptor> interceptors = (List<HandlerInterceptor>) webApplicationContext.getBean(Const.INTERCEPTORS);
+    // 给执行链设置拦截器
+    handlerExecutionChain.setInterceptors(interceptors);
+
+    return handlerExecutionChain;
+}
+```
+
+在这里有个细节，同一个请求new两次RequestMappingInfo的话，如果不重写hashCode和equals方法，那么就会new出两个对象，但是同一个请求应该只有一个对象，所以在RequestMappingInfo类中，应该重写hashCode和equals方法：
+
+```java
+@Override
+public int hashCode() {
+    return Objects.hash(requestURI, method);
+}
+
+@Override
+public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null || getClass() != obj.getClass()) return false;
+    RequestMappingInfo that = (RequestMappingInfo) obj;
+    return Objects.equals(requestURI, that.requestURI) && Objects.equals(method, that.method);
+}
+```
+
 ## 执行拦截器的preHandle
+
 添加以下代码：
+
+```java
+if (!mappedHandler.applyPreHandle(request, response)) return;
+```
+
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712056664132-90f25f97-bc21-4aff-851b-63d222974148.png#averageHue=%232e2b2b&clientId=uae70fab4-1447-4&from=paste&height=310&id=u1b97258b&originHeight=310&originWidth=1330&originalType=binary&ratio=1&rotation=0&showTitle=false&size=38297&status=done&style=shadow&taskId=u608791fc-8147-4e21-a40d-f9ee94bf3a9&title=&width=1330)
 
 HandlerExecutionChain添加以下代码：
 ```java
-public boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-    for (int i = 0; i < interceptorList.size(); i++) {
-        HandlerInterceptor handlerInterceptor = interceptorList.get(i);
-        boolean result = handlerInterceptor.preHandle(request, response, handler);
-        if(!result){
-            return false;
-        }
-        interceptorIndex = i;
+/**
+     * 执行所有拦截器的preHandler放啊
+     * @param request
+     * @param response
+     * @return
+     */
+public boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    // 遍历拦截器
+    for (int i = 0; i < interceptors.size(); i++) {
+        // 取出每一个拦截器对象
+        HandlerInterceptor handlerInterceptor = interceptors.get(i);
+        // 调用preHandle方法
+        boolean res = handlerInterceptor.preHandle(request, response, handler);
+        // 根据执行结果，如果false，表示不再执行
+        if (!res) return false;
     }
     return true;
 }
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=tN3h4&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## 执行处理器方法
+
 DispatcherServlet中的doDispatch方法：
+
+```java
+ModelAndView mv = ha.handle(request, response, mappedHandler.getHandler());
+```
+
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712068532880-a22a29f7-6acf-44da-9c2e-016aa01f3756.png#averageHue=%232d2c2b&clientId=uae70fab4-1447-4&from=paste&height=111&id=ued28d3e9&originHeight=111&originWidth=1395&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23777&status=done&style=shadow&taskId=u39d0417d-154d-4f5b-b690-a75fc10f3ee&title=&width=1395)
+
 先让handle方法返回一个固定的ModelAndView，后期在详细编写 handle 方法：
+
+```java
+public class RequestMappingHandlerAdapter implements HandlerAdapter {
+    @Override
+    public ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setView("index");
+        modelAndView.setModelMap(null);
+        return modelAndView;
+    }
+}
+```
+
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712066826429-45d064ef-6649-4b7d-a504-b485143f87b6.png#averageHue=%232d2c2c&clientId=uae70fab4-1447-4&from=paste&height=307&id=u32db08a6&originHeight=307&originWidth=1285&originalType=binary&ratio=1&rotation=0&showTitle=false&size=41136&status=done&style=shadow&taskId=u4fc49120-5b20-4ddc-a4a3-07c0f698a17&title=&width=1285)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=taS9u&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 执行拦截器的postHandle
 DispatcherServlet的doDispatch方法中：
+
+```java
+mappedHandler.applyPostHandle(request, response, mv);
+```
+
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712067006139-fe7993eb-1745-4653-92c1-173b31254417.png#averageHue=%232c2c2b&clientId=uae70fab4-1447-4&from=paste&height=102&id=u3184c834&originHeight=102&originWidth=899&originalType=binary&ratio=1&rotation=0&showTitle=false&size=8558&status=done&style=shadow&taskId=udf523c3b-d13b-4215-a019-869c84d9bf1&title=&width=899)
 
 HandlerExecutionChain的方法：
+
+```java
+/**
+     * 按照逆序的方式执行拦截器中的postHandle方法
+     * @param request
+     * @param response
+     * @param mv
+     */
+public void applyPostHandle(HttpServletRequest request, HttpServletResponse response, ModelAndView mv) throws Exception {
+    for (int i = interceptors.size() - 1; i >= 0; i--) {
+        HandlerInterceptor handlerInterceptor = interceptors.get(i);
+        handlerInterceptor.postHandle(request, response, handler, mv);
+    }
+}
+```
+
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712068684534-c19e8af2-4a17-4997-8e5a-3c478fa95854.png#averageHue=%232c2c2b&clientId=uae70fab4-1447-4&from=paste&height=200&id=uc5a62c6f&originHeight=200&originWidth=1421&originalType=binary&ratio=1&rotation=0&showTitle=false&size=33486&status=done&style=shadow&taskId=ud5c81bf5-682b-47b4-9204-33cd11509f6&title=&width=1421)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=s9c8K&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 处理响应
 在DispatcherServlet的 doDispatch方法中：
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712067254904-79ff05f1-b27e-457a-8c43-a5999d8c47d7.png#averageHue=%232d2c2b&clientId=uae70fab4-1447-4&from=paste&height=102&id=uf2356e65&originHeight=102&originWidth=843&originalType=binary&ratio=1&rotation=0&showTitle=false&size=14239&status=done&style=shadow&taskId=u3f815fbf-e0dc-46b7-a010-e320d5862bb&title=&width=843)
