@@ -100,99 +100,86 @@
 
 根据Spring MVC执行流程，目前先创建出以下的类和接口，后期如果需要其他的再添加：
 
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712024526752-2594cbc4-c663-43cf-af59-55c43be03292.png#averageHue=%2347618e&clientId=uae70fab4-1447-4&from=paste&height=658&id=u8d639099&originHeight=658&originWidth=458&originalType=binary&ratio=1&rotation=0&showTitle=false&size=35034&status=done&style=shadow&taskId=u464af5dd-9c26-43b3-9696-03782e1196a&title=&width=458)
+![image-20240612161510460](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406121615582.png)
 
 # 部分类和接口的代码完善
 
 ## @Controller注解
+
+用来标注类的，只能出现在类上，可以被反射机制读取。
+
 ```java
 package org.myspringmvc.stereotype;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * ClassName: Controller
- * Description: 用来标注处理器，被标注的处理器，纳入IoC容器的管理。该注解只允许出现在类上，另外可以被反射机制读取。
- * Datetime: 2024/4/2 9:01
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 用来标注控制器，被标志的控制器纳入Ioc容器管理
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
+
+@Target(ElementType.TYPE)  // 只能标注类
+@Retention(RetentionPolicy.RUNTIME)  // 可以被发射机制读取
 public @interface Controller {
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=O6kPa&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-## RequestMethod枚举（新建）
-```java
-package org.myspringmvc.web.bind.annotation;
-
-/**
- * ClassName: RequestMethod
- * Description: 请求方式枚举
- * Datetime: 2024/4/2 10:35
- * Author: 老杜@动力节点
- * Version: 1.0
- */
-public enum RequestMethod {
-    GET, POST
-}
-
-```
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=N7t9R&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## @RequestMapping注解
+
+能出现在类上，也能出现在方法上，可以被反射机制读取
+
 ```java
 package org.myspringmvc.web.bind.annotation;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * ClassName: RequestMapping
- * Description: 用来标注处理器方法，允许标注方法和类，可以被反射机制读取。
- * Datetime: 2024/4/2 8:59
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 请求映射的注解
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequestMapping {
-    /**
-     * 用来指定请求路径
-     * @return
-     */
-    String[] value();
-
-    /**
-     * 用来指定请求方式
-     * @return
-     */
-    RequestMethod method();
+    String[] value();  // 支持多个请求路径
+    RequestMethod method();  // 指定请求方式
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=skxID&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+这个RequestMethod是一个枚举类型，需要重新创建。
+
+## RequestMethod枚举（新建）
+
+在package org.myspringmvc.web.bind.annotation包下创建一个枚举类型
+
+```java
+package org.myspringmvc.web.bind.annotation;
+/**
+ * 请求方式枚举
+ */
+public enum RequestMethod {
+    GET, POST
+}
+```
+
 ## HandlerMethod
+
+什么是处理器方法？以下就是一个处理器方法：
+
+```java
+@Controller
+public class UserController {
+    @RequestMapping(value="/",method=RequestMthod.GET)
+    public String index() {
+        return "index";
+    }
+}
+```
+
+那么一个HandlerMthod应该包括一个处理器（UserController对象），一个方法（Method对象），在SpringMVC源码中，HandlerMethod 中：
+
+![image-20240612165346342](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406121653455.png)
+
++ 源码中的很复杂
+
 ```java
 package org.myspringmvc.web.method;
 
 import java.lang.reflect.Method;
 
 /**
- * ClassName: HandlerMethod
- * Description: 处理器方法
- * Datetime: 2024/4/2 8:53
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 处理器方法
  */
 public class HandlerMethod {
     /**
@@ -203,15 +190,6 @@ public class HandlerMethod {
      * 要执行的方法
      */
     private Method method;
-
-    public HandlerMethod() {
-    }
-
-    public HandlerMethod(Object handler, Method method) {
-        this.handler = handler;
-        this.method = method;
-    }
-
     public Object getHandler() {
         return handler;
     }
@@ -227,51 +205,52 @@ public class HandlerMethod {
     public void setMethod(Method method) {
         this.method = method;
     }
-}
 
+    public HandlerMethod() {
+    }
+
+    public HandlerMethod(Object handler, Method method) {
+        this.handler = handler;
+        this.method = method;
+    }
+}
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=AVhLY&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## HandlerMapping接口
+
+HandlerMapping就是根据请求路径找到要执行的处理方法（HandlerMethod），参考源代码的代码：
+
+```java
+HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception;
+```
+
+直接复制：
+
 ```java
 package org.myspringmvc.web.servlet;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 /**
- * ClassName: HandlerMapping
- * Description: 主要是通过请求获取对应的处理器执行链。
- * Datetime: 2024/4/2 8:50
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 处理器映射器，根据请求路径映射到HandlerMethod
  */
 public interface HandlerMapping {
     /**
-     * 根据请求获取处理器执行链。
-     * @param request
-     * @return
+     * 根据请求返回处理器执行链对象
+     * @param request 请求对象
+     * @return 处理器执行链对象
      * @throws Exception
      */
     HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception;
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=rK65z&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## RequestMappingHandlerMapping
+
+这个类实现了HandlerMapping接口，所以要实现方法：
+
 ```java
 package org.myspringmvc.web.servlet.mvc.method.annotation;
-
-import jakarta.servlet.http.HttpServletRequest;
-import org.myspringmvc.web.servlet.HandlerExecutionChain;
-import org.myspringmvc.web.servlet.HandlerMapping;
-
 /**
- * ClassName: RequestMappingHandlerMapping
- * Description:
- * Datetime: 2024/4/2 9:44
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 处理器映射器，专门为@RequestMapping注解服务的处理器映射器
  */
 public class RequestMappingHandlerMapping implements HandlerMapping {
     @Override
@@ -279,54 +258,35 @@ public class RequestMappingHandlerMapping implements HandlerMapping {
         return null;
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=cZ8TI&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## HandlerAdapter接口
 ```java
 package org.myspringmvc.web.servlet;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 /**
- * ClassName: HandlerAdapter
- * Description: 通过处理器适配器调用处理器方法
- * Datetime: 2024/4/2 8:51
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 处理器适配器接口
  */
 public interface HandlerAdapter {
     /**
-     * 执行处理器方法
+     * 调用处理器方法（底层会真正调用处理器方法，执行核心业务）
      * @param request
      * @param response
      * @param handler
-     * @return
+     * @return 返回模型和视图对象
      * @throws Exception
      */
     ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception;
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=rQnyl&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## RequestMappingHandlerAdapter
+
+这个类是HandlerAdapter接口的实现类，需要实现方法：
+
 ```java
 package org.myspringmvc.web.servlet.mvc.method.annotation;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.myspringmvc.web.servlet.HandlerAdapter;
-import org.myspringmvc.web.servlet.ModelAndView;
-
 /**
- * ClassName: RequestMappingHandlerAdapter
- * Description:
- * Datetime: 2024/4/2 9:44
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 处理器适配器，专门为@RequestMapping注解服务的
  */
 public class RequestMappingHandlerAdapter implements HandlerAdapter {
     @Override
@@ -334,33 +294,17 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter {
         return null;
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=MzHHy&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## View接口
+
 ```java
 package org.myspringmvc.web.servlet;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
-import java.util.Map;
-
 /**
- * ClassName: View
- * Description:
- * Datetime: 2024/4/2 8:58
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 视图接口
  */
 public interface View {
-    /**
-     * 获取响应的内容类型
-     * @return
-     */
-    String getContentType();
-
     /**
      * 渲染
      * @param model
@@ -371,57 +315,35 @@ public interface View {
     void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response)
             throws Exception;
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=YVjoS&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## InternalResourceView
+
+该类实现了View接口，需要实现方法：
+
 ```java
 package org.myspringmvc.web.servlet.view;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.myspringmvc.web.servlet.View;
-
-import java.util.Map;
-
 /**
- * ClassName: InternalResourceView
- * Description:
- * Datetime: 2024/4/2 10:17
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 视图接口的实现类
  */
-public class InternalResourceView implements View {
-    @Override
-    public String getContentType() {
-        return null;
-    }
-
+public class InternalResourceVIew implements View {
     @Override
     public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=VgXfJ&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## ViewResolver接口
 ```java
 package org.myspringmvc.web.servlet;
-
-import java.util.Locale;
-
 /**
- * ClassName: ViewResolver
- * Description:解析逻辑视图名称，返回视图对象
- * Datetime: 2024/4/2 8:58
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 视图解析器接口
  */
 public interface ViewResolver {
     /**
-     * 解析逻辑视图名称，返回视图对象
+     * 视图解析，将逻辑视图名称转化为物理视图名称，并返回视图对象。
      * @param viewName
      * @param locale
      * @return
@@ -429,25 +351,16 @@ public interface ViewResolver {
      */
     View resolveViewName(String viewName, Locale locale) throws Exception;
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=nbpTK&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## InternalResourceViewResolver
+
+实现了ViewResolver接口，实现方法：
+
 ```java
 package org.myspringmvc.web.servlet.view;
-
-import org.myspringmvc.web.servlet.View;
-import org.myspringmvc.web.servlet.ViewResolver;
-
-import java.util.Locale;
-
 /**
- * ClassName: InternalResourceViewResolver
- * Description:
- * Datetime: 2024/4/2 9:45
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 内部资源的视图解析器,可以解析JSP
  */
 public class InternalResourceViewResolver implements ViewResolver {
     @Override
@@ -455,32 +368,23 @@ public class InternalResourceViewResolver implements ViewResolver {
         return null;
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=JPbk9&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## DispatcherServlet
+
+这个是配置在web.xml文件中的，DispatcherServlet对象不需要我们去new，它的方法也不需要我们去调用，创建和调用都是由Tomcat来执行的。Tomcat服务器new了DispactherServlet对象之后，立即调用init(ServletConfig)方法，且这个方法只会被调用一次，之后用户每一次发送请求的时候，只调用DispatcherServlet中的service方法。
+
+init方法只需要重写init()方法，因为会自动调用父类的init(ServletConfig)方法，且这个方法最终还是会调用init()方法。
+
 ```java
 package org.myspringmvc.web.servlet;
-
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
-
 /**
- * ClassName: DispatcherServlet
- * Description:
- * Datetime: 2024/4/2 8:50
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 前端控制器
  */
 public class DispatcherServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
-
+        // 初始化Spring web容器
     }
 
     @Override
@@ -489,45 +393,38 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     /**
-     * 处理请求的核心方法
+     * DispatcherServlet前端控制器最核心的方法
      * @param request
      * @param response
      * @throws ServletException
      * @throws IOException
      */
     private void doDispatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // 处理用户的请求
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=eGGMy&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## HandlerExecutionChain
 ```java
 package org.myspringmvc.web.servlet;
-
-import java.util.List;
-
 /**
- * ClassName: HandlerExecutionChain
- * Description:
- * Datetime: 2024/4/2 8:55
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 处理器执行链
  */
 public class HandlerExecutionChain {
+    /**
+     * 处理器方法，实际上底层对象是 HandlerMethod 对象
+     */
     private Object handler;
-    private List<HandlerInterceptor> interceptorList;
+
+    /**
+     * 本次请求需要执行的拦截器
+     */
+    private List<HandlerInterceptor> interceptors;
+	/**
+     * 当前拦截器列表执行到了哪个拦截器的下标
+     */
     private int interceptorIndex = -1;
-
-    public HandlerExecutionChain() {
-    }
-
-    public HandlerExecutionChain(Object handler, List<HandlerInterceptor> interceptorList) {
-        this.handler = handler;
-        this.interceptorList = interceptorList;
-    }
-
     public Object getHandler() {
         return handler;
     }
@@ -536,12 +433,12 @@ public class HandlerExecutionChain {
         this.handler = handler;
     }
 
-    public List<HandlerInterceptor> getInterceptorList() {
-        return interceptorList;
+    public List<HandlerInterceptor> getInterceptors() {
+        return interceptors;
     }
 
-    public void setInterceptorList(List<HandlerInterceptor> interceptorList) {
-        this.interceptorList = interceptorList;
+    public void setInterceptors(List<HandlerInterceptor> interceptors) {
+        this.interceptors = interceptors;
     }
 
     public int getInterceptorIndex() {
@@ -551,120 +448,110 @@ public class HandlerExecutionChain {
     public void setInterceptorIndex(int interceptorIndex) {
         this.interceptorIndex = interceptorIndex;
     }
-}
 
+    public HandlerExecutionChain() {
+    }
+
+    public HandlerExecutionChain(Object handler, List<HandlerInterceptor> interceptors, int interceptorIndex) {
+        this.handler = handler;
+        this.interceptors = interceptors;
+        this.interceptorIndex = interceptorIndex;
+    }
+}
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=fmCx4&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## HandlerInterceptor拦截器接口
+
 ```java
 package org.myspringmvc.web.servlet;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 /**
- * ClassName: HandlerInterceptor
- * Description: 拦截器接口
- * Datetime: 2024/4/2 8:54
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 拦截器接口
  */
 public interface HandlerInterceptor {
     default boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         return true;
     }
 
-    default void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+    default void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, odelAndView modelAndView) throws Exception {
     }
 
     default void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=FX2iF&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+## ModelAndView
+
+ModelAndView 中有两个属性：View和ModelMap
+
+```java
+package org.myspringmvc.web.servlet;
+
+/**
+ * 模型和视图
+ */
+public class ModelAndView {
+    private Object View;
+    private ModelMap modelMap;
+
+    public Object getView() {
+        return View;
+    }
+
+    public void setView(Object view) {
+        View = view;
+    }
+
+    public ModelMap getModelMap() {
+        return modelMap;
+    }
+
+    public void setModelMap(ModelMap modelMap) {
+        this.modelMap = modelMap;
+    }
+
+    public ModelAndView() {
+    }
+
+    public ModelAndView(Object view, ModelMap modelMap) {
+        View = view;
+        this.modelMap = modelMap;
+    }
+}
+```
+
 ## ModelMap类（新建）
+
+查看源码中的ModelMap，就是一个Map集合的应用，很简单：
+
+![image-20240612173430302](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406121734437.png)
+
+新建一个包org.myspringmvc.ui：
+
 ```java
 package org.myspringmvc.ui;
 
-import java.util.LinkedHashMap;
-
-/**
- * ClassName: ModelMap
- * Description: 将数据存储到域中。
- * Datetime: 2024/4/2 11:07
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 public class ModelMap extends LinkedHashMap<String, Object> {
     public ModelMap() {
     }
 
+    /**
+     * 向域中绑定数据
+     * @param name
+     * @param value
+     * @return
+     */
     public ModelMap addAttribute(String name, String value){
         this.put(name, value);
         return this;
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=PME4y&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-## ModelAndView
-```java
-package org.myspringmvc.web.servlet;
-
-import org.myspringmvc.ui.ModelMap;
-
-/**
- * ClassName: ModelAndView
- * Description:
- * Datetime: 2024/4/2 8:57
- * Author: 老杜@动力节点
- * Version: 1.0
- */
-public class ModelAndView {
-    private Object view;
-    private ModelMap model;
-
-    public ModelAndView() {
-    }
-
-    public ModelAndView(Object view, ModelMap model) {
-        this.view = view;
-        this.model = model;
-    }
-
-    public Object getView() {
-        return view;
-    }
-
-    public void setView(Object view) {
-        this.view = view;
-    }
-
-    /**
-     * 该方法待实现
-     * @param viewName
-     */
-    public void setViewName(String viewName){
-        // TODO
-    }
-
-    public ModelMap getModel() {
-        return model;
-    }
-
-    public void setModel(ModelMap model) {
-        this.model = model;
-    }
-}
-
-```
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=ElMaN&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # webapp开发者写应用
+
+在webapp开发者的角度，去使用myspringmvc框架。
+
 ## web.xml文件
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -677,6 +564,7 @@ public class ModelAndView {
     <servlet>
         <servlet-name>springmvc</servlet-name>
         <servlet-class>org.myspringmvc.web.servlet.DispatcherServlet</servlet-class>
+        <!--这个init-param的数据在ServletConfig对象中-->
         <init-param>
             <param-name>contextConfigLocation</param-name>
             <param-value>classpath:springmvc.xml</param-value>
@@ -691,8 +579,8 @@ public class ModelAndView {
 </web-app>
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=vUipW&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 DispatcherServlet的<init-param>的contextConfigLocation可以编写代码了：
+
 ```java
 @Override
 public void init() throws ServletException {
@@ -730,49 +618,34 @@ public class Constant {
 
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=EbhAB&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-## 编写处理器Controller
-```java
-package com.powernode.springmvc.controller;
+## 编写springmvc.xml
 
-import org.myspringmvc.stereotype.Controller;
-import org.myspringmvc.web.bind.annotation.RequestMapping;
-import org.myspringmvc.web.bind.annotation.RequestMethod;
+```xml
+<?xml version="1.0" encoding="UTF-8">
 
-/**
- * ClassName: UserController
- * Description:
- * Datetime: 2024/4/2 11:38
- * Author: 老杜@动力节点
- * Version: 1.0
- */
-@Controller
-public class UserController {
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String index(){
-        return "index";
-    }
-}
-
+<beans>
+<!--    组件扫描-->
+    <component-scan base-package="com.zsm.controller"/>
+<!--    视图解析器-->
+    <bean class="org.myspringmvc.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+<!--    拦截器-->
+    <interceptors>
+        <bean class="com.zsm.interceptors.Interceptor1"/>
+        <bean class="com.zsm.interceptors.Interceptor2"/>
+    </interceptors>
+</beans>
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=fbiOU&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## 编写拦截器
+
+需要新建一个com.zsm.controller包和一个com.zsm.interceptors包，并且在interceptors下创建几个拦截器：
+
 ```java
-package com.powernode.springmvc.interceptors;
+package com.zsm.interceptors;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.myspringmvc.web.servlet.HandlerInterceptor;
-import org.myspringmvc.web.servlet.ModelAndView;
-
-/**
- * ClassName: Interceptor1
- * Description:
- * Datetime: 2024/4/2 11:40
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 public class Interceptor1 implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -790,68 +663,40 @@ public class Interceptor1 implements HandlerInterceptor {
         System.out.println("Interceptor1's afterCompletion");
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=cuJeV&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+## 编写处理器Controller
+
 ```java
-package com.powernode.springmvc.interceptors;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.myspringmvc.web.servlet.HandlerInterceptor;
-import org.myspringmvc.web.servlet.ModelAndView;
-
-/**
- * ClassName: Interceptor2
- * Description:
- * Datetime: 2024/4/2 11:41
- * Author: 老杜@动力节点
- * Version: 1.0
- */
-public class Interceptor2 implements HandlerInterceptor {
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        System.out.println("Interceptor2's preHandle");
-        return true;
-    }
-
-    @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        System.out.println("Interceptor2's postHandle");
-    }
-
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        System.out.println("Interceptor2's afterCompletion");
+package com.zsm.controller;
+@Controller
+public class UserController {
+    @RequestMapping(value = "/index", method = RequestMethod.GET)
+    public String index() {
+        return "index";
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=Ij49a&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-## 编写springmvc.xml
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<beans>
-    <!--组件扫描-->
-    <component-scan base-package="com.powernode.springmvc.controller"/>
-    <!--视图解析器-->
-    <bean class="org.myspringmvc.web.servlet.view.InternalResourceViewResolver">
-        <property name="prefix" value="/WEB-INF/jsp/"/>
-        <property name="suffix" value=".jsp"/>
-    </bean>
-    <!--拦截器-->
-    <interceptors>
-        <bean class="com.powernode.springmvc.interceptors.Interceptor1"/>
-        <bean class="com.powernode.springmvc.interceptors.Interceptor2"/>
-    </interceptors>
-</beans>
+## 提供视图
+
+在WEB-INF下新加一个jsp文件夹，创建一个index.jsp文件：
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>zsm手写SpringMVC</title>
+</head>
+<body>
+<h1>哈哈哈哈</h1>
+</body>
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=TxBBU&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 
 InternalResourceViewResolver类中添加属性：suffix和prefix
+
 ```java
 package org.myspringmvc.web.servlet.view;
 
@@ -895,23 +740,8 @@ public class InternalResourceViewResolver implements ViewResolver {
 
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=nwvZM&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-## 提供视图
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712029821395-5e9b0d67-f6da-4e8f-8875-45cff7eb1899.png#averageHue=%23363e44&clientId=uae70fab4-1447-4&from=paste&height=105&id=u312ff2ca&originHeight=105&originWidth=265&originalType=binary&ratio=1&rotation=0&showTitle=false&size=4511&status=done&style=shadow&taskId=u44dba32e-9697-4a17-839a-ee796b47916&title=&width=265)
-```html
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<html>
-<head>
-    <title>index jsp</title>
-</head>
-<body>
-<h1>动力节点：手写Spring MVC框架</h1>
-</body>
-</html>
-```
-
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=ZFtvm&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # 服务器启动阶段的处理
+
 ## 分析服务器启动阶段都需要初始化什么
 
 1. 初始化Spring容器
