@@ -1482,13 +1482,15 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter {
     public ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setView("index");
-        modelAndView.setModelMap(null);
+        ModelMap modelMap = new ModelMap();
+        modelMap.addAttribute("username", "zsm");
+        modelAndView.setModelMap(modelMap);
         return modelAndView;
     }
 }
 ```
 
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712066826429-45d064ef-6649-4b7d-a504-b485143f87b6.png#averageHue=%232d2c2c&clientId=uae70fab4-1447-4&from=paste&height=307&id=u32db08a6&originHeight=307&originWidth=1285&originalType=binary&ratio=1&rotation=0&showTitle=false&size=41136&status=done&style=shadow&taskId=u4fc49120-5b20-4ddc-a4a3-07c0f698a17&title=&width=1285)
+![image-20240615093948584](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406150939784.png)
 
 
 ## 执行拦截器的postHandle
@@ -1522,75 +1524,39 @@ public void applyPostHandle(HttpServletRequest request, HttpServletResponse resp
 
 ## 处理响应
 在DispatcherServlet的 doDispatch方法中：
+
+```java
+// 获取视图对象：通过视图解析器进行解析，返回View对象
+View view = viewResolver.resolveViewName(mv.getView().toString(), Locale.CANADA);
+// 渲染
+view.render(mv.getModelMap(), request, response);
+```
+
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712067254904-79ff05f1-b27e-457a-8c43-a5999d8c47d7.png#averageHue=%232d2c2b&clientId=uae70fab4-1447-4&from=paste&height=102&id=uf2356e65&originHeight=102&originWidth=843&originalType=binary&ratio=1&rotation=0&showTitle=false&size=14239&status=done&style=shadow&taskId=u3f815fbf-e0dc-46b7-a010-e320d5862bb&title=&width=843)
 
+然后实现resolveViewName这个方法，先在InternalResourceVIew类中添加属性：
+
 ```java
-package org.myspringmvc.web.servlet.view;
-
-import org.myspringmvc.web.servlet.View;
-import org.myspringmvc.web.servlet.ViewResolver;
-
-import java.util.Locale;
-
 /**
- * ClassName: InternalResourceViewResolver
- * Description:
- * Datetime: 2024/4/2 9:45
- * Author: 老杜@动力节点
- * Version: 1.0
+ * 视图接口的实现类
  */
-public class InternalResourceViewResolver implements ViewResolver {
-    private String suffix;
-    private String prefix;
-
-    public String getSuffix() {
-        return suffix;
-    }
-
-    public void setSuffix(String suffix) {
-        this.suffix = suffix;
-    }
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    @Override
-    public View resolveViewName(String viewName, Locale locale) throws Exception {
-        return new InternalResourceView("text/html;charset=UTF-8", prefix + viewName + suffix);
-    }
-}
-
-```
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=zFXk0&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-```java
-package org.myspringmvc.web.servlet.view;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.myspringmvc.web.servlet.View;
-
-import java.util.Map;
-
-/**
- * ClassName: InternalResourceView
- * Description:
- * Datetime: 2024/4/2 10:17
- * Author: 老杜@动力节点
- * Version: 1.0
- */
-public class InternalResourceView implements View {
-
+public class InternalResourceVIew implements View {
+    /**
+     * 响应的内容类型
+     */
     private String contentType;
+    /**
+     * 响应的路径
+     */
     private String path;
 
-    public InternalResourceView(String contentType, String path) {
+    @Override
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
         this.contentType = contentType;
-        this.path = path;
     }
 
     public String getPath() {
@@ -1601,41 +1567,100 @@ public class InternalResourceView implements View {
         this.path = path;
     }
 
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
+    public InternalResourceVIew() {
     }
 
-    @Override
-    public String getContentType() {
-        return contentType;
+    public InternalResourceVIew(String contentType, String path) {
+        this.contentType = contentType;
+        this.path = path;
     }
 
     @Override
     public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        // 设置响应内容类型
-        response.setContentType(getContentType());
-        // 向request域中绑定数据
-        if(model != null){
-            model.forEach(request::setAttribute);    
-        }
-        // 转发
-        request.getRequestDispatcher(path).forward(request, response);
+
     }
 }
-
+```
+然后在InternalResourceViewResolver类中实现resolveViewName方法：
+```java
+/**
+     * 将逻辑视图名字转化为物理视图名称，并以View对象形式返回
+     * @param viewName
+     * @param locale
+     * @return
+     * @throws Exception
+     */
+@Override
+public View resolveViewName(String viewName, Locale locale) throws Exception {
+    return new InternalResourceVIew("text/html;charset=UTF-8", prefix + viewName + suffix);
+}
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=x9G5Q&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+然后就是渲染render方法，在InternalResourceVIew类中：
+
+```java
+@Override
+public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    // 设置响应的内容类型
+    response.setContentType(contentType);
+    // 将model数据存储到request域中
+    model.forEach(request::setAttribute);
+    // 转发
+    request.getRequestDispatcher(path).forward(request, response);
+}
+```
+
 ## 执行拦截器的afterCompletion
+
 在DispatcherServlet类的doDispatch方法中：
+
+```java
+mappedHandler.triggerAfterCompletion(request, response, null);
+```
+
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712068193170-1b47284d-c42d-45a5-ae1b-a729794a105c.png#averageHue=%232e2d2c&clientId=uae70fab4-1447-4&from=paste&height=66&id=uac12270b&originHeight=66&originWidth=965&originalType=binary&ratio=1&rotation=0&showTitle=false&size=9628&status=done&style=shadow&taskId=u6555a2d4-220e-4fcf-a729-b613b001899&title=&width=965)
 
 在HandlerExecutionChain中：
+
+```java
+/**
+     * 按照逆序的方式执行拦截器的afterCompletion方法
+     * @param request
+     * @param response
+     * @param o
+     */
+public void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse response, Object o) {
+    for (int i = interceptorIndex; i >= 0 ; i--) {
+        HandlerInterceptor handlerInterceptor = interceptors.get(i);
+        handlerInterceptor.afterCompletion(request, response, handler, null);
+    }
+}
+```
+
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712068259935-ea02fdbe-ff19-4662-ad8c-eb349c269bf1.png#averageHue=%232d2c2c&clientId=uae70fab4-1447-4&from=paste&height=206&id=u04e5515e&originHeight=206&originWidth=1450&originalType=binary&ratio=1&rotation=0&showTitle=false&size=30726&status=done&style=shadow&taskId=u98cb9e46-ed3e-4ded-b726-d1e67451a4a&title=&width=1450)
+
+```java
+public boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    // 遍历拦截器
+    for (int i = 0; i < interceptors.size(); i++) {
+        // 取出每一个拦截器对象
+        HandlerInterceptor handlerInterceptor = interceptors.get(i);
+        // 调用preHandle方法
+        boolean res = handlerInterceptor.preHandle(request, response, handler);
+        // 根据执行结果，如果false，表示不再执行
+        if (!res) {
+            // 执行拦截器的afterCompletion方法
+            triggerAfterCompletion(request, response, null);
+            return false;
+        }
+        interceptorIndex = i;
+    }
+    return true;
+}
+```
 
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712068277775-336dda1a-e26c-4d37-84af-545bb818f0c9.png#averageHue=%232d2b2b&clientId=uae70fab4-1447-4&from=paste&height=362&id=u3d9d44a7&originHeight=362&originWidth=1287&originalType=binary&ratio=1&rotation=0&showTitle=false&size=45702&status=done&style=shadow&taskId=ube190ada-2fdc-44d3-89b5-5f3db202ef6&title=&width=1287)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=hMtBB&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## 初步测试
 启动服务器，浏览器地址栏：http://localhost:8080/myspringmvc
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712068892689-b37a04ee-3e89-44a2-b018-1f3644812b71.png#averageHue=%23d7b27a&clientId=uae70fab4-1447-4&from=paste&height=120&id=u19c54095&originHeight=120&originWidth=586&originalType=binary&ratio=1&rotation=0&showTitle=false&size=15020&status=done&style=shadow&taskId=ud8061808-24ef-40ef-bbea-4d778d3d999&title=&width=586)
@@ -1647,6 +1672,48 @@ public class InternalResourceView implements View {
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1712068971047-6774611e-9d91-482d-88b5-8e08478de7cb.png#averageHue=%2332302e&clientId=uae70fab4-1447-4&from=paste&height=83&id=ub336e206&originHeight=83&originWidth=349&originalType=binary&ratio=1&rotation=0&showTitle=false&size=9231&status=done&style=shadow&taskId=u59f97293-e4e0-4744-b6f7-9633a086d88&title=&width=349)
 初步测试通过！！！
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=SeliC&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # 调用处理器方法
 
+在RequestMappingHandlerAdapter类中：
+
+```java
+public class RequestMappingHandlerAdapter implements HandlerAdapter {
+    @Override
+    public ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // 需要调用处理器方法
+        HandlerMethod handlerMethod = (HandlerMethod) handler;
+        // 获取Controller对啊行
+        Object controller = handlerMethod.getHandler();
+        // 获取要调用的方法
+        Method method = handlerMethod.getMethod();
+        // 通过反射机制调用方法
+        // 假设每个controller方法必须有ModelMap参数，且必须返回String逻辑视图名字
+        ModelMap modelMap = new ModelMap();
+        String viewName = （String)method.invoke(controller, modelMap);
+
+        // 封装ModelAndView对象
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setView(viewName);
+        modelAndView.setModelMap(modelMap);
+        return modelAndView;
+    }
+}
+```
+
+然后需要更改控制器中的代码：
+
+```java
+@Controller
+public class UserController {
+    @RequestMapping(value = "/index", method = RequestMethod.GET)
+    public String index(ModelMap modelMap) {
+        // 向request域中存数据
+        modelMap.addAttribute("username", "zsm");
+        return "index";
+    }
+}
+```
+
+访问http://localhost:8080/myspringmvc/index：
+
+![image-20240615102916904](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406151029069.png)

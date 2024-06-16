@@ -1,5 +1,5 @@
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=DsWx0&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # 引入相关依赖
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -85,17 +85,17 @@
 </project>
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=VeuPi&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 # SSM整合
+
 ## 创建包结构
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1711952550136-9bf37050-0666-41ea-8bd0-4e77c9f4c4e5.png#averageHue=%233f4345&clientId=ucab011ae-0d3f-4&from=paste&height=124&id=uebdf7be6&originHeight=124&originWidth=201&originalType=binary&ratio=1&rotation=0&showTitle=false&size=3201&status=done&style=none&taskId=u1c8f6ce2-bd07-4c39-980e-95f3ceab9cc&title=&width=201)
 ## 创建webapp目录
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1711957803441-365c51d0-e046-4230-b02d-a1c192c599ae.png#averageHue=%2345536a&clientId=ua0f2ffef-430b-4&from=paste&height=60&id=ue83dc241&originHeight=60&originWidth=196&originalType=binary&ratio=1&rotation=0&showTitle=false&size=2552&status=done&style=none&taskId=u7b485e34-b1a4-4df6-beb7-18813cb3765&title=&width=196)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=K67mF&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## Spring整合MyBatis
+
 ### 编写jdbc.properties
-在类根路径下创建属性配置文件，配置连接数据库的信息：jdbc.properties
+在类根路径（resources/）下创建属性配置文件，配置连接数据库的信息：jdbc.properties
 ```properties
 jdbc.driver=com.mysql.cj.jdbc.Driver
 jdbc.url=jdbc:mysql://localhost:3306/powernode?useUnicode=true&serverTimezone=Asia/Shanghai&useSSL=true&characterEncoding=utf-8
@@ -103,41 +103,27 @@ jdbc.username=root
 jdbc.password=1234
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=s6wf2&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
-
 ### 编写DataSourceConfig
+
+Spring 和 MyBatis 整合的时候，如果是基于XML配置文件的话，需要在spring配置文件中配置数据源dataSource，在config包下新建一个配置类DataSourceConfig：
+
 ```java
-package com.powernode.ssm.config;
-
-import com.alibaba.druid.pool.DruidDataSource;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-
-import javax.sql.DataSource;
-
-/**
- * ClassName: DataSourceConfig
- * Description:
- * Datetime: 2024/4/1 14:25
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 public class DataSourceConfig {
-
     @Value("${jdbc.driver}")
     private String driver;
-
+    
     @Value("${jdbc.url}")
     private String url;
-
+    
     @Value("${jdbc.username}")
     private String username;
-
+    
     @Value("${jdbc.password}")
     private String password;
 
     @Bean
-    public DataSource dataSource(){
+    public DataSource dataSource() {
+        // 使用德鲁伊连接池
         DruidDataSource dataSource = new DruidDataSource();
         dataSource.setDriverClassName(driver);
         dataSource.setUrl(url);
@@ -146,123 +132,72 @@ public class DataSourceConfig {
         return dataSource;
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=VAgVk&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ### 编写MyBatisConfig
+
+在config包下新建一个MybatisConfig类：
+
 ```java
-package com.powernode.ssm.config;
-
-import org.mybatis.spring.SqlSessionFactoryBean;
-import org.mybatis.spring.mapper.MapperScannerConfigurer;
-import org.springframework.context.annotation.Bean;
-
-import javax.sql.DataSource;
-
-/**
- * ClassName: MyBatisConfig
- * Description:
- * Datetime: 2024/4/1 14:25
- * Author: 老杜@动力节点
- * Version: 1.0
- */
-public class MyBatisConfig {
-
+public class MybatisConfig {
     @Bean
-    public SqlSessionFactoryBean sqlSessionFactory(DataSource dataSource){
+    public SqlSessionFactoryBean sqlSessionFactoryBean(DataSource dataSource) {
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(dataSource);
-        sqlSessionFactoryBean.setTypeAliasesPackage("com.powernode.ssm.bean");
+        sqlSessionFactoryBean.setTypeAliasesPackage("com.zsm.bean");
         return sqlSessionFactoryBean;
     }
 
-    @Bean
-    public MapperScannerConfigurer mapperScannerConfigurer(){
-        MapperScannerConfigurer msc = new MapperScannerConfigurer();
-        msc.setBasePackage("com.powernode.ssm.dao");
-        return msc;
+    public MapperScannerConfigurer mapperScannerConfigurer() {
+        MapperScannerConfigurer mapperScannerConfigurer = new MapperScannerConfigurer();
+        mapperScannerConfigurer.setBasePackage("com.zsm.dao");
+        return mapperScannerConfigurer;
     }
-
 }
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=RzaWO&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ### 编写SpringConfig
+
+在config包下新建一个SpringConfig类：
+
 ```java
-package com.powernode.ssm.config;
-
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
-
-/**
- * ClassName: SpringConfig
- * Description:
- * Datetime: 2024/4/1 14:22
- * Author: 老杜@动力节点
- * Version: 1.0
- */
+// 标注该类是一个配置文件类
 @Configuration
-@ComponentScan({"com.powernode.ssm.service"})
+// 组件扫描
+@ComponentScan("com.zsm.service")
+// 属性配置文件位置
 @PropertySource("classpath:jdbc.properties")
-@Import({DataSourceConfig.class, MyBatisConfig.class})
+// 导入其他配置到spring配置
+@Import({MybatisConfig.class, DataSourceConfig.calss})
 public class SpringConfig {
 }
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=yhKbF&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ## Spring整合Spring MVC
 ### 编写WebAppInitializer（web.xml）
+
+在config包下新建一个WebAppInitializer类：
+
 ```java
-package com.powernode.ssm.config;
-
-import jakarta.servlet.Filter;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.filter.CharacterEncodingFilter;
-import org.springframework.web.filter.HiddenHttpMethodFilter;
-import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
-
-/**
- * ClassName: WebAppInitializer
- * Description:
- * Datetime: 2024/4/1 14:59
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
-    /**
-     * Spring的配置
-     * @return
-     */
+    // Spring的配置
     @Override
     protected Class<?>[] getRootConfigClasses() {
         return new Class[]{SpringConfig.class};
     }
 
-    /**
-     * SpringMVC的配置
-     * @return
-     */
+    // SpringMVC的配置
     @Override
     protected Class<?>[] getServletConfigClasses() {
-        return new Class[]{SpringMvcConfig.class};
+        return new Class[]{SpringMVCConfig.class};
     }
 
-    /**
-     * 用来配置DispatcherServlet的 <url-pattern>
-     * @return
-     */
+    // DispatcherServlet的<url-pattern>配置
     @Override
     protected String[] getServletMappings() {
         return new String[]{"/"};
     }
-
-    /**
-     * 配置过滤器
-     * @return
-     */
+    // 配置过滤器
     @Override
     protected Filter[] getServletFilters() {
         // 配置字符编码过滤器
@@ -275,38 +210,16 @@ public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServlet
         return new Filter[]{characterEncodingFilter, hiddenHttpMethodFilter};
     }
 }
-
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=TYPxG&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ### 编写SpringMvcConfig
+
+在config包下创建一个SpringMvcConfig类：
+
 ```java
-package com.powernode.ssm.config;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.springframework.web.servlet.config.annotation.*;
-import org.thymeleaf.spring6.SpringTemplateEngine;
-import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
-import org.thymeleaf.spring6.view.ThymeleafViewResolver;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ITemplateResolver;
-
-import java.util.List;
-
-/**
- * ClassName: SpringMvcConfig
- * Description:
- * Datetime: 2024/4/1 15:02
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 @Configuration
-@ComponentScan("com.powernode.ssm.handler")
+@ComponentScan("com.zsm.handler")
 @EnableWebMvc
 public class SpringMvcConfig implements WebMvcConfigurer {
 
@@ -356,10 +269,9 @@ public class SpringMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {}
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=eelvG&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## 添加事务控制
 第一步：在SpringConfig中开启事务管理器
 ```java
@@ -382,47 +294,44 @@ public PlatformTransactionManager platformTransactionManager(DataSource dataSour
 public class UserService {}
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=Cq6UA&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 # 实现功能测试ssm整合
 ## 数据库表
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1711957269218-f37ceadc-6aa6-4be0-9c5b-e35237cee177.png#averageHue=%23131110&clientId=ua0f2ffef-430b-4&from=paste&height=184&id=ue0f85c34&originHeight=184&originWidth=563&originalType=binary&ratio=1&rotation=0&showTitle=false&size=10702&status=done&style=none&taskId=ubb189907-5b69-4c8e-8104-5b513cc3ae3&title=&width=563)
+![image-20240616092040941](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406160920054.png)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=V9HBw&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+查看表的结构，封装成对象：
+
+![image-20240616092139375](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406160921453.png)
+
 ## pojo类编写
-```java
-package com.powernode.ssm.bean;
 
-/**
- * ClassName: User
- * Description:
- * Datetime: 2024/4/1 15:42
- * Author: 老杜@动力节点
- * Version: 1.0
- */
+在bean包下创建一个User类：
+
+```java
 public class User {
     private Long id;
     private String name;
-    private String password;
-    private String email;
+    private String tel;
+    private String address;
+
+    public User() {
+    }
+
+    public User(Long id, String name, String tel, String address) {
+        this.id = id;
+        this.name = name;
+        this.tel = tel;
+        this.address = address;
+    }
 
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", password='" + password + '\'' +
-                ", email='" + email + '\'' +
+                ", tel='" + tel + '\'' +
+                ", address='" + address + '\'' +
                 '}';
-    }
-
-    public User() {
-    }
-
-    public User(Long id, String name, String password, String email) {
-        this.id = id;
-        this.name = name;
-        this.password = password;
-        this.email = email;
     }
 
     public Long getId() {
@@ -441,65 +350,43 @@ public class User {
         this.name = name;
     }
 
-    public String getPassword() {
-        return password;
+    public String getTel() {
+        return tel;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setTel(String tel) {
+        this.tel = tel;
     }
 
-    public String getEmail() {
-        return email;
+    public String getAddress() {
+        return address;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setAddress(String address) {
+        this.address = address;
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=RQ2H8&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## dao编写
+
+在dao包下添加一个UserDao接口，这个包下的类会自动扫描，所以不需要添加注解标注。
+
 ```java
-package com.powernode.ssm.dao;
-
-import com.powernode.ssm.bean.User;
-import org.apache.ibatis.annotations.Select;
-
-/**
- * ClassName: UserDao
- * Description:
- * Datetime: 2024/4/1 15:43
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 public interface UserDao {
-
-    @Select("select * from tbl_user where id = #{id}")
+    @Select("select * from t_user wehere id = #{id}")
     User selectById(Long id);
-
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=vSaVj&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## service编写
+
+在service包下创建一个UserService接口：
+
 ```java
-package com.powernode.ssm.service;
-
-import com.powernode.ssm.bean.User;
-
-/**
- * ClassName: UserService
- * Description:
- * Datetime: 2024/4/1 15:45
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 public interface UserService {
-
     /**
      * 根据id获取用户信息
      * @param id
@@ -508,30 +395,14 @@ public interface UserService {
     User getById(Long id);
 
 }
-
 ```
+然后在service/impl包下创建UserService的实现类UserServiceImpl：
+
 ```java
-package com.powernode.ssm.service.impl;
-
-import com.powernode.ssm.bean.User;
-import com.powernode.ssm.dao.UserDao;
-import com.powernode.ssm.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-/**
- * ClassName: UserServiceImpl
- * Description:
- * Datetime: 2024/4/1 15:45
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 @Service
 public class UserServiceImpl implements UserService {
-
     @Autowired
-    private UserDao userDao;
-
+    public UserDao userDao;
     @Override
     public User getById(Long id) {
         return userDao.selectById(id);
@@ -539,46 +410,34 @@ public class UserServiceImpl implements UserService {
 }
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=He68W&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+
 ## handler编写
+
+在handler包下创建一个UserHandler类，也就是一个controller：
+
 ```java
-package com.powernode.ssm.handler;
-
-import com.powernode.ssm.bean.User;
-import com.powernode.ssm.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-/**
- * ClassName: UserHandler
- * Description:
- * Datetime: 2024/4/1 15:46
- * Author: 老杜@动力节点
- * Version: 1.0
- */
 @RestController
 @RequestMapping("/users")
 public class UserHandler {
-
     @Autowired
-    private UserService userService;
+    public UserService userService;
 
-    @GetMapping("/{id}")
-    public User detail(@PathVariable("id") Long id){
-        return userService.getById(id);
+    @RequestMapping("/{id}")
+    public User detail(@PathVariable("id") Long id) {
+        User user = userService.getById(id);
+        return user;
     }
 }
-
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=kQyCm&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
+使用的是@RestController注解，那么每个方法返回的就不是视图名称了，而是字符串数据。
 ## 前端发送ajax
 ### 引入js文件
 ![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1711957985712-688287fe-084c-41ed-9938-79374005a147.png#averageHue=%233e4245&clientId=ua0f2ffef-430b-4&from=paste&height=102&id=uc272a66d&originHeight=102&originWidth=198&originalType=binary&ratio=1&rotation=0&showTitle=false&size=3313&status=done&style=none&taskId=u8e02853c-864f-4add-b7fd-8a9b2628c6c&title=&width=198)
 ### 开启静态资源处理
+
+在SpringMvcConfig类中：
+
 ```java
 @Override
 public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
@@ -586,8 +445,10 @@ public void configureDefaultServletHandling(DefaultServletHandlerConfigurer conf
 }
 ```
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=a92zq&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 ### 视图控制器
+
+在SpringMvcConfig类中：
+
 ```java
 public void addViewControllers(ViewControllerRegistry registry) {
     registry.addViewController("/").setViewName("index");
@@ -630,8 +491,7 @@ public void addViewControllers(ViewControllerRegistry registry) {
 </html>
 ```
 测试结果：
-![image.png](https://cdn.nlark.com/yuque/0/2024/png/21376908/1711959488460-669e8849-5c0d-47d1-8c46-07c668c6909d.png#averageHue=%23f0efee&clientId=ua0f2ffef-430b-4&from=paste&height=160&id=ub2e8d92c&originHeight=160&originWidth=1480&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23433&status=done&style=shadow&taskId=u242e65f9-4b4d-4878-9a73-99e3874ea4b&title=&width=1480)
+![image-20240616095127795](https://gitee.com/LowProfile666/image-bed/raw/master/img/202406160951724.png)
 
-![标头.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/21376908/1692002570088-3338946f-42b3-4174-8910-7e749c31e950.jpeg#averageHue=%23f9f8f8&clientId=uc5a67c34-8a0d-4&from=paste&height=78&id=rLd4a&originHeight=78&originWidth=1400&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23158&status=done&style=shadow&taskId=u98709943-fd0b-4e51-821c-a3fc0aef219&title=&width=1400)
 
 
