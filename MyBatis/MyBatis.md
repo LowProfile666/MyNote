@@ -561,7 +561,7 @@ public class MyBatisCompleteCodeTest {
 在 mybatis 中，提供了两种事务管理机制：
 
 + 第一种：JDBC事务管理器
-+ 第二种：MANAGED书屋管理器
++ 第二种：MANAGED事务管理器
 
 **JDBC事务管理器**
 
@@ -4961,7 +4961,7 @@ SQL映射文件的配置方式包括四种：
 ```xml
 <!-- 将包内的映射器接口实现全部注册为映射器 -->
 <mappers>
-  <package name="com.powernode.mybatis.mapper"/>
+  <package name="com.powernode.mybatis.mapper"/> 
 </mappers>
 ```
 

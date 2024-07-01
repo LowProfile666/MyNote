@@ -2892,6 +2892,7 @@ public class Client {
 - 缺点2：不符合OCP开闭原则，在进行系统扩展时，需要修改工厂类。
 
 **Spring中的BeanFactory就使用了简单工厂模式。**
+
 ## 6.3 工厂方法模式
 工厂方法模式既保留了简单工厂模式的优点，同时又解决了简单工厂模式的缺点。
 
@@ -8780,7 +8781,7 @@ public class SpringJUnit5Test {
    - 数据源
    - SqlSessionFactoryBean配置
       - 注入mybatis核心配置文件路径
-      - 指定别名包
+      - 指定0别名包
       - 注入数据源
    - Mapper扫描配置器
       - 指定扫描的包
