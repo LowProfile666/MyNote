@@ -291,6 +291,20 @@ Gitee账户：[https://gitee.com/](https://link.zhihu.com/?target=https%3A//gite
 
 gitee仓库私人令牌：8678e6291b9f777d6067adf964bb5997
 
+## 配置Github仓库
+
+新建一个仓库，然后获取token：https://github.com/settings/tokens：
+
+![image-20240704194709505](https://gitee.com/LowProfile666/image-bed/raw/master/img/202407041947582.png)
+
+然后选择没有过期时间，勾选repo：
+
+![image-20240704194415650](https://gitee.com/LowProfile666/image-bed/raw/master/img/202407041947767.png)
+
+然后拉到页面最下方，点击生成，复制token：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，然后配置picgo中的图床设置：
+
+![image-20240704194832892](https://gitee.com/LowProfile666/image-bed/raw/master/img/202407041948964.png)
+
 ## PicGo配置
 
 PicGo:[https://molunerfinn.com/PicGo/](https://link.zhihu.com/?target=https%3A//molunerfinn.com/PicGo/)
