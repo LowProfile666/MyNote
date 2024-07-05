@@ -301,7 +301,7 @@ gitee仓库私人令牌：8678e6291b9f777d6067adf964bb5997
 
 ![image-20240704194415650](https://gitee.com/LowProfile666/image-bed/raw/master/img/202407041947767.png)
 
-然后拉到页面最下方，点击生成，复制token：ghp_FSZoq7t6ixdqG ~~加密~~ GrajUnTjiRJ8UNN134aRo4P，然后配置picgo中的图床设置：
+然后拉到页面最下方，点击生成，复制token，然后配置picgo中的图床设置：
 
 ![image-20240704194832892](https://gitee.com/LowProfile666/image-bed/raw/master/img/202407041948964.png)
 
