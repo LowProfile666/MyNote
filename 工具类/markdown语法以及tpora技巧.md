@@ -293,7 +293,7 @@ gitee仓库私人令牌：8678e6291b9f777d6067adf964bb5997
 
 ## 配置Github仓库
 
-新建一个仓库，然后获取token：https://github.com/settings/tokens：
+新建一个仓库，然后获取：https://github.com/settings/tokens：
 
 ![image-20240704194709505](https://gitee.com/LowProfile666/image-bed/raw/master/img/202407041947582.png)
 
