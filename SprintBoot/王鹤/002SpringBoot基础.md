@@ -1322,7 +1322,7 @@ public class MyServer {
 ```yaml
 names:
   - zhangsn
-  - list
+  - lisi
   - wnagwu
 ```
 
