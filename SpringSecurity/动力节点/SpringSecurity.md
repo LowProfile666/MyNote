@@ -152,7 +152,7 @@ curl -X GET localhost:8080/admin/query
 
 ### 2.2.1 什么是会话
 
-用户认证通过后，为了避免用户的每次操作都进行认证可将用户的信息保存在会话中。会话就是系统为了保持当前用户的登录状态所提供的机制，**常见的有基于****session****方式、基于token****方式**等。
+用户认证通过后，为了避免用户的每次操作都进行认证可将用户的信息保存在会话中。会话就是系统为了保持当前用户的登录状态所提供的机制，**常见的有基于session方式、基于token方式**等。
 
 ### 2.2.2 基于session的认证方式
 
@@ -1728,8 +1728,6 @@ mybatis.configuration.map-underscore-to-camel-case=true
 mybatis.configuration.log-impl=org.apache.ibatis.logging.stdout.StdOutImpl
 ```
 
-
-
 ## 12.2 查询用户
 
 ### 12.2.1 实体类
@@ -2292,7 +2290,7 @@ public String getPassword() {
 }
 ```
 
-先获取到密码赋值给password吗，然后将密码置为null，返回password，这样登录时验证密码时可以拿到正常的密码，然后访问/loginUser接口时，重新获取密码，就会是null，就不会显示在页面上：
+先获取到密码赋值给password，然后将密码置为null，返回password，这样登录时验证密码时可以拿到正常的密码，然后访问/loginUser接口时，重新获取密码，就会是null，就不会显示在页面上：
 
 ![image-20240715103420737](https://gitee.com/LowProfile666/image-bed/raw/master/img/202407151034859.png)
 
@@ -2323,6 +2321,8 @@ spring.thymeleaf.check-template=true
 创建thymeleaf模板：
 
 ![image-20240715144606697](https://gitee.com/LowProfile666/image-bed/raw/master/img/202407151447043.png)
+
++ 要勾选Enable Live Templates，否则光标不会自动跳转
 
 ```html
 <!DOCTYPE html>
@@ -2804,7 +2804,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        // 在用户名密码认证过滤器前添加土拍你验证码过滤器
+        // 在用户名密码认证过滤器前添加上验证码过滤器
         http.addFilterBefore(validateCodeFilter, UsernamePasswordAuthenticationFilter.class);
 
         http.authorizeRequests()
@@ -3280,7 +3280,7 @@ public void onAuthenticationSuccess(HttpServletRequest request, HttpServletRespo
     // 封装响应结果
     HttpResult httpResult = new HttpResult(1, "jwt生成成功", jwt);
     
-    // 将jwt放到redis中
+    // 将jwt放到redis中，2个小时后过期
     // 参数：键、值、过期时间、时间单位
     stringRedisTemplate.opsForValue().set("loginkey:" + jwt,
                                           objectMapper.writeValueAsString(authentication), 

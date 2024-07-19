@@ -214,7 +214,7 @@ claims有三种类型：registered,public,and private claims。
   >
   > + iss (issuer)：签发人
   >
-  > + **exp (expiration time)****：过期时间**
+  > + **exp (expiration time)：过期时间**
   >
   > + sub (subject)：主题
   >
@@ -222,7 +222,7 @@ claims有三种类型：registered,public,and private claims。
   >
   > + nbf (Not Before)：生效时间
   >
-  > + **iat (Issued At)****：签发时间**
+  > + **iat (Issued At)：签发时间**
   >
   > + jti (JWT ID)：编号
   >
