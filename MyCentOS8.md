@@ -46,17 +46,9 @@ tar xzvf 7.2.4.tar.gz  # 解压
 cd redis-7.2.4/  # 进入解压后的文件夹中
 
 make  # 生成 Redis 可执行文件
-cd src  # 进入src目录，该目录通常包含生成的可执行文件。
-make install PREFIX=/usr/local/redis  # 将已编译的程序安装到系统中，安装目录为/usr/local/redis
+make install # 将已编译的程序安装到系统中，
 
-cd ../  # 退回上一级
-mkdir /usr/local/redis/etc  # 新建目录
-mv redis.conf /usr/local/redis/etc  # 将配置文件移动到etc目录，这个配置文件包含了 Redis 服务器的各种配置选项，例如端口号、数据持久化选项等
-/usr/local/redis/bin/redis-server /usr/local/redis/etc/redis.conf  # 通过指定配置文件来启动 Redis 服务器
-
-# 将redis-cli,redis-server拷贝到bin下，让redis-cli指令可以在任意目录下直接使用
-cp /usr/local/redis/bin/redis-server /usr/local/bin/  
-cp /usr/local/redis/bin/redis-cli /usr/local/bin/
+redis-server redis.conf  # 通过指定配置文件路径来启动 Redis 服务器
 ```
 
 如果启动遇到异常：
