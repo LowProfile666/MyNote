@@ -921,3 +921,455 @@ print(maxCirclarArea(4, 5));
 50.24
 ```
 
+## 8.5.4    元表与元方法
+
+元表，即 Lua 中普通 table 的元数据表，而元方法则是元表中定义的普通表的默认行为。 Lua 中的每个普通table 都可为其定义一个元表，用于扩展该普通 table 的行为功能。例如，对于 table 与数值相加的行为，Lua 中是没有定义的，但用户可通过为其指定元表来扩展这种行为；再如，用户访问不存在的 table 元素，Lua 默认返回的是 nil，但用户可能并不知道发生了什么。此时可以通过为该 table 指定元表来扩展该行为：给用户提示信息，并返回用户指定的值。
+
+### （1）  重要函数
+
+元表中有两个重要函数：
+
++ setmetatable(table,metatable)：将 metatable 指定为普通表 table 的元表。
+
++ getmetatable(table)：获取指定普通表 table 的元表。
+
+### （2）  _ _index 元方法
+
+当用户在对 table 进行读取访问时，如果访问的数组索引或 key 不存在，那么系统就会自动调用元表的`__index` 元方法。该重写的方法可以是一个函数，也可以是另一个表。如果重写的`__index` 元方法是函数，且有返回值，则直接返回；如果没有返回值，则返回 nil。
+
+![image-20240807110257380](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408071103527.png)
+
+有返回值的输出结果：
+
+```
+nil
+通过【x】访问的值不存在
+通过【2】访问的值不存在
+```
+
+无返回值的输出结果：
+
+```
+nil
+通过【x】访问的值不存在
+nil
+通过【2】访问的值不存在
+nil
+```
+
+![image-20240807134035914](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408071340051.png)
+
+输出结果：
+
+```
+nil
+```
+
+### （3）  _ _newindex 元方法
+
+当用户为 table 中一个不存在的索引或 key 赋值时，就会自动调用元表的`__newindex`元方法。该重写的方法可以是一个函数，也可以是另一个表。如果重写的`__newindex` 元方法是函数，且有返回值，则直接返回；如果没有返回值，则返回 nil。
+
+![img](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408071423346.jpg)
+
++ 如果没有rawset，那么新增的不会有效
+
+输出结果：
+
+```
+nil
+新增的key为x，value为天津
+天津
+```
+
+![image-20240807164226466](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408071643825.png)
+
+输出结果：
+```
+nil
+天津
+```
+
+### （4）  运算符元方法
+
+如果要为一个表扩展加号(+)、减号(-)、等于(==)、小于(<)等运算功能，则可重写相应的元方法。
+
+例如，如果要为一个 table 扩展加号(+)运算功能，则可重写该 table 元表的`__add` 元方法，而具体的运算规则，则是定义在该重写的元方法中的。这样，当一个 table 在进行加法 (+)运算时，就会自动调用其元表的`__add` 元方法。
+
+![image-20240807164441952](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408071644061.png)
+
+输出结果：
+
+```
+1:北京5
+2:上海5
+3:广州5
+4:17
+5:深圳5
+depart:销售5
+name:张三5
+age:28
+```
+
+类似于加法操作的其它操作，Lua 中还包含很多：
+
+| **元方法** | **说明** | **元方法** | **说明**   |
+| ---------- | -------- | ---------- | ---------- |
+| add        | 加法，+  | band       | 按位与，&  |
+| sub        | 减法，-  | bor        | 按位或，\| |
+| mul    | 乘法，*        | bxor | 按位异或，    |
+| div    | 除法，/        | bnot | 按位非，~    |
+| mod    | 取模，%        | shl  | 按位左移，<< |
+| pow    | 次幂，^        | shr  | 按位右移，>> |
+| unm    | 取反，-        |      |              |
+| idiv   | 取整除法，//   | eq   | 等于，==     |
+| len | 字符串长度，# | lt   | 小于，<      |
+| concat | 字符串连接，.. | le   | 小于等于，<= |
+
+### （5）  _ _tostring 元方法
+
+直接输出一个 table，其输出的内容为类型与 table 的存放地址。如果想让其输出 table中的内容，可重写`__tostring` 元方法。
+
+![image-20240807164729462](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408071647550.png)
+
++ 这里加逗号是因为add是第一个元素，tostring是第二个元素
+
+![image-20240807164735602](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408071647671.png)
+
+输出结果：
+
+```
+1:北京5 2:上海5 3:广州5 4:17 5:深圳5 depart:销售5 name:张三5 age:28
+1:北京5 2:上海5 3:广州5 4:17 5:深圳5 depart:销售5 name:张三5 age:28
+```
+
+### （6）  _ _call 元方法
+
+当将一个 table 以函数形式来使用时，系统会自动调用重写的`__call` 元方法。该用法主要是可以简化对table 的相关操作，将对table 的操作与函数直接相结合。
+
+比如，将table中的数值元素加5，非数值元素拼接hello：
+
+![img](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408071647247.jpg)
+
+输出结果：
+
+```
+1:北京-hello
+2:上海-hello
+3:64
+4:广州-hello
+5:深圳-hello
+depart:销售-hello
+name:张三-hello
+age:28
+```
+
+### （7）  元表单独定义
+
+为了便于管理与复用，可以将元素单独定义为一个文件。该文件中仅可定义一个元表，且一般文件名与元表名称相同。
+
+meta.lua：
+
+![image-20240808195527449](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408081955748.png)
+
+若一个文件要使用其它文件中定义的元表，只需使用 require “元表文件名”即可将元表导入使用。
+
+如果用户想扩展该元表而又不想修改元表文件，则可在用户自己文件中重写其相应功能的元方法即可。
+
+![image-20240808195848907](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408081958075.png)
+
+## 8.5.5    面向对象
+
+Lua 中没有类的概念，但通过 table、function 与元表可以模拟和构造出具有类这样功能的结构。
+
+### （1）  简单对象的创建
+
+Lua 中通过 table 与 fcuntion 可以创建出一个简单的 Lua 对象：table 为 Lua 对象赋予属性，通过 function 为 Lua 对象赋予行为，即方法。
+
+```lua
+-- 创建一个animal对象
+animal = {name = "tom", age = 10, bark = function(vioce)
+											print("animal "..name.."在"..voice.."叫")
+										 end
+};
+```
+
+其中方法的创建有多种方式：
+
+```lua
+animal.bark = function(voice)
+	print("animal "..animal.name.."在"..voice.."叫")
+end
+```
+
+```lua
+function animal.bark(voice) 
+	print("animal "..animal.name.."在"..voice.."叫")
+end
+```
+
+使用对象：
+
+```lua
+animal.bark("汪汪汪");
+```
+
+输出结果：
+```
+animal tom在汪汪汪叫
+```
+
+现在看以下代码：
+
+```lua
+-- 创建一个animal对象
+animal = {name = "tom", age = 10};
+
+animal.bark = function(voice)
+	print("animal "..animal.name.."在"..voice.."叫")
+end
+
+animal.bark("汪汪");
+
+animal2 = animal;
+
+print(animal);
+print(animal2);
+
+animal2.bark("喵喵");
+```
+
+输出结果：
+
+```lua
+animal tom在汪汪叫
+table: 00B69A60
+table: 00B69A60
+animal tom在喵喵叫
+```
+
+可以看到animal和animal2两个对象是指向同一个内存地址的，现在将animal置为空，然后再调用animal2的bark方法：
+
+```lua
+animal = nil
+animal2.bark("喵喵")
+```
+
+会报错：
+
+**![image-20240808201315022](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408082013178.png)**
+
+所以这里要将本对象传过去：
+
+```lua
+-- 创建一个animal对象
+animal = {name = "tom", age = 10};
+
+animal.bark = function(self, voice)
+	print("animal "..self.name.."在"..voice.."叫")
+end
+
+animal.bark(animal, "汪汪");
+
+animal2 = animal;
+
+print(animal);
+print(animal2);
+
+animal = nil;
+
+animal2.bark(animal2, "喵喵");
+```
+
+输出结果：
+
+```lua
+animal tom在汪汪叫
+table: 00BE9BA0
+table: 00BE9BA0
+animal tom在喵喵叫
+```
+
+在lua中，这个self其实不需要自己传，但是要换一种写法：
+
+```lua
+animal = {name = "tom", age = 10};
+
+--~ 	animal.bark = function(self, voice)
+--~ 		print("animal "..self.name.."在"..voice.."叫")
+--~ 	end
+
+function animal:bark (voice)
+	print("animal "..self.name.."在"..voice.."叫")
+end
+
+animal:bark("汪汪");
+
+animal2 = animal;
+animal = nil;
+
+animal2:bark("喵喵");
+```
+
+输出结果：
+
+```lua
+animal tom在汪汪叫
+animal tom在喵喵叫
+```
+
+冒号中会自动包含一个self参数，表示当前对象本身。
+
+### （2）  类的创建
+
+Lua 中使用 table、function 与元表可以定义出类：使用一个表作为基础类，使用一个 function 作为该基础类的 new()方法。在该 new()方法中创建一个空表，再为该空表指定一个元表。该元表重写_ _index 元方法，且将基础表指定为重写的_ _index 元方法。由于 new()中的表是空表，所以用户访问的所有 key 都会从基础类（表）中查找。
+
+```lua
+-- 创建一个类
+Animal = {name = "", age = 0};
+
+function Animal:bark (voice)
+	print("animal "..self.name.."在"..voice.."叫")
+end
+
+-- 定义无参构造方法
+function Animal:new()
+	-- 创建一个新表，就是生成的类对象
+	local animal = {};
+
+	-- 设置新表的元表是Animal，在animal中找不到的元素会去Animal找
+	setmetatable(animal, {__index = self});
+
+	return animal;
+end
+
+-- 创建Animal对象
+animal1 = Animal:new();
+animal2 = Animal:new();
+print(animal1);
+print(animal2);
+```
+
+输出结果：
+
+```lua
+table: 00C999E8
+table: 00C998A8
+```
+
+创建出了不同的对象。
+
+### （3）类的继承
+
+创建子类继承父类其实就是创建一个对象。
+
+## 8.5.6    协同线程与协同函数
+
+### （1）  协同线程
+
+Lua 中有一种特殊的线程，称为 coroutine，协同线程，简称协程。其可以在运行时暂停执行，然后转去执行其它线程，然后还可返回再继续执行没有执行完毕的内容。即可以“走走停停，停停再走走”。
+
+协同线程也称为协作多线程，在 Lua 中表示独立的执行线程。任意时刻只会有一个协程执行，而不会出现多个协程同时执行的情况。
+
+协同线程的类型为 thread，其启动、暂停、重启等，都需要通过函数来控制。下表是用于控制协同线程的基本方法。
+
+| 方法                        | **描述**                                                     |
+| --------------------------- | ------------------------------------------------------------ |
+| **create(function)**        | 创建一个协同线程实例，即返回的是 thread 类型。参数是一个     function。其需要通过 resume()来启动协同线程的执行 |
+| **resume(thread,** **...)** | 启动指定的协同线程的执行，使其从开始处或前面挂起处开始执行。可以向 create()的内置函数传递相应的参数。如果内置函数具有返回值，resume()会全部接收并返回。 |
+| **running()**               | 返回正在运行的协同线程实例，即 thread 类型值                 |
+| **yield()**                 | 挂起协同线程，并将协同线程设置为挂起状态。resume()可从挂起处重启被挂起的协同线程 |
+| **status(thread)**          | 查看协同线程的状态。状态有三种：运行态 running，挂起态 suspended，消亡态 dead |
+| **close()**                 | 关闭协同线程                                                 |
+| **wrap(function)**          | 创建一个协同函数，返回的是 function 类型。一旦调用该函数就会创建并执行一个协同线程实例 |
+
+### （2）  协同函数
+
+协同线程可以单独创建执行，也可以通过协同函数的调用启动执行。使用 coroutine 的 wrap()函数创建的就是协同函数，其类型为 function。
+
+由于协同函数的本质就是函数，所以协同函数的调用方式就是标准的函数调用方式。只不过，协同函数的调用会启动其内置的协同线程。
+
+![image-20240810125836211](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408101258367.png)
+
+## 8.5.7    文件 IO
+
+Lua 中提供了大量对文件进行 IO 操作的函数。这些函数分为两类：静态函数与实例函数。所谓静态函数是指通过 io.xxx()方式对文件进行操作的函数，而实例函数则是通过 Lua中面向对象方式操作的函数。
+
+### （1）  常用静态函数
+
+#### A、io.open()
+
+【格式】io.open (filename [, mode])
+
+【解析】以指定模式打开指定文件，返回要打开文件的句柄，就是一个对象（后面会讲 Lua中的对象）。其中模式 mode 有三种，但同时还可配合两个符号使用：
+
++ r：只读，默认模式
+
++ w：只写，写入内容会覆盖文件原有内容
+
++ a：只写，以追加方式写入内容
+
++ +：增加符，在r+、w+、a+均变为了读写
+
++ b：二进制表示符。如果要操作的文件为二进制文件，则需要变为rb、wb、ab。
+
+#### B、 io.input()
+
+【格式】io.input (file)
+
+【解析】指定要读取的文件。
+
+#### C、 io.output()
+
+【格式】io.output (file)
+
+【解析】指定要写入的文件。
+
+#### D、io.read()
+
+【格式】io.read([format])
+
+【解析】以指定格式读取 io.input()中指定的输入文件。其中 format 格式有：
+
++ *l：从当前位置的下一个位置开始读取整个行，默认格式
+
++ *n：读取下一个数字，其将作为浮点数或整数
+
++ *a：从当前位置的下一个位置开始读取整个文件
+
++ number：这是一个数字，表示要读取的字符的个数
+
+![image-20240810140154479](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408101401602.png)
+
+#### E、 io.write()
+
+【格式】io.write(data)
+
+【解析】将指定的数据 data 写入到 io.output()中指定的输出文件。
+
+![image-20240810140258142](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408101402234.png)
+
+### （2）  常用实例函数
+
+#### A、file:read()
+
+这里的 file 使用的是 io.open()函数返回的 file，其实际就是 Lua 中的一个对象。其用法与 io.read()的相同。
+
+![image-20240810140413828](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408101404947.png)
+
+#### B、 file:write()
+
+用法与 io.write()的相同。
+
+#### C、 file:seek()
+
+【格式】file:seek ([whence [, offset]])
+
+【解析】该函数用于获取或设置文件读写指针的当前位置。位置从 1 开始计数，除文件最后一行外，每行都有行结束符，其会占两个字符位置。位置 0 表示文件第一个位置的前面位置。当 seek()为无参时会返回读写指针的当前位置。参数 whence 的值有三种，表示将指针定位的不同位置。而offset 则表示相对于 whence 指定位置的偏移量，offset 的默认值为 0，为正表示向后偏移，为负表示向前偏移。
+
++ set：表示将指针定位到文件开头处，即 0 位置处
+
++ cur：表示指针保持当前位置不变，默认值
+
++ end：表示将指针定位到文件结尾处
+
+![image-20240810140842613](https://gitee.com/LowProfile666/image-bed/raw/master/img/202408101408750.png)
