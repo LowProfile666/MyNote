@@ -1037,7 +1037,7 @@ Object.defineProperty(phone, 'color', {
 + 在读取属性值时调用 getter
 + 在修改属性值时调用 setter
 
-getter setter 和 value writable 同时存在，也就是不能这么写：
+getter setter 和 value writable 不能同时存在，也就是不能这么写：
 
 ```js
 Object.defineProperty(phone, 'color', {
@@ -1661,7 +1661,7 @@ const vm = new Vue({
 
 ## Vue的事件绑定
 
-### 如何bang'ding
+### 如何绑定
 
 使用 javascript 原生代码如何完成事件绑定：
 
@@ -2149,7 +2149,7 @@ yi(event){
 当鼠标在该区域滚动的时候，会触发默认的 wheel 事件，这个 wheel 事件就是滚动条滚动。那么给 最外层的 div 绑定一个 wheel 事件：
 
 ```html
-<div class="divList" @wheel.passive="testPassive">
+<div class="divList" @wheel="testPassive">
     <div class="item">div1</div>
     <div class="item">div2</div>
     <div class="item">div3</div>
@@ -4817,7 +4817,7 @@ const vm = new Vue({
 这个回调函数的执行时机包括两个:
 
 + 标签和指令第一次绑定的时候。
-+ 板被重新解析的时候（ Data 发生改变的时候）。
++ 模板被重新解析的时候（ Data 发生改变的时候）。
 
 这个回调函数有两个参数：
 
@@ -7527,7 +7527,7 @@ install 方法上的参数：包括两部分
 + 第一部分：Vue 构造函数( main.js 中的 Vue 构造函数)
 + 第二部分：可以接收用户在使用这个插件时传过来的数据，参数个数无限制。
 
-定义完插件后，要暴漏插件：
+定义完插件后，要暴露插件：
 
 ```js
 export const p1 = {
@@ -7790,9 +7790,9 @@ export default {
     data() {
         return {
             list: [
-                { id: 0, desc: "bug1", resolved: false },
-                { id: 1, desc: "bug2", resolved: true },
-                { id: 2, desc: "bug3", resolved: false },
+                    { id: 0, desc: "bug1", resolved: false },
+                    { id: 1, desc: "bug2", resolved: true },
+                    { id: 2, desc: "bug3", resolved: false },
             ]
         }
     },
@@ -8653,7 +8653,7 @@ mounted() {
 },
 ```
 
-而触发事件的代码还是之前的代码。
+而触发事件的代码还是之前的代码。	
 
 还有种写法，保证绑定事件只触发一次：
 
@@ -9298,7 +9298,7 @@ axios.get('/api/vue/bugs').then()
 
 ![image-20240501195025937](https://gitee.com/LowProfile666/image-bed/raw/master/img/202405011950253.png)
 
-所以这时候就需要将 /api 给他删掉，有一个配置 pathRewrite，：
+所以这时候就需要将 /api 给他删掉，有一个配置 pathRewrite，：v
 
 ```json
 devServer: {
@@ -9989,7 +9989,7 @@ vuex 是实现数据**集中式状态管理**的插件。数据由 vuex 统一�
 import Vue from "vue";
 import Vuex from 'vuex';
 
-Vue.user(Vuex);
+Vue.use(Vuex);
 
 const store = new Vuex.Store({
     actions: {},
@@ -10014,7 +10014,7 @@ Vuex 是一个插件，所以要使用插件必须先引入它，然后通过 Vu
 import Vue from "vue";
 import Vuex from 'vuex';
 
-Vue.user(Vuex);
+Vue.use(Vuex);
 
 const actions = {};
 const mutations = {};
@@ -11008,7 +11008,7 @@ this.$store.dispatch("doA1");
 
 ![image-20240502162512428](https://gitee.com/LowProfile666/image-bed/raw/master/img/202405021625777.png)
 
-原先访问 getter 和 mutations 的代码都需要改，只有访问 state 的代码改了。
+原先访问 getter 和 mutations 的代码都不需要改，只有访问 state 的代码改了。
 
 ### 命名空间
 
