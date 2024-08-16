@@ -12571,7 +12571,7 @@ deactivated() {
 
 ### 全局前置守卫
 
-全局前置守卫的代码写在 router/index.js 中，创建出路由器对象后，暴露之前的位置。
+全局前置守卫的代码写在 router/index.js 中，在创建出路由器对象后、暴露之前的位置。
 
 怎么写？
 
@@ -13461,7 +13461,8 @@ export default {
   }
   ```
 
-+ 另外，在 setup 函数体中定义函数一定不能少了 function 关键字
+  + 另外，在 setup 函数体中定义函数一定不能少了 function 关键字
+
 
 ![image-20240503201742288](https://gitee.com/LowProfile666/image-bed/raw/master/img/202405032018950.png)
 
@@ -13496,7 +13497,7 @@ return () => h("h1", "hhhhhh");
 
 上面在 setup 中定义的数据具有响应式吗？测试一下：
 
-```js
+```vue
 <template>
     <h2>姓名：{{ name }}</h2>
     <h2>年龄：{{ age }}</h2>
@@ -13669,7 +13670,7 @@ console.log(user);
 
 可以看到，user 的 value 就是一个代理对象 Proxy，那么就可以通过这个 Proxy 去访问目标对象中的属性，且做了响应式处理：
 
-```js
+```vue
 <template>
     <h2>姓名：{{ user.name }}</h2>
     <h2>年龄：{{ user.age }}</h2>
@@ -14849,32 +14850,32 @@ counter 没有了响应式，且 data.value 不再是个 Proxy 对象，而是�
 
 ```vue
 <template>
-  <h2>计数器：{{data.a.b.c.counter}}</h2>
-  <button @click="data.a.b.c.counter++">点我加1</button>
-  <hr>
-  <h2>计数器：{{data.counter2}}</h2>
-  <button @click="data.counter2++">点我加1</button>
+<h2>计数器：{{data.a.b.c.counter}}</h2>
+<button @click="data.a.b.c.counter++">点我加1</button>
+<hr>
+<h2>计数器：{{data.counter2}}</h2>
+<button @click="data.counter2++">点我加1</button>
 </template>
 
 <script>
-  import { reactive, shallowReactive } from 'vue'
-  export default {
-    name : 'App',
-    setup(){
-      let data = shallowReactive({
-        counter2 : 1000,
-        a : {
-          b : {
-            c : {
-              counter : 1
-            }
-          }
-        }
-      })
+    import { reactive, shallowReactive } from 'vue'
+    export default {
+        name : 'App',
+        setup(){
+            let data = shallowReactive({
+                counter2 : 1000,
+                a : {
+                    b : {
+                        c : {
+                            counter : 1
+                        }
+                    }
+                }
+            })
 
-      return {data}
+            return {data}
+        }
     }
-  }
 </script>
 ```
 

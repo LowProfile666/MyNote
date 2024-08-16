@@ -77,6 +77,109 @@ var myVue = new Vue({
   </template>
   ```
 
+### 1.3、vue2工程
+
+使用vue-cli脚手架创建：
+
+```cmd
+vue create project_name
+```
+
+运行项目：
+
+```cmd
+npm run serve
+```
+
+vue2工程中的项目结构，主要关注 src 目录，以后写代码就是在该目录下：
+
++ node_modules：脚手架的依赖包，不要动
++ public：不会被打包，也就是说现在是什么样，将来发布后放在 dist 文件夹中还是什么样
+
++ src 下的 assets 也是存放静态资源，和 public 目录不一样的地方是，assets 下的资源会被打包
++ main.js 的名字可以修改，但是修改后要在 vue.config.js 文件中配置，一般不要修改
+
++ package.json：包的说明书（包的名字，包的版本，依赖哪些库）。该文件里有 webpack 的短命令：
+
+  + serve（启动内置服务器）
+
+  + build 命令是最后一次的编译，生成 html css js，给后端人员
+
+  + lint 做语法检查的。
+
+在主页index.html里，没有手动引入vue和main.js，Vue脚手架会自动引入，所以不要动main.js文件的名字和位置：
+
+```html
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <!-- 让IE浏览器启用最高渲染标准。IE8是不支持Vue的。 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 开启移动端虚拟窗口（理想视口） -->
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!-- 设置页签图标，从根路径开始获取，就是从public开始 -->
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <!-- 设置标题，通过插件从package.json中获取项目的name-->
+    <title><%= htmlWebpackPlugin.options.title %></title>
+  </head>
+  <body>
+    <!-- 当浏览器不支持JS语言的时候，显示如下的提示信息。 -->
+    <noscript>
+      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <!-- 容器 -->
+    <div id="app"></div>
+    <!-- built files will be auto injected -->
+  </body>
+</html>
+```
+
+在main.js文件中，渲染了根组件，render对象的值就是一个渲染组件的函数：
+
+```js
+// 这句代码等同于引入vue.js文件
+import Vue from 'vue'
+// 导入App组件（根组件）
+import App from './App.vue'
+
+// 关闭生产提示信息
+Vue.config.productionTip = false
+
+// 创建Vue实例
+new Vue({
+  render: h => h(App),
+}).$mount('#app')  // 挂载实例
+```
+
+脚手架的配置文件vue.config.js，在 [VueCLI的配置参考](https://cli.vuejs.org/zh/config/) 中可以看到可以配置的东西有哪些：
+
+```js
+const { defineConfig } = require('@vue/cli-service')
+module.exports = defineConfig({
+  transpileDependencies: true,
+})
+```
+
+如果想修改程序的入口文件，可以使用pages配置，想关闭语法检查可以使用lintOnSave配置：
+
+```js
+const { defineConfig } = require('@vue/cli-service')
+module.exports = defineConfig({
+  transpileDependencies: true,
+  // 保存时是否进行语法检查。true表示检查，false表示不检查。默认值是true。
+  lintOnSave : false,
+  // 配置入口
+  pages: {
+    index: {
+      entry: 'src/main.js',
+    }
+  },
+})
+```
+
+
+
 ## 2、基础语法
 
 ### 2.0、模板
@@ -2337,7 +2440,7 @@ new Vue({
 
 组件实现了复用，但是组件的数据也被复用了。现要求每个组件都有自己的数据。这就需要使用 props 了，让数据变成动态的。
 
-在父组件中找到使用的子组件，在这个子组件上使用属性传递数据，
+在父组件中找到使用的子组件，在这个子组件上使用属性传递数据，也可以使用v-bind命令绑定属性来传递动态数据：
 
 ```vue
 <template>
@@ -2347,6 +2450,7 @@ new Vue({
         <Car brand="宝马520" color="黑色" price="10"></Car>
         <hr>
         <Car brand="比亚迪汉" color="红色" price="20"></Car>
+        <Car :brand="brand" :color="color" :price="price"></Car>
     </div>
 </template>
 ```
@@ -3946,3 +4050,1628 @@ export default {
 
 ### 19.7、浏览器前进后退
 
+浏览器的历史记录是存放在栈这种数据结构里面的。历史记录在存放到栈中的时候有两种不同的模式：push 和 replace。
+
++ push：以追加的方式入栈
++ replace：以替换栈顶元素的方式入栈
+
+浏览器默认的模式是 push 模式。在浏览器上前进和后退是不会删除栈内的数据的，只是会将栈顶指针向上或向下移动：
+
+```vue
+<router-link active-class="selected" to="/hebei/hd/邯山区/复兴区/丛台区">邯郸</router-link>
+```
+
+开启replace模式，添加要给replace属性：
+
+```vue
+<router-link :replace="true" active-class="selected" to="/hebei/hd/邯山区/复兴区/丛台区">邯郸</router-link>
+```
+
+### 19.8、编程式路由导航
+
+之前，在进行路由组件切换的时候，使用的是 router-link，router-link 最后会被编译为 a 超链接，所以目前本质上是通过超链接来完成路由组件的切换。这个叫声明式的路由导航。
+
+通过编程的方式完成路由组件的切换叫做编程式路由导航。（其实就是调用现有的 API 来切换路由组件）
+
+要获取到路由器对象 this.\$router，这个对象中有两个方法 push 和 replace，因为这里会切换路由，切换路由就会有两种方式将路由放入浏览器的栈中，这里的两种方法就是对应着两种方式。在使用编程式路由导航时，push 或 replace 方法会返回一个 Promise 对象，Promise 对象期望你能通过参数的方式给它两个回调函数，一个是成功的回调，一个是失败的回调。如果你没有给这两个回调函数，则会出现错误。在 push 或 replace 方法的参数位置上给两个回调函数，两个函数里面啥也不给，当发生错误的时候就不会执行任何事：：
+
+```js
+// 获取路由器对象
+this.$router.push(
+    {
+        name: "shi",
+        params: {
+            a1: this.sjz[0],
+            a2: this.sjz[1],
+            a3: this.sjz[2],
+        },
+    },
+    () => { },
+    () => { }
+);
+```
+
++ 路由器对象是 this.\$router，路由对象是 this.\$route，
+
++ this.\$router 对象是整个项目的路由器对象，路由器对象一般一个项目只需要一个。
+
++ push 方法里面写的参数就是 rouer-link 上 `:to` 后的对象。或者写字符串链接也可以：
+
+  ```js
+  this.$router.push("/hebei/hd/邯山区/复兴区/丛台区");
+  ```
+
+this.\$router 中不止有 push 和 replace 两种 API，还有前进、后退、前进几步、后退几步的 API：
+
+```js
+// 前进
+this.$router.forward();
+// 后退
+this.$router.back();
+// 前进2步
+this.$router.go(2);
+// 后退2步
+this.$router.go(-2);
+```
+
+### 19.9、路由组件的销毁
+
+默认的情况下，只要进行了路由的切换，原先的那个组件就一定会被销毁。比如，选择的组件中有几个复选框被选中，切换路由组件后，又切换回来，发现原先的复选框选中状态没有了，这就是原先的组件被销毁了。
+
+要保留组件，在切换的时候不被销毁，需要在组件显示的地方添加属性，可以将这个 router-view 标签加在一个 keep-alive 标签中，这样这个 router-view 上所有的组件切换都不会被杀死：
+
+```vue
+<keep-alive>
+    <router-view></router-view>
+</keep-alive>
+```
+
+也可以指定某个组件在切换的时候不被销毁，在 keep-alive 上使用 include 属性指定组件的名称：
+
+```vue
+<keep-alive include="HeBei">
+    <router-view></router-view>
+</keep-alive>
+```
+
++ 这个组件的名字就是组件导出时指定的 name
++ include="HeBei" 表示切换组件时，HeBei 这个组件不被销毁
+
+也可以指定多个组件名称，需要使用数组：
+
+```vue
+<keep-alive :include="['HeBei', 'HeNan']">
+    <router-view></router-view>
+</keep-alive>
+```
+
+### 19.10、路由组件的钩子
+
+对于路由组件来书，除了普通组件的 8 个，还有两个：
+
++ activated：在路由组件被激活的时候执行
++ deactivated：在路由组件被切走的时候被执行
+
+### 19.11、路由meta属性
+
+如果想给路由添加自定义属性，需要借助路由对象的 meta（路由元）属性：
+
+```js
+{
+    path: "/hebei",
+    component: HeBei,
+    children: [
+        {
+            name: "shi",
+            path: "sjz/:a1/:a2/:a3",
+            component: City,
+            props: true,
+            meta: { isAuth: true },
+        },
+        {
+            name: "han",
+            path: "hd/:a1/:a2/:a3",
+            component: City,
+            props: true,
+            meta: { isAuth: true },
+        },
+    ],
+},
+```
+
++ 要想给路由对象自定义属性，必须把自定义属性写在 meta 对象中。
++ 自定义的属性不写在 meta 中的话，通过路由对象是访问不到的。
+
+访问自定义属性时：
+
+```js
+路由对象.meta.isAuth
+```
+
+### 19.12、路由守卫
+
+保护路由安全的一种机制。一般会将鉴权代码写在路由守卫上，不同的守卫就相当于在不同的时机、不同的位置添加代码。
+
+#### 19.12.1、全局前置守卫
+
+全局前置守卫的的代码是配置在路由器对象中的，所以要在创建路由器之后、暴露路由器之前编写：
+
+```js
+// 创建路由器对象
+const router = new VueRouter({});
+
+// 配置路由守卫
+router.beforeEach(callback)
+
+// 导出路由器对象
+export default router;
+```
+
+这个callback是一个回调函数，在初始化的时候调用一次，在以后每一次切换任意路由组件之前调用一次，这个 callback 可以是普通函数，也可以是箭头函数，他有三个参数：
+
+```js
+router.beforeEach((to, from, next) => {
+    let loginame = "zs";
+    if (to.meta.isAuth && loginame != "admin") alert("你没有权限访问");
+    else next();
+});
+```
+
++ from：from 是一个路由对象，表示从哪个路由来
++ to：to 也是一个路由对象，表示到哪个路由去
++ next：next 是一个函数，调用这个函数过后，表示放行，可以继续往下走，不执行这个next函数，无法看见路由组件的显示
+
+#### 19.12.2、全局后置守卫
+
+全局后置守卫的代码也写在创建路由器对象之后，暴露路由器对象之前，它的回调函数和前置守卫一样的，只是没有next方法，会在初始化的时候调用一次，在以后每次切换完任意一个路由组件之后被调用：
+
+```js
+router.afterEach((to, from) => {	
+
+})
+```
+
+#### 19.12.3、局部path守卫
+
+局部路由守卫之 path 守卫的代码 beforeEnter 写在路由对象中，拥有三个同全局前置守卫的参数，在进入这个组件之前调用：
+
+```js
+{
+    name: "shi",
+    path: "sjz/:a1/:a2/:a3",
+    component: City,
+    props: true,
+    meta: { isAuth: true, title: "石家庄" },
+    // 局部路由
+    beforeEnter(to, from, next) {
+        let loginame = "zs";
+        if (loginame != "admin") alert("你没有权限！");
+        else next();
+    },
+},
+```
+
+局部path守卫只有beforeEnter，没有afterEnter。
+
+#### 19.12.4、局部component守卫
+
+路由组件守卫，component 守卫的代码是写在组件中的，普通组件不会触发，只有路由组件（在路由中配置过的组件）才会触发：
+
+```js
+export default {
+    name: "City",
+    props: ["a1", "a2", "a3"],
+    beforeRouteEnter(to, from, next) {
+        
+    },
+    beforeRouteLeave(to, from, next) {
+        
+    },
+};
+```
+
++ beforeRouteEnter 的执行时机是：进入路由组件之前。
++ beforeRouteLeave 的执行时机是：离开路由组件之前。
++ beforeRouteEnter 中的 to 和 beforeRouteLeave 中的 from 是同一个对象
+
+### 19.13、路由的两种路径模式
+
++ hash 模式：http://localhost:8080/#/hebei/sjz/长安区3/裕华区2/新华区2
++ history 模式：http://localhost:8080/hebei/sjz/长安区3/裕华区2/新华区2
+
+路径中如果带有 `#` 字符，那么这个路径就是 hash 模式，默认就是 hash 模式。路径中 `#` 后面的部分称为 hash，这个 hash 不会作为路径的一部分发送给服务器。
+
+路径中如果没有这个 `#` 就是 history 模式，在 router/index.js 中创建 router 对象的时候添加一个配置项可以设置为history模式，不设置就是hash模式：
+
+```js
+const router = new VueRouter({
+    mode: "history",  // history 模式
+    routes: []
+})
+```
+
+在hash模式下，当前路径为：http://localhost:8080/#/hebei/sjz/长安区3/裕华区2/新华区2，刷新页面时，提交给服务器的路径只是：http://localhost:8080/。
+
+而在history模式下，当前路径为：http://localhost:8080/hebei/sjz/长安区3/裕华区2/新华区2，刷新页面时，提交给服务器的路径是：http://localhost:8080/hebei/sjz/长安区3/裕华区2/新华区2，所以这个时候就会出现404错误。
+
+# Vue3
+
+## 1、vue3工程
+
+创建vue3工程，使用vue-cli脚手架，该脚手架使用webpack打包工具打包：
+
+```cmd
+vue creat project_name
+```
+
+使用creat-vue脚手架，该脚手架使用vite打包工具打包，比webpack更快：
+
+```
+npm init vue@latest
+
+然后要进入项目主目录执行：
+npm install
+
+运行项目的命令是：启动的端口也不是8080了
+npm run dev
+```
+
+Vue3工程的main.js中，不再引入 Vue 了，引入了一个 createApp 函数，这个函数可以创建 app 对象，app对象就相当于vm实例：
+
+```js
+// 在Vue3当中，不再引入Vue了，引入了一个createApp函数，这个函数可以创建app对象。
+import { createApp } from 'vue'
+// 引入了一个根组件App
+import App from './App.vue'
+
+// 这行代码表示创建了一个app对象并将app挂载到指定位置，这个app对象类似于Vue2当中的vm。
+// app和vm的区别是：app更加轻量级。(app上的属性更少一些)
+createApp(App).mount('#app')
+```
+
+并且Vue3的`<template>`标签中可以有多个标签了，而不是只能一个根标签。
+
+而使用create-vue脚手架构建的Vue3项目，以 index.html 作为入口，不再用 main.js 作为入口了。在 index.html 中引入了 main.js，且对于 vite 构建工具来说，配置文件是：vite.config.js（对应webpack的vue.config.js），这是vite.config.js文件配置的说明：https://cn.vitejs.dev/config/。
+
+## 2、proxy代理
+
+ES6新特性：window.Proxy对象，Proxy是Vue3响应式的核心。
+
+通过 Proxy 可以创建一个代理对象，通过代理对象去完成目标对象的任务，同时还可以额外新增一些程序：
+
+```js
+let proxyObj = new Proxy(targetObj, {
+    // 当你读取的时候，get执行。
+    get(target, propertyName){
+        return target[propertyName]
+    },
+    // 当你修改某个属性的时候，或者新增某个属性的时候，set执行。
+    set(target, propertyName, value){
+        target[propertyName] = value
+    },
+    // 当你删除某个属性的时候，deleteProperty就会执行
+    deleteProperty(target, propertyName){
+        // 要将删除的结果返回
+        return delete target[propertyName]
+    }
+})
+```
+
++ target 就是目标对象，
++ propertyName 就是访问的属性名，
++ value就是要赋值的值
+
+vue3 当中在使用 Proxy 对象完成响应式处理的时候，和我们写的代码有些不同，Vue3 框架底层实际上使用了 ES6 的 Reflect 对象来完成对象属性的访问。
+
+### 2.1、判断是否是响应式数据
+
+提供了四个函数来判断某个数据是否具有响应式：
+
++ isRef：检查某个值是否为 ref。
++ isReactive：检查一个对象是否是由 reactive() 或 shallowReactive() 创建的代理。
++ isProxy：检查一个对象是否是由 reactive()、readonly()、shallowReactive() 或 shallowReadonly() 创建的代理。
++ isReadonly：检查传入的值是否为只读对象。
+
+## 3、setup
+
+setup 是一个函数，vue3 中新增的配置项。原先组件中所用到的 data、methods、computed、watch、生命周期钩子....等，都要配置到 setup 中。如果将这些还是配置到了 setup 外的话，表示还是使用了 vue2 的规则（可以用，不建议用）。
+
+在 setup 函数体中定义的变量就相当于之前的 data 中的数据，在 setup 函数体中定义的方法就相当于之前的 methods 中的方法，setup 中定义的方法可以直接使用 setup 中定义的变量，但是想在模板中使用，都需要封装成一个对象返回才能用：
+
+```vue
+<template>
+<h2>姓名：{{ name }}</h2>
+<h2>年龄：{{ age }}</h2>
+<button @click="sayHi">SAY HI</button>
+</template>
+
+<script>
+    export default {
+        name: "App",
+        setup() {
+            let name = "zhansan";
+            let age = 50;
+            // 在 setup 函数体中定义函数一定不能少了 function 关键字
+            function sayHi() {
+                alert(name,age);
+            }
+
+            return {
+                name,
+                age,
+                sayHi,
+            };
+        },
+    };
+</script>
+```
+
+setup中没有this。
+
+setup 函数的返回值：
+
++ 返回一个对象，该对象的属性、方法等均可以在模板语法中使用
+
++ 返回一个渲染函数，从而执行渲染函数，渲染页面
+
+  ```js
+  // 先导入一个渲染函数
+  import { h } from "vue";
+  
+  export default {
+      name: "App",
+      setup() {
+          // 返回的渲染函数会将 template 模板全部覆盖。
+          // 渲染函数第一个参数是标签名，第二个参数是标签内容
+          return function () {
+              return h("h1", "hhhhhhhhh");
+          };
+      },
+  };
+  ```
+
+但是setup中定义的数据，没有响应式。
+
+### 3.1、语法糖
+
+关于 setup 的语法糖：
+
+```vue
+<script setup>
+
+</script>
+```
+
+这样就不需要写 setup 函数了，他会自动将 script 中的一级数据全部导出去，另外注册组件也只需要导入即可：
+
+```vue
+<template>
+  <h2>计数器：{{counter}}</h2>
+  <button @click="add">计数器加1</button>
+  <hr>
+  <User></User>
+</template>
+
+<script setup>
+  import {ref} from 'vue'
+  import User from './components/User.vue'
+
+  // data
+  let counter = ref(0)
+
+  // methods
+  function add(){
+    counter.value++
+  }
+
+  // watch
+
+  // computed
+
+  // ....
+</script>
+```
+
+## 4、ref函数
+
+vue3 要做响应式，需要使用到 ref 函数，ref 是 vue3 内置的一个函数。
+
+ref 函数一般用于做基本数据类型的响应式。
+
+### 4.1、数据响应式
+
+要先引入 ref 函数，然后使用 ref 函数创建数据，ref 对这个数据进行包裹，然后返回了一个全新的对象RefImpl对象 ：
+
+```js
+import { ref } from "vue";
+
+export default {
+    name: "App",
+    setup() {
+        let name = ref("张三");
+        let age = ref("520");
+        console.log(name);
+    },
+};
+```
+
+RefImpl是 reference implement，引用的实现的实例对象，或者就叫引用对象。RedImpl 对象的 value 属性是有响应式的，有对应的 set 和 get，底层使用了 Object.defineProperty 完成了响应式。当读取 RefImpl 对象的 value 属性时：get 执行；当修改 RefImpl 对象的 value 属性时：set 执行。在插值语法中，访问 RefImpl 对象时，不需要写 .value，只需要写 name 就可以了，会自动调用 value：
+
+```vue
+<template>
+    <h2>姓名：{{ name }}</h2>
+    <h2>年龄：{{ age }}</h2>
+    <button @click="modify">modify</button>
+</template>
+
+<script>
+import { ref } from "vue";
+
+export default {
+    name: "App",
+    setup() {
+        let name = ref("张三");
+        let age = ref("520");
+
+        function modify() {
+            name.value = "李四";
+            age.value = 50;
+            console.log(111);
+        }
+
+        return {
+            name,
+            age,
+            modify,
+        };
+    },
+};
+</script>
+```
+
+### 4.2、对象响应式
+
+对象也默认没有响应式处理。使用 ref 包裹对象，此时该对象的value属性就是一个Proxy对象，那么就可以通过这个 Proxy 去访问目标对象中的属性，就有了响应式处理：
+
+```vue
+<template>
+    <h2>姓名：{{ user.name }}</h2>
+    <h2>年龄：{{ user.age }}</h2>
+    <button @click="modify">modify</button>
+</template>
+
+<script>
+import { ref } from "vue";
+
+export default {
+    name: "App",
+    setup() {
+        let user = ref({
+            name: "zs",
+            age: 12,
+        });
+
+        function modify() {
+            user.value.name = "lisi";
+            user.value.age = 22;
+            console.log(111);
+        }
+
+        return {
+            user,
+            modify,
+        };
+    },
+};
+</script>
+```
+
+如果 ref 包裹的是一个基本数据类型，那么响应式就是 Object.defineProperty 实现的；
+
+如果 ref 包裹的是一个对象，那么响应式就是 Object.defineProperty + Proxy 实现的。
+
++ 如果是这样修改的话，则只使用了 Object.defineProperty 机制，因为这只是改了 Proxy 对象，没有修改Proxy对象的属性，所以只走了 Object.defineProperty，修改 Proxy 中的属性式才会走 Proxy 机制。：
+
+  ```js
+  function modify() {
+      user.value = {
+          name : 'lisi',
+          age : 23
+      }
+  }
+  ```
+
+
+Proxy 实现的响应式，对象中的对象，都有响应式处理，底层是递归处理了。
+
+### 4.3、shallowRef
+
+浅层次响应式，shallowRef只给基本数据类型添加响应式。如果是对象，则不会支持响应式。
+
+对于基本数据类型来说，shallowRef 和 ref 没有区别：
+
+```js
+import { ref, shallowRef } from 'vue';
+export default {
+    name: "App",
+    setup() {
+        // let counter = ref(1);
+        let counter = shallowRef(1);
+
+        return {
+            counter,
+        };
+    },
+};
+```
+
+对于对象来说，使用 ref 是有响应式的，底层会创建 Proxy 对象；使用 shallowRef 是没有响应式的（具体来说是对象中的属性没有响应式，如果直接更换对象的话还是有响应式的），底层也不会创建 Proxy 对象，而是创建一个Object对象：
+
+```js
+let data = shallowRef({
+    counter: 0,
+});
+```
+
+有的时候，这个对象中的属性可能永远都不可能修改，如果要改，也是更换对象。显然这个时候可以使用 shallowRef，进行优化。更换对象这一步还是有响应式的。
+
+## 5、reactive函数
+
+### 5.1、对象响应式
+
+对对象做响应式处理，一般用 reactive 函数。
+
+因为 ref 对对象做的响应式处理是通过 Object.defineProperty + Proxy 的，麻烦；而用 reactive 函数包裹起来的对象，直接就是一个 Proxy。而 Proxy 对象中的对象都是做了响应式处理的，是递归的。
+
+向用 reactive 包裹的对象中添加、删除属性，或通过下标操作数组都会有响应式处理，因为他是 Proxy 对象。
+
+reactive 函数不能用于基本数据类型，专门用于对象类型的。使用 ref 包裹对象，底层也是会调用 reactive 函数的。
+
+先引入reactive，再使用：
+
+```js
+import { reactive } from "vue";
+
+export default {
+    name: "App",
+    setup() {
+        let user = reactive({
+            name: "zs",
+            age: 12,
+        });
+
+        console.log(user);
+
+        function modify() {
+            user.name = "lisi";
+            user.age = 22;
+            console.log(111);
+        }
+
+        return {
+            user,
+            modify,
+        };
+    },
+};
+```
+
+### 5.2、shallowReactive
+
+浅层次响应式，对象的第一层支持响应式，第二层就不再支持了。
+
+使用 reactive 包裹一个对象时，该对象中的所有属性都是有响应式的，是递归式的；但是使用 shallowReactive 包裹一个对象时，只会给第一层做响应式：
+
+```js
+import { reactive, shallowReactive } from 'vue'
+export default {
+    name : 'App',
+    setup(){
+        let data = shallowReactive({
+            counter2 : 1000,
+            a : {
+                b : {
+                    c : {
+                        counter : 1
+                    }
+                }
+            }
+        })
+
+        return {data}
+    }
+}
+```
+
+以上代码中，只会有 counter2 有响应式。
+
+## 6、props
+
+props配置还是用来父组件向子组件传递数据，但是Vue3中的setup函数中没有this，所以使用props接受的数据时，需要将props当作setup函数的参数，通过这个参数来访问props接收的值，而在模板中，访问props接受的值还是一样直接使用变量名即可：
+
+```js
+export default {
+    name: "User",
+    props: ["name", "age", "sex"],
+    setup(props) {
+        console.log(props);
+        console.log(props.name);
+        console.log(props.age);
+        console.log(props.sex);
+    },
+};
+```
+
+这份参数props也是一个Proxy对象，也具有响应式，且 props 在 setup 中不需要 return，可以直接使用（return 了也是一样的）。
+
+## 7、组合式API
+
+组合式API：往 setup 函数体中配置的 data、methods、computed、watch 等这些东西，就叫做组合式 API，composition API：
+
+```js
+export default {
+    name: "User",
+    setup(props) {
+        // 在这里配置就是组合式API
+        // 如ref、reactive都属于组合式API
+    },
+};
+```
+
+## 8、选项式API
+
+选项式 API：Vue2就是这样的写法，在 setup 外的对象体中配置的 data、methods、computed、watch 等这些东西，就叫做选项式 API，options API：
+
+```js
+export default {
+    name: "User",
+    // 在这里配置都属于选项式API
+    setup(props) {
+    },
+};
+```
+
+### 8.1、选项式API和组合式API的区别
+
+选项式 API 的关注点在一个一个选项上，就是一个一个的配置项上，data、computed、methods、watch 等都是一个配置项。关注点不在单独的一个功能上，比如 data 配置项中就可能放所有功能需要的数据：
+
+```js
+export default {
+    name: "App",
+    data() {
+        return {
+            // 功能1的data
+            // 功能2的data
+            //……
+        };
+    },
+    methods: {
+        // 功能1的method
+        // 功能2的method
+        //……
+    },
+    computed: {
+        // 功能1的computed
+        // 功能2的computed
+        // ……
+    },
+    watch: {
+        // 功能1的watch
+        // 功能2的watch
+        // ……
+    },
+};
+```
+
+假设以后要修改功能 1 ，那么就要对应修改 data、methods、computed、watch 中的功能 1 的代码，维护成本较高。所以说选项式 API 关注点不在功能上，在于配置项上。
+
+组合式 API + hook(自定义钩子，后面有笔记) 的关注点在功能上，一个 hook 是一个独立的功能，一个 hook 中有自己的 data、methods、computed、watch。将一个功能写成一个 js 文件，写成一个钩子函数，想使用功能 1 的时候，直接调用，想修改功能 1，也不会牵扯到其他的功能函数。
+
+## 9、生命周期
+
+Vue3中的生命周期和Vue2中的差不多，但是将Vue2 中的 destroyed 和 beforeDestroy 两个钩子变成了 unmounted 和 beforeUnmount，并且在 beforeCreate 之前，就执行了 setup 函数。
+
+在Vue3中，钩子函数的写法有两种：组合式和选项式，一般使用组合式。
+
+选项式：
+
+```js
+export default {
+    name : 'User',
+    setup(){
+        console.log('setup...')
+    },
+    // 选项式API
+    beforeCreate(){
+        console.log('beforeCreate')
+    },
+    created(){
+        console.log('created')
+    },
+    beforeMount(){
+        console.log('beforeMount')
+    },
+    mounted(){
+        console.log('mounted')
+    },
+    beforeUpdate(){
+        console.log('beforeUpdate')
+    },
+    updated(){
+        console.log('updated')
+    },
+    beforeUnmount(){
+        console.log('beforeUnmount')
+    },
+    unmounted(){
+        console.log('unmounted')
+    } 
+}
+```
+
+组合式：组合式 API 的钩子函数的名称不一样了，且需要导入进来；如果是使用组合式 API 的话，生命周期钩子函数就少了两个：created、beforeCreated，因为用 setup 函数代替了这两个钩子。所以如果实在想写 created、beforeCreated 这两钩子，就用选项式 API 的方式写：
+
+```js
+import {ref, onBeforeMount, onMounted, onBeforeUpdate, onUpdated, onBeforeUnmount, onUnmounted} from 'vue'
+
+export default {
+    name : 'User',
+    setup(){
+        console.log('setup...')
+        // 采用组合式API：生命周期钩子函数
+        onBeforeMount(() => {
+            console.log('onBeforeMount')    
+        })
+
+        onMounted(() => {
+            console.log('onMounted')
+        })
+
+        onBeforeUpdate(() => {
+            console.log('onBeforeUpdate')
+        })
+
+        onUpdated(() => {
+            console.log('onUpdated')
+        })
+
+        onBeforeUnmount(() => {
+            console.log('onBeforeUnmount')
+        })
+
+        onUnmounted(() => {
+            console.log('onUnmounted')
+        })
+    },
+    
+    // 选项式API
+    beforeCreate(){
+        console.log('beforeCreate')
+    },
+    created(){
+        console.log('created')
+    },
+}
+```
+
+## 10、自定义事件
+
+自定义事件是为了组件之间的通信
+
++ 绑定事件方：接收数据
++ 触发事件方：发送数据
+
+绑定事件，和Vue2中的绑定事件一样：
+
+```vue
+<template>
+    <User @event1="fun1"></User>
+</template>
+
+<script>
+import User from "./components/User.vue";
+
+export default {
+    name: "App",
+    components: {
+        User,
+    },
+    setup() {
+        function fun1(name, age) {
+            alert(name + ", " + age);
+        }
+        return { fun1 };
+    },
+};
+</script>
+```
+
+那么触发事件的时候，还是使用emit来触发，因为setup中没有this，所以只能用setup函数的第二个参数context来触发事件，context 参数是组件的上下文：
+
+```vue
+<template>
+    <button @click="triggerEvent">触发事件</button>
+</template>
+
+<script>
+export default {
+    name: "User",
+    setup(props, context) {
+        function triggerEvent() {
+            context.emit("event1", "张三", 50);
+        }
+
+        return {
+            triggerEvent,
+        };
+    },
+};
+</script>
+```
+
+## 11、全局事件总线
+
+需要借助第三方库mitt，安装这个库：
+
+```cmd
+npm i mitt
+```
+
+通常会在src目录下新建一个utils目录，utils中新建一个event-bus.js文件：
+
+```js
+import mitt from "mitt";
+
+export default mitt();
+```
+
+mitt 函数会返回一个 emitter 对象，所以这个 event-bus.js 就相当于导出了一个 emitter 对象，可以将这个 emitter 对象当作一个全局事件总线对象，有需要即可导入使用。
+
+使用全局事件总线对象来绑定事件，绑定回调函数的时候，该回调函数只能接收一个参数：
+
+```vue
+<template>
+    <User></User>
+</template>
+
+<script>
+import { onMounted } from "vue";
+import emitter from "./utils/event-bus.js";
+import User from "./components/User.vue";
+
+export default {
+    name: "App",
+    components: {
+        User,
+    },
+    setup() {
+        onMounted(() => {
+            emitter.on("event1", user => {
+                alert(user.name + ", " + user.age);
+            });
+        });
+    },
+};
+</script>
+```
+
+使用全局事件总线对象来触发事件：
+
+```vue
+<template>
+    <button @click="triggerEvent">触发事件</button>
+</template>
+
+<script>
+import emitter from "../utils/event-bus.js";
+
+export default {
+    name: "User",
+    setup(props, context) {
+        function triggerEvent() {
+            emitter.emit("event1", { name: "张三", age: 50 });
+        }
+
+        return {
+            triggerEvent,
+        };
+    },
+};
+</script>
+```
+
+清除所有的事件：
+
+```js
+emitter.all.clear();
+```
+
+清除指定的事件：
+
+```js
+emitter.off('event1');
+```
+
+## 12、计算属性
+
+计算属性最重要的特征是：只要计算属性关联的数据发生变化，计算属性的回调函数就会执行。所以计算属性关联的数据必须是具有响应式的。
+
+在Vue3中，使用组合式API的计算属性，使用computed函数，函数中传递一个要关联的数据，这个数据是响应式的，最后返回一个对象，这个被返回的对象就是计算属性，也是一个具有响应式的对象：
+
+```js
+export default {
+    name: "App",
+    setup() {
+        let data = reactive({
+            name: "",
+        });
+
+        let reversedName = computed({
+            get() {
+                return data.name.split("").reverse().join("");
+            },
+            set(val) {
+                console.log(666);
+                data.name = val.split('').reverse().join('');
+            },
+        });
+
+        return {
+            data,
+            reversedName,
+        };
+    },
+};
+```
+
+计算属性如果没有set方法还可以简写：
+
+```vue
+<template>
+    反转前：<input type="text" v-model="data.name" />
+    <br />
+    反转后：<input type="text" v-model="reversedName" />
+</template>
+
+<script>
+import { computed, reactive } from "vue";
+
+export default {
+    name: "App",
+    setup() {
+        let data = reactive({
+            name: "",
+        });
+
+        let reversedName = computed(() => {
+            return data.name.split("").reverse().join("");
+        });
+
+        return {
+            data,
+            reversedName,
+        };
+    },
+};
+</script>
+```
+
+如果使用选项式API的方式使用computed的话，就和Vue2一样。
+
+## 13、监视
+
+监视的属性也一定要是具有响应式的属性，所以要用 ref 函数或 reactive 函数包裹。
+
+使用组合式API，需要先导入watch，使用watch()函数，第一个参数是要被监视的数据，第二个参数是监视的数据发生变化要执行的函数，第三个参数是配置项,第三个参数不是必须的：
+
+```js
+watch(
+    counter,
+    (newVal, oldVal) => {
+        console.log(newVal, oldVal);
+    },
+    { immediate: true, deep: true }
+);
+```
+
+### 13.1、监视ref数据
+
+ref 包裹数据生成的是 RefImpl 对象，底层采用了 Object.defineProperty 和 Proxy，这个 RefImpl 对象有一个 Value 属性，这个 Value 属性就是一个 Proxy 对象。
+
+监视一个基本类型数据：
+
+```js
+import { ref, watch } from "vue";
+
+export default {
+    name: "App",
+    setup() {
+        let counter = ref(0);
+        // 这里必须监视的直接是counter，因为他是具有响应式的，counter.value是没有的
+        watch(counter, (newVal, oldVal) => {
+            console.log(newVal, oldVal);
+        });
+        return { counter };
+    },
+};
+```
+
+如果想要监视多个数据，那就调用多次 watch：
+
+```js
+watch(
+    counter,
+    (newVal, oldVal) => {
+        console.log(newVal, oldVal);
+    },
+    { immediate: true, deep: true }
+);
+watch(
+    counter2,
+    (newVal, oldVal) => {
+        console.log(newVal, oldVal);
+    },
+    { immediate: true, deep: true }
+);
+```
+
+如果在监视多个数据时，需要处理的逻辑是一样的，就可以使用数组的形式一次性监视多个属性，不需要写多次 watch：
+
+```js
+watch([counter, counter2], (newVal, oldVal) => {
+    console.log(newVal, oldVal);
+});
+```
+
+而这样的话，参数newVal和oldVal也变成了数组形式，对应着被监视的数组新值和旧值。
+
+ref 包裹一个对象时：
+
+```js
+let data = ref({
+    counter: 1
+});
+watch(data.value, (newVal, oldVal) => {
+    console.log(newVal, oldVal);
+});
+```
+
+这个是可以的，data 的 value 是一个 Proxy 对象，所以可以直接监视的，但是依旧拿不到 oldVal，且默认开启深度监视不能关闭。
+
+但是如果只监视 data 对象的话：
+
+```js
+let data = ref({
+    counter: 1
+});
+watch(data, (newVal, oldVal) => {
+    console.log(newVal, oldVal);
+});
+```
+
+会先发现现在监视不到 counter 的变化了，这说明 RefImpl 对象默认没有开启深度监视，且它是支持 deep 配置的。
+
+### 13.2、监视reactive数据
+
+reactive 包裹生成的是 Proxy 对象。
+
+对于 reactive 获取的代理对象来说，默认就是开启深度侦听的，并且这种深度侦听是无法取消的，配置 deep:false 也不行；而且对于 reactive 获取的代理对象，在进行侦听的时候，只能获取 newVal，oldVal 获取不到：
+
+```js
+import { reactive, ref, watch } from "vue";
+
+export default {
+    name: "App",
+    setup() {
+        let data = reactive({
+            counter: 0,
+            a: {
+                b: {
+                    c: {
+                        d: {
+                            counter2: 0,
+                        },
+                    },
+                },
+            },
+        });
+
+        watch(data, (newVal, oldVal) => {
+            console.log(newVal, oldVal);
+        });
+
+        return {
+            data,
+        };
+    },
+};
+```
+
+如果不想有深度监视的效果，不想监视所有的属性，那么watch的第一个参数只需要写希望被监视的数据，但是要保证这个数据是具有响应式的，如果是对象内的基本数据类型，那么可以使用函数的方式：
+
+```js
+watch(
+    () => data.counter,  // 要监听的属性
+    (newVal, oldVal) => {  // 监听执行的函数
+        console.log(newVal, oldVal);
+    }
+);
+
+watch(
+    data.a.b,  // 要监听的属性，b是一个对象，是有响应式的，因为reactive是递归的
+    (newVal, oldVal) => {  // 监听执行的函数
+        console.log(newVal, oldVal);
+    }
+);
+```
+
+如果想要同时监视 多个数据的话，使用数组形式，数组中的数据还是要保证都是具有响应式的：
+
+```js
+watch([() => data.counter, () => data.a.b.c.d.counter2], (newVal, oldVal) => {
+    console.log(newVal, oldVal);
+});
+```
+
+第一个参数使用函数返回的形式的话，可以使用 deep 配置来关闭默认的深度监视：
+
+```js
+watch(
+    () => data.a.b,
+    (newVal, oldVal) => {
+        console.log(newVal, oldVal);
+    },
+    { deep: false }
+);
+```
+
+总结：
+
++ 只要监视的是对象，都拿不到 oldVal，只能拿到 newVal；监视的是基本数据类型，可以拿到 oldVal。
++ 要想监视基本数据类型，只能使用函数返回的形式写，因为要求是个响应式对象。
++ 使用函数返回的形式返回一个对象，监视该对象可以关闭默认的深度监视。
+
+### 13.3、watchEffect
+
+这也是一个用来监视的组合式API，这个 watchEffect 函数中直接跟一个回调函数即可，他会在初始的时候和监视的数据发生变化时自动调用。它会会监听它的回调函数中使用过的所有属性：
+
+```js
+import { reactive, watchEffect } from "vue";
+
+export default {
+    name: "App",
+    setup() {
+        let data = reactive({
+            counter1: 0,
+            counter2: 100,
+            counter3: 1000,
+        });
+
+        // 监视data.counter1, data.counter3这两个属性
+        watchEffect(() => {
+            console.log(data.counter1, data.counter3);
+        });
+
+        return {
+            data,
+        };
+    },
+};
+```
+
+## 14、自定义钩子
+
+hook 函数，hook 翻译为 钩子，用的时候把他勾出来使用。和 Vue2 的混入 mixin 差不多，都是为了代码的复用。
+
+一般会将钩子放在一个目录中，所以在 src 下新建一个目录 hooks，在 hooks 下新建一个文件，文件名一般就为功能名，比如定义一个求和的钩子，sum.js：
+
+```js
+import { reactive } from "vue";
+export default function () {
+    let data = reactive({
+        num1: 0,
+        num2: 0,
+        res: 0,
+    });
+
+    function sum() {
+        data.res = data.num1 + data.num2;
+    }
+
+    return {
+        data,
+        sum,
+    };
+}
+```
+
+使用钩子：
+
+```js
+// 导入钩子
+import sum from "./hooks/sum";
+
+export default {
+    name: "App",
+    setup() {
+        // 使用钩子
+        let res = sum();
+        // 返回对象
+        return {
+            ...res,
+        };
+        
+        // 或直接返回
+        // return sum();
+    },
+};
+```
+
+## 15、深只读与浅只读
+
+其它组件传递过来的数据，如果不希望你修改，你最好加上只读，以防以后不小心改了人家的数据。
+
+深只读：readonly，具有响应式的对象中的所有的属性，包括子对象中的子对象中的属性，所有的值都是不能修改的。
+
+浅只读：shallowReadonly，具有响应式的对象中的第一层属性是只读的，其他层属性是可修改的。
+
+需要引入这两个函数：
+
+```js
+import { readonly, shallowReadonly } from "vue";
+```
+
+使用这两个函数，参数必须是有响应式的数据：
+
+```js
+import { reactive, readonly, shallowReadonly } from "vue";
+
+export default {
+    name: "App",
+    setup() {
+        let data = {
+            counter1: 0,
+            a: {
+                b: {
+                    c: {
+                        counter2: 100,
+                    },
+                },
+            },
+        };
+
+        // 深只读
+        data = readonly(data)
+        
+        // 浅只读
+        // data = shallowReadonly(data)
+
+        return { data };
+    },
+};
+```
+
+## 16、toRef和toRefs
+
+以下代码中，模板语法中，引用变量的代码太长、太冗余：
+
+```vue
+<template>
+    <h2>计数器：{{ data.counter1 }}</h2>
+    <button @click="data.counter1++">点我加1</button>
+    <hr />
+    <h2>计数器：{{ data.counter2 }}</h2>
+    <button @click="data.counter2++">点我加1</button>
+    <hr />
+    <h2>计数器：{{ data.a.b.counter3 }}</h2>
+    <button @click="data.a.b.counter3++">点我加1</button>
+</template>
+
+<script>
+import { reactive } from "vue";
+export default {
+    name: "App",
+    setup() {
+        let data = reactive({
+            counter1: 1,
+            counter2: 100,
+            a: {
+                b: {
+                    counter3: 1000,
+                },
+            },
+        });
+
+        return { data };
+    },
+};
+</script>
+```
+
+所以可以使用 toRef 或 toRefs 将具体的数据给到某个变量上，比如将 data.a.b.counter3 给到一个新的变量 cnt3 上，然后就可以直接使用cnt3来访问数据。
+
+### 16.1、toRef
+
+通过 toRef 将目标对象中的属性转换成一个 ObejctRefImpl 对象，该对象是一个引用对象，具有相应式，然后将该对象赋值给一个变量再 return 出去，在模板语法中就可以使用这个变量，当访问或修改这个变量时，就会执行 ObjectRefImpl 对象中的 get 和 set 方法，从而修改到目标对象的属性。
+
+所以可以使用 toRef ：`toRef(对象, '该对象中的属性名')`，将一个对象中的某个属性 转化成一个具有响应式的对象，这样在模板中使用时就只需要写新的对象名即可：
+
+```vue
+<template>
+    <h2>计数器：{{ counter1 }}</h2>
+    <button @click="counter1++">点我加1</button>
+    <hr />
+    <h2>计数器：{{ counter2 }}</h2>
+    <button @click="counter2++">点我加1</button>
+    <hr />
+    <h2>计数器：{{ counter3 }}</h2>
+    <button @click="counter3++">点我加1</button>
+</template>
+
+<script>
+import { reactive, toRef } from "vue";
+export default {
+    name: "App",
+    setup() {
+        let data = reactive({
+            counter1: 1,
+            counter2: 100,
+            a: {
+                b: {
+                    counter3: 1000,
+                },
+            },
+        });
+
+        return {
+            counter1: toRef(data, "counter1"),
+            counter2: toRef(data, "counter2"),
+            counter3: toRef(data.a.b, "counter3"),
+        };
+    },
+};
+</script>
+```
+
+### 16.2、toRefs
+
+toRefs 可以将一个对象的一级属性的书写省略掉，但是要注意使用扩展运算符将 toRefs 生成的对象中的属性解析出来：
+
+```vue
+<template>
+    <h2>{{ data }}</h2>
+    <h2></h2>
+    <h2>计数器：{{ counter1 }}</h2>
+    <button @click="counter1++">点我加1</button>
+    <hr />
+    <h2>计数器：{{ counter2 }}</h2>
+    <button @click="counter2++">点我加1</button>
+    <hr />
+    <h2>计数器：{{ a.b.counter3 }}</h2>
+    <button @click="a.b.counter3++">点我加1</button>
+</template>
+
+<script>
+import { reactive, toRefs } from "vue";
+export default {
+    name: "App",
+    setup() {
+        let data = reactive({
+            counter1: 1,
+            counter2: 100,
+            a: {
+                b: {
+                    counter3: 1000,
+                },
+            },
+        });
+
+        return {
+            ...toRefs(data),
+        };
+    },
+};
+</script>
+```
+
+## 17、toRaw和markRow
+
+toRaw：转换为原始，将响应式对象转换为普通对象。只适用于 reactive 生成的响应式对象。
+
+markRaw：标记为原始，标记某个对象，让这个对象永远都不具备响应式。比如在集成一些第三方库的时候，比如有一个巨大的只读列表，不让其具备响应式是一种性能优化。
+
+用法：
+
+```js
+let 原始对象 = toRaw(具有响应式的对象)
+data.x = markRaw({
+    counter2: 100,
+});
+```
+
+## 18、Fragment组件
+
+Vue3 新增的组件。fragment 翻译为：碎片。片段。
+
+在 Vue2 中每个组件必须有一个根标签。这样性能方面稍微有点问题，如果每一个组件必须有根标签，组件嵌套组件的时候，有很多无用的根标签。
+
+在 Vue3 中每个组件不需要有根标签。实际上内部实现的时候，最终将所有组件嵌套好之后，最外层会添加一个 Fragment，用这个 fragment 当做根标签。这是一种性能优化策略。
+
+## 19、Teleport组件
+
+teleport 翻译为：远距离传送。用于设置组件的显示位置，teleport标签中的元素，会被显示到teleport标签指定的位置，teleport 的 to 后可以使用选择器来指定元素：
+
+```vue
+<teleport to='body'>
+    <!-- 遮罩层，一会整个遮罩层要瞬移到body下面 -->
+    <div v-show="isShow" class="cover">
+        <!-- 模态窗口 -->
+        <div class="s">
+            我是一个窗口.....
+            <button @click="isShow = false">关闭</button>
+        </div>
+    </div>
+</teleport>
+```
+
++ 这个div会被显示到body标签的下面
+
+## 20、provide和inject
+
+Vue3 提供了两个函数专门来完成祖宗组件给后代组件传递数据，用来完成组件之间数据的传递，组件之间的通信：
+
++ provide
++ inject
+
+在祖宗组件中使用 provide 提供数据，在后代组件中使用 inject 完成数据的注入。
+
+provide 语法：
+
+```js
+provide('名字', 数据)
+```
+
+inject 语法：
+
+```js
+inject('名字')
+```
+
+祖宗组件中的写法：
+
+```vue
+<script>
+    import {provide, ref} from 'vue'
+    import ErZi from './ErZi.vue'
+    export default {
+        name : 'YeYe',
+        components : {ErZi},
+        setup(){
+            let counter = ref(1)
+            
+            // 在祖宗组件中使用provide提供数据
+            provide('c', counter)
+
+            return {counter}
+        }
+    }
+</script>
+```
+
+后代组件中的写法：
+
+```vue
+<script>
+    import {ref, inject} from 'vue'
+    export default {
+        name : 'SunZi',
+        setup(){
+            // data
+            let isShow = ref(false)
+            // 注入inject
+            let counter = inject('c')
+            // 返回一个对象
+            return {isShow, counter}
+        }
+    }
+</script>
+```
+
+## 21、延迟显示
+
+实现：在一个文本框中输入数据，一秒后再显示这个数据。
+
+### 21.1、watch实现
+
+```vue
+<template>
+  <input type="text" v-model="name">
+  <br><br>
+  {{newName}}
+</template>
+
+<script>
+  import {ref, watch} from 'vue'
+  export default {
+    name : 'App',
+    setup(){
+      // data
+      let name = ref('')
+      let newName = ref(name.value)
+      // 侦听属性
+      watch(name, (newValue, oldValue) => {
+        setTimeout(() => {
+          newName.value = newValue
+        }, 300)
+      })
+      // 返回一个对象
+      return {name, newName}
+    }
+  }
+</script>
+```
+
+### 21.2、自定义ref实现
+
+官方教程：https://cn.vuejs.org/api/reactivity-advanced.html#customref
+
+ref 是一个函数，像这种函数是可以程序员自定义的，自定义的 ref 也具有响应式。
+
+自定义 ref 也是调用 Vue 提供的 API 接口来自定义，只需要照着模板写
+
+```vue
+<script>
+import { ref, customRef } from "vue";
+export default {
+    name: "App",
+    setup() {
+        // 使用Vue3内置的ref
+        //let name = ref('test')
+
+        // 创建一个防抖 ref
+        // 以下这个代码就是真正的属于自己定义的ref了。
+        // ref是一个函数，那么我们自定义的ref同样是一个函数。
+        function useDebouncedRef(value) {
+            let t;
+            // 自定义的ref这个函数体当中的代码不能随便写，必须符合ref规范。
+            // 通过调用customRef函数来获取一个自定义的ref对象。
+            // 调用customRef函数的时候必须给该函数传递一个回调：这个回调可以叫做factory
+            // 对于这个回调函数来说，有两个非常重要的参数：track是追踪。trigger是触发。
+            const x = customRef((track, trigger) => {
+                // 对于这个factory回调来说，必须返回一个对象，并且对象中要有get
+                return {
+                    // 模板语句中只要使用到该数据，get会自动调用。
+                    get() {
+                        console.log("get执行了");
+                        // 告诉Vue去追踪这个value的变化
+                        track();
+                        return value;
+                    },
+                    // 当模板语句中修改该数据的时候，set会自动调用。
+                    set(newValue) {
+                        console.log("set执行了", newValue);
+                        clearTimeout(t);
+                        t = setTimeout(() => {
+                            value = newValue;
+                            // 触发(通知去调用get方法)
+                            trigger();
+                        }, 1000);
+                    },
+                };
+            });
+
+            // 返回自定义的ref对象实例。
+            return x;
+        }
+
+        // 使用自定义的ref同样具备响应式。
+        let name = useDebouncedRef("test");
+
+        // 返回一个对象
+        return { name };
+    },
+};
+</script>
+```
+
+## 
