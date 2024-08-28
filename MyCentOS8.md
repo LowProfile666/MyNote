@@ -124,9 +124,6 @@ mysql -uroot -p
 
 # 修改密码
 ALTER USER 'root'@'localhost' IDENTIFIED BY '1234'
-# 开放远程访问：
-create user 'root'@'%' identified by 'root123';  # 1、先创建权限记录
-grant all privileges on *.* to 'root'@'%' with grant option;  # 2、授权
 ```
 
 在本地使用 navicat 连接 ssh 再连接 mysql 时，如果报错：
@@ -138,6 +135,43 @@ grant all privileges on *.* to 'root'@'%' with grant option;  # 2、授权
 ![image-20240427105134404](https://gitee.com/LowProfile666/image-bed/raw/master/img/202404271051467.png)
 
 重新连接，又会重新生成。
+
+开放远程连接：
+
+1. 登录mysql，使用mysql数据库
+
+2. 创建一个允许从任何主机连接的用户并授权：
+
+   ```
+   CREATE USER 'root'@'%' IDENTIFIED BY '1234';
+   GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+   ```
+
+3. 刷新权限：
+
+   ```
+   FLUSH PRIVILEGES;
+   ```
+
+4. 检查用户和主机权限：
+
+   ```
+   SELECT User, Host FROM mysql.user;
+   ```
+
+5. 重启mysql服务：
+
+   ```
+   systemctl restart mysqld
+   ```
+
+6. 开启云服务器的安全组，放过3306端口
+
+7. 测试连接：
+
+   ```
+   mysql -u root -h 47.109.78.124 -p
+   ```
 
 # 安装.NET
 

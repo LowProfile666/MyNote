@@ -3707,6 +3707,8 @@ new Vue({
 </div>
 ```
 
+router-view标签是跟路由的路径有关的，如果想要在父组件中使用了router-view，还要在子组件中使用的话，就要对应好路由 关系，然后可以直接使用。
+
 ### 19.3、多级路由
 
 在原先的路由中使用children属性，children 是一个数组，表示多个子路由。数组中一个对象就是一个子路由，子路由中的 path 不要以 `/` 开始，系统会自动添加 `/`：
@@ -3872,6 +3874,12 @@ export default {
 </li>
 ```
 
+不能直接在 `:to` 后面写路由的名字，必须要是一个对象，里面有name属性：
+
+```vue
+<router-link :to="{ name: 'shi'}">
+```
+
 ### 19.6、params传参
 
 params 方式传参是将参数直接跟在路径后面：
@@ -3887,7 +3895,7 @@ params 方式传参是将参数直接跟在路径后面：
 </li>
 ```
 
-如果是以对象的方式传参的话，属性名是params，并且只能使用路由的名字，不能使用路径：
+如果是以对象的方式传参的话，属性名是params，并且只能使用路由的名字，不能使用路径；或者想使用名字而不是用路径的话，也只能使用对象的形式传参，因为路由的名称本身不包含参数：
 
 ```vue
 <li>
@@ -4273,6 +4281,7 @@ export default {
 + beforeRouteEnter 的执行时机是：进入路由组件之前。
 + beforeRouteLeave 的执行时机是：离开路由组件之前。
 + beforeRouteEnter 中的 to 和 beforeRouteLeave 中的 from 是同一个对象
++ beforeRouteUpdate 在同一路由的参数更新时会被调用。
 
 ### 19.13、路由的两种路径模式
 
@@ -4656,6 +4665,51 @@ export default {
 };
 ```
 
+注意：使用reactive包裹的对象，只能修改其属性，不能直接修改对象，因为该对象是一个Proxy对象，具有响应式，如果直接修改对象的话，就变成了普通对象，不是响应式的了：
+
+```js
+let user = reactive({
+    name: "zs",
+    age: 12,
+});
+let student = {
+    name: 'lisi',
+    age: 12
+};
+
+user = student;  // 直接修改了对象，user将不再具有响应式
+```
+
+也不能直接赋值一个reactive包裹的对象，这样仍然不会有响应式：
+
+```js
+setup(props) {
+    let article = reactive({});
+    onMounted(() => {
+        $.ajax({
+            url: "/detail/" + props.articleId,
+            type: "get",
+            success(resp) {
+                // 重新赋值一个reactive包裹的对象
+                article = reactive(resp);
+            },
+        });
+    });
+
+    return {
+        article,
+    };
+},
+```
+
+这个操作相当于给 `article` 重新赋值为一个新的响应式对象，但是 `setup` 函数返回的 `article` 的引用已经固定。Vue 组件模板依赖的是 `setup` 函数中最初返回的 `article` 引用。如果你直接替换掉 `article`，模板不会感知到这个变化，因此响应性会失效。
+
+所以可以使用 `Object.assign` 来更新用reactive包裹的对象的属性，或者是手动修改对象的每一个属性：
+
+```js
+Object.assign(article, resp); 
+```
+
 ### 5.2、shallowReactive
 
 浅层次响应式，对象的第一层支持响应式，第二层就不再支持了。
@@ -4703,6 +4757,8 @@ export default {
 ```
 
 这份参数props也是一个Proxy对象，也具有响应式，且 props 在 setup 中不需要 return，可以直接使用（return 了也是一样的）。
+
+这个props参数就是该组件中定义的props属性，如果没有定义props属性，不能使用该参数。
 
 ## 7、组合式API
 
