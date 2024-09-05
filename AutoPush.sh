@@ -16,25 +16,35 @@ commit_message=${user_commit_message:-$current_date}
 # echo "拉取GitHub的最新代码..."
 # git pull github master
 
-# 检查是否有未提交的更改
-if ! git diff-index --quiet HEAD --; then
-  # 添加所有更改
+# 根据git status来检测是否有新增或修改的文件
+status_output=$(git status --porcelain)
+
+if [ -n "$status_output" ]; then
+  # 如果有变化，将所有更改添加到暂存区
+  echo "执行：git add .\n"
   git add .
-  echo "git add ."
   
+  echo "\n"
+
   # 提交更改，使用用户输入的commit信息或默认信息
+  echo "执行：git commit -m " +  "$commit_message" + "\n"
   git commit -m "$commit_message"
-  echo "git commit -m" + "$commit_message"
   
+  echo "\n"
+
   # 推送到Gitee的master分支
   echo "推送代码到Gitee..."
   git push gitee master
+
+  echo "\n"
   
   # 推送到GitHub的master分支
   echo "推送代码到GitHub..."
   git push github master
+
+  echo "\n"
   
   echo "代码已成功提交并推送到Gitee和GitHub的master分支。"
 else
-  echo "没有未提交的更改。"
+  echo "没有新增或修改的文件，操作终止。"
 fi
