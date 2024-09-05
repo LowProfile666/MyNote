@@ -157,6 +157,22 @@ redis-server /root/redis/redis/redis.conf
 
 Redis 已经给我们提供好了配置文件模板，是 Redis 安装目录的根目录下的 redis.conf 文件。由于刚刚对 redis.conf 配置文件做了修改，所以在开启 Redis 时需要显示指出要加载的配置文件。配置文件应紧跟在 redis-server 的后面。
 
+## 2.1.5 在windows上以服务的形式运行
+
+需要专门下载redis的windows版本，然后以服务的形式启动，在redis的安装目录下：
+
+```
+redis-server --service-install redis.windows.conf --loglevel verbose
+```
+
+取消以服务的形式：
+
+```
+redis-server --service-uninstall
+```
+
+
+
 # 2.2 连接前的配置
 
 Redis 是一个内存数据库服务器，就像 MySQL 一样，对其操作也需要通过客户端进行。若要使远程主机上的客户端能够连接并访问到服务端的 Redis，则服务端首先要做如下配置。

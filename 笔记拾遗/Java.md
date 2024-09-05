@@ -1,3 +1,58 @@
+# 下载文件
+
+2024.09.05
+
+后端程序中，使用easyexecl库，很简单的实现下载文件。就是将数据写到响应流中，响应给前端，主要是需要设置响应头等内容，告诉浏览器应该以文件下载的形式来处理这个响应。
+
+以下代码接收一个名为ids的List参数，前端发送的请求是这样的：/api/customer/export?ids=1,2,3,4，在后端控制器方法上可以直接使用Integer[] ids来接收，如果想要使用List<Integer> ids来接收的话，需要加上@RequestParam("ids")注解才可以
+
+```java
+@GetMapping("/api/customer/export")
+public void export(HttpServletResponse response, @RequestParam("ids") List<Integer> ids) throws IOException {
+    String fileName = URLEncoder.encode("客户名单", "UTF-8");
+    response.setContentType("application/octet-stream"); //二进制流类型，因为是返回文件
+    response.setHeader("Content-disposition", "attachment;filename="+fileName+".xlsx");
+    customerService.export(response, ids);
+}
+```
+
+- **`response.setContentType`**: 这个方法用于设置返回内容的 MIME 类型。`application/octet-stream` 是一个通用的二进制流 MIME 类型。
+- **`application/octet-stream`**: 表示任意的二进制数据。这个 MIME 类型通常用于下载文件，因为它告诉浏览器这是一个二进制文件，应该下载而不是显示。
+- 其他常用的 MIME 类型包括：
+  - **`application/pdf`**: PDF 文件
+  - **`application/vnd.ms-excel`**: Excel 文件（老版本）
+  - **`application/vnd.openx`**
+  - **`mlformats-officedocument.spreadsheetml.sheet`**: Excel 文件（新版本）
+  - **`text/html`**: HTML 文件
+
+- **`URLEncoder.encode`**: 这个方法用于将字符串转换为 `application/x-www-form-urlencoded` 格式，以确保文件名在 URL 中传输时不会出现问题。
+- **`response.setHeader`**: 这个方法用于设置 HTTP 响应头。
+- `Content-disposition`: 这个头字段的作用是告诉浏览器如何处理响应体。
+  - **`attachment`**: 表示响应体应该被下载到本地；不是在浏览器内联显示。**`inline`**: 表示内容会内联显示（即在浏览器窗口中显示）。
+  - **`filename`**: 指定下载时默认的文件名。浏览器会使用这个文件名保存下载的文件。
+
+然后easyexcel库的下载方法就一句代码，主要的是要将数据转为对应的模板类：
+
+```java
+public void export(HttpServletResponse response, List<Integer> ids) throws IOException {
+    List<TCustomer> list = customerMapper.list(ids);
+    List<CustomerExcel> excelList = new ArrayList<>();
+
+    list.forEach( (tCustomer) -> {
+        CustomerExcel customerExcel = new CustomerExcel();
+        // 将tCustomer转为customerExcel
+    }
+                 
+    EasyExcel.write(response.getOutputStream(), CustomerExcel.class)  // 设置响应流和模板类
+                 .sheet()  // 可以指定默认的sheet名称
+                 .doWrite(excelList);  // 将模板类的数据集合写入
+}
+```
+
+List<TCustomer> list这是数据库中的数据，要将这些数据写在excel文件中；
+
+List<CustomerExcel> excelList这是被写入excel文件中的数据。
+
 # Java基础
 
 ## List 集合排序
