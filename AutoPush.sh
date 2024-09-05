@@ -32,7 +32,7 @@ if [ -n "$status_output" ]; then
   echo ""
 
   # 提交更改，使用用户输入的commit信息或默认信息
-  echo "执行：git commit -m " +  "$commit_message" + "\n"
+  echo "执行：git commit -m $commit_message"
   echo ""
   git commit -m "$commit_message"
   
