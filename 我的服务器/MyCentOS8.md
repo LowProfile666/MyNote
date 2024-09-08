@@ -253,6 +253,10 @@ redis：/root/redis、/usr/local/redis
 nginx：/usr/sbin/nginx
 
 + 配置文件：/etc/nginx/nginx.conf
++ conf ---> /etc/nginx/
++ html ---> /usr/share/nginx/html/
++ logs ---> /var/log/nginx/
++ sbin(里面只有一个nginx启动文件) ---> /usr/sbin
 
 node：/root/.nvm/versions/node/v20.11.1/bin/node
 
