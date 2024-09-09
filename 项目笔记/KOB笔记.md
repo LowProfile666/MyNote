@@ -1,5 +1,9 @@
 # KOB
 
+大体思路与结构：
+
+![image-20240909183146117](https://gitee.com/LowProfile666/image-bed/raw/master/img/202409091831383.png)
+
 前后端不分离：html 代码是根据请求的数据在服务器端生成的。client 访问 server，server 直接向 client 发送一个 html 字符串。
 
 前后端分离：返回的 html 代码是在用户端浏览器用 js 代码完成的。打开一个网站，第一步是将网站的静态文件从某个地方先传过来，然后 client 再向 server 发送数据，server 会将一些数据返回给 client，前端接收到数据后，再动态的渲染页面。
